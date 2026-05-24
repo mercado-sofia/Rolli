@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
+import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -73,10 +74,10 @@ export default function SessionPage() {
         </h1>
       </div>
 
-      <Card gradient className="text-center">
-        <p className="text-sm text-white/80">Elapsed time</p>
-        <p className="font-display mt-2 text-5xl">00:42:18</p>
-      </Card>
+      <ElapsedTimer
+        startedAt={displayHangout.startedAt}
+        autoEndHours={HANGOUT_LIMITS.autoEndHours}
+      />
 
       <Card>
         <p className="text-sm text-muted">Photos remaining</p>
