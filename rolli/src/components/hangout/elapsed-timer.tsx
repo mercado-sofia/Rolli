@@ -22,9 +22,14 @@ export function ElapsedTimer({ startedAt, autoEndHours }: ElapsedTimerProps) {
     <Card gradient className="text-center">
       <p className="text-sm text-white/80">Elapsed time</p>
       <p className="font-display mt-2 text-5xl tabular-nums">{elapsedLabel}</p>
-      {remainingMs !== null && (
+      {remainingMs !== null && remainingMs > 0 && (
         <p className="mt-3 text-sm text-white/70">
           Auto-ends in {formatDuration(remainingMs)}
+        </p>
+      )}
+      {remainingMs === 0 && (
+        <p className="mt-3 text-sm text-white/90">
+          Time&apos;s up — hangout is ending…
         </p>
       )}
     </Card>

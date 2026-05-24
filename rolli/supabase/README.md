@@ -22,6 +22,7 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 7 | `migrations/007_reveal_flow.sql` |
 | 8 | `migrations/008_guessing.sql` |
 | 9 | `migrations/009_gallery.sql` |
+| 10 | `migrations/010_auto_end_hangout.sql` |
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -52,6 +53,13 @@ Restart `npm run dev` after changing env vars locally.
 ## 4. Storage
 
 Migration `004_storage.sql` creates a private bucket `hangout-photos`. Migration `006_photo_capture.sql` adds upload slots, capture RPCs, and storage policies for the camera feature.
+
+## 5. Auto-end after 24 hours
+
+Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `started_at` is more than 24 hours ago (same as Film Keeper tapping **Develop Memories** → status `developing`).
+
+- **On every poll:** `get_hangout_public` checks and auto-ends that hangout if expired (works with the app’s 2s sync).
+- **Optional background job:** enable the `pg_cron` extension, then schedule `auto_end_expired_hangouts()` every 15 minutes (SQL snippet at the bottom of `010_auto_end_hangout.sql`) so hangouts end even when nobody has the app open.
 
 ## Schema overview
 
