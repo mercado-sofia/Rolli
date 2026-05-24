@@ -1,0 +1,217 @@
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  finishReveal,
+  getRevealState,
+  signRevealPhotoUrls,
+} from "@/lib/reveal";
+import type { Hangout } from "@/types/hangout";
+import type { RevealPerspective } from "@/types/reveal";
+
+type RevealExperienceProps = {
+  hangoutId: string;
+  sessionToken: string;
+  hangoutTitle: string;
+  isFilmKeeper: boolean;
+  onFinishReveal: (hangout: Hangout) => void;
+};
+
+export function RevealExperience({
+  hangoutId,
+  sessionToken,
+  hangoutTitle,
+  isFilmKeeper,
+  onFinishReveal,
+}: RevealExperienceProps) {
+  const [perspectives, setPerspectives] = useState<RevealPerspective[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
+
+  const loadReveal = useCallback(async () => {
+    setLoadError(null);
+
+    const { data, error } = await getRevealState(hangoutId, sessionToken);
+
+    if (error || !data) {
+      setLoadError(error ?? "Could not load reveal");
+      setLoading(false);
+      return;
+    }
+
+    const signed = await signRevealPhotoUrls(data.perspectives);
+    setPerspectives(signed);
+    setLoading(false);
+  }, [hangoutId, sessionToken]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadReveal();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [loadReveal]);
+
+  const current = perspectives[currentIndex];
+  const isLastPerspective = currentIndex >= perspectives.length - 1;
+  const totalPhotos = perspectives.reduce(
+    (sum, perspective) => sum + perspective.photos.length,
+    0,
+  );
+
+  function goToNextPerspective() {
+    if (!isLastPerspective) {
+      setCurrentIndex((index) => index + 1);
+    }
+  }
+
+  async function handleFinishReveal() {
+    setFinishing(true);
+    setFinishError(null);
+
+    const { data, error } = await finishReveal(hangoutId, sessionToken);
+
+    setFinishing(false);
+
+    if (error || !data) {
+      setFinishError(error ?? "Could not continue to guessing");
+      return;
+    }
+
+    onFinishReveal(data);
+  }
+
+  if (loading) {
+    return (
+      <p className="text-center text-sm text-muted">Developing your memories…</p>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-sm text-pink">{loadError}</p>
+        <Button type="button" variant="secondary" onClick={() => void loadReveal()}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  if (perspectives.length === 0 || totalPhotos === 0) {
+    return (
+      <Card className="text-center">
+        <p className="text-sm text-muted">
+          No memories were captured in this hangout.
+        </p>
+        {isFilmKeeper && (
+          <Button
+            type="button"
+            className="mt-4"
+            disabled={finishing}
+            onClick={() => void handleFinishReveal()}
+          >
+            {finishing ? "Continuing…" : "Continue to guessing"}
+          </Button>
+        )}
+        {finishError && (
+          <p className="mt-3 text-sm text-pink">{finishError}</p>
+        )}
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <p className="text-sm font-medium text-muted">Reveal</p>
+        <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
+        <p className="mt-2 text-sm text-muted">
+          Perspective {currentIndex + 1} of {perspectives.length}
+        </p>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {current && (
+          <motion.div
+            key={current.participantId}
+            initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
+            transition={{ duration: 0.45, ease: "easeOut" }}
+            className="space-y-4"
+          >
+            <Card gradient className="text-center">
+              <p className="text-xs uppercase tracking-widest text-white/70">
+                Anonymous perspective
+              </p>
+              <p className="font-display mt-2 text-3xl">{current.nickname}</p>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-3">
+              {current.photos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-lavender/40"
+                >
+                  {photo.signedUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photo.signedUrl}
+                      alt={`Memory from ${current.nickname}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-xs text-muted">
+                      Unavailable
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {current.photos.length === 0 && (
+              <p className="text-center text-sm text-muted">
+                No photos from this perspective.
+              </p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!isLastPerspective ? (
+        <Button type="button" onClick={goToNextPerspective}>
+          Next perspective
+        </Button>
+      ) : isFilmKeeper ? (
+        <>
+          {finishError && (
+            <p className="text-center text-sm text-pink">{finishError}</p>
+          )}
+          <Button
+            type="button"
+            disabled={finishing}
+            onClick={() => void handleFinishReveal()}
+          >
+            {finishing ? "Continuing…" : "Continue to guessing"}
+          </Button>
+        </>
+      ) : (
+        <Card className="text-center">
+          <p className="text-sm text-muted">
+            Waiting for the Film Keeper to open the guessing phase…
+          </p>
+        </Card>
+      )}
+    </div>
+  );
+}

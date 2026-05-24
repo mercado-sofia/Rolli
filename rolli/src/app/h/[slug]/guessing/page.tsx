@@ -1,26 +1,28 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
-import { startReveal } from "@/lib/reveal";
 import { useSessionStore } from "@/store/session-store";
 
-export default function DevelopingPage() {
+export default function GuessingPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const slug = params.slug;
 
   const hangout = useSessionStore((state) => state.hangout);
   const participant = useSessionStore((state) => state.participant);
-  const setHangout = useSessionStore((state) => state.setHangout);
 
-  const [starting, setStarting] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
+  const goToReveal = useCallback(() => {
+    router.replace(`/h/${slug}/reveal`);
+  }, [router, slug]);
+
+  const goToDeveloping = useCallback(() => {
+    router.replace(`/h/${slug}/developing`);
+  }, [router, slug]);
 
   const goToSession = useCallback(() => {
     router.replace(`/h/${slug}/session`);
@@ -30,20 +32,12 @@ export default function DevelopingPage() {
     router.replace(`/h/${slug}/waiting`);
   }, [router, slug]);
 
-  const goToReveal = useCallback(() => {
-    router.replace(`/h/${slug}/reveal`);
-  }, [router, slug]);
-
-  const goToGuessing = useCallback(() => {
-    router.replace(`/h/${slug}/guessing`);
-  }, [router, slug]);
-
   const { hangout: syncedHangout, isLoading } = useHangoutSync({
     slug,
+    onRevealing: goToReveal,
+    onDeveloping: goToDeveloping,
     onActive: goToSession,
     onWaiting: goToWaiting,
-    onRevealing: goToReveal,
-    onGuessing: goToGuessing,
   });
 
   const displayHangout = syncedHangout ?? hangout;
@@ -67,37 +61,11 @@ export default function DevelopingPage() {
     }
   }, [isLoading, participant, displayHangout, router, slug]);
 
-  async function handleStartReveal() {
-    if (!participant || !displayHangout) return;
+  const isGuessingPhase =
+    displayHangout?.status === "guessing" ||
+    displayHangout?.status === "completed";
 
-    setStarting(true);
-    setStartError(null);
-
-    const { data, error } = await startReveal(
-      displayHangout.id,
-      participant.sessionToken,
-    );
-
-    setStarting(false);
-
-    if (error || !data) {
-      setStartError(error ?? "Could not start reveal");
-      return;
-    }
-
-    setHangout(data);
-    router.replace(`/h/${slug}/reveal`);
-  }
-
-  if (isLoading || !hasValidSession || !participant || !displayHangout) {
-    return (
-      <MobileShell className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
-  }
-
-  if (displayHangout.status !== "developing") {
+  if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
     return (
       <MobileShell className="justify-center">
         <p className="text-center text-muted">Loading…</p>
@@ -108,22 +76,23 @@ export default function DevelopingPage() {
   return (
     <MobileShell className="justify-center gap-8">
       <div className="text-center">
-        <p className="text-sm font-medium text-muted">Hangout ended</p>
+        <p className="text-sm font-medium text-muted">Guessing phase</p>
         <h1 className="font-display mt-2 text-3xl text-ink">
           {displayHangout.title}
         </h1>
         <p className="mt-3 text-sm text-muted">
-          Your memories are developing. The reveal is coming soon.
+          Match each anonymous nickname to a real name. Full guessing UI
+          arrives in the next update.
         </p>
       </div>
 
       <Card gradient className="text-center">
-        <p className="text-4xl">🎞️</p>
+        <p className="text-4xl">🕵️</p>
         <p className="font-display mt-4 text-2xl leading-snug">
-          Memories in the darkroom
+          Who was who?
         </p>
         <p className="mt-3 text-sm text-white/80">
-          Every anonymous perspective is being prepared for the big reveal.
+          The reveal is done — now comes the social deduction round.
         </p>
       </Card>
 
@@ -135,29 +104,12 @@ export default function DevelopingPage() {
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Status</dt>
-            <dd className="font-medium capitalize text-ink">developing</dd>
+            <dd className="font-medium capitalize text-ink">
+              {displayHangout.status}
+            </dd>
           </div>
         </dl>
       </Card>
-
-      {participant.isFilmKeeper ? (
-        <>
-          {startError && (
-            <p className="text-center text-sm text-pink">{startError}</p>
-          )}
-          <Button
-            type="button"
-            disabled={starting}
-            onClick={() => void handleStartReveal()}
-          >
-            {starting ? "Starting reveal…" : "Start reveal"}
-          </Button>
-        </>
-      ) : (
-        <p className="text-center text-sm text-muted">
-          Waiting for the Film Keeper to start the reveal…
-        </p>
-      )}
     </MobileShell>
   );
 }
