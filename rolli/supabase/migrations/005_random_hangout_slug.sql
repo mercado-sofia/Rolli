@@ -11,8 +11,8 @@ DECLARE
   v_attempt INTEGER := 0;
 BEGIN
   LOOP
-    -- 12 lowercase hex chars, e.g. a3f9c2b1e8d4
-    v_slug := lower(encode(gen_random_bytes(6), 'hex'));
+    -- 12 lowercase hex chars, e.g. a3f9c2b1e8d4 (built-in UUID, no pgcrypto)
+    v_slug := lower(substr(replace(gen_random_uuid()::text, '-', ''), 1, 12));
 
     IF NOT EXISTS (SELECT 1 FROM public.hangouts WHERE slug = v_slug) THEN
       RETURN v_slug;
