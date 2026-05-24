@@ -8,6 +8,7 @@ import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { fetchHangoutBySlug } from "@/lib/hangouts";
+import { hangoutParticipantPath } from "@/lib/hangout-routes";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -22,6 +23,13 @@ export default function InviteLandingPage() {
   const [hangout, setHangout] = useState<Hangout | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const hasMatchingSession =
+    Boolean(sessionParticipant) &&
+    Boolean(sessionHangout) &&
+    sessionHangout!.slug === slug &&
+    hangout !== null &&
+    sessionHangout!.id === hangout.id;
 
   useEffect(() => {
     let cancelled = false;
@@ -43,14 +51,6 @@ export default function InviteLandingPage() {
 
       setHangout(data);
       setLoading(false);
-
-      if (
-        sessionParticipant &&
-        sessionHangout?.slug === slug &&
-        sessionHangout.id === data.id
-      ) {
-        router.replace(`/h/${slug}/waiting`);
-      }
     }
 
     void load();
@@ -58,7 +58,13 @@ export default function InviteLandingPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, sessionHangout, sessionParticipant, router]);
+  }, [slug]);
+
+  useEffect(() => {
+    if (loading || !hangout || !hasMatchingSession) return;
+
+    router.replace(hangoutParticipantPath(slug, hangout.status));
+  }, [loading, hangout, hasMatchingSession, router, slug]);
 
   if (loading) {
     return (
@@ -83,6 +89,14 @@ export default function InviteLandingPage() {
         <Button href="/start" variant="secondary">
           Back to start
         </Button>
+      </MobileShell>
+    );
+  }
+
+  if (hasMatchingSession) {
+    return (
+      <MobileShell className="justify-center">
+        <p className="text-center text-muted">Taking you to your hangout…</p>
       </MobileShell>
     );
   }
