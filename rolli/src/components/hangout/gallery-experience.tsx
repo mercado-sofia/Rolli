@@ -28,33 +28,42 @@ export function GalleryExperience({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
-  const loadGallery = useCallback(async () => {
-    setLoadError(null);
-    setLoading(true);
-
-    const { data, error } = await getGallery(hangoutId, sessionToken);
-
-    if (error || !data) {
-      setLoadError(error ?? "Could not load gallery");
-      setLoading(false);
-      return;
-    }
-
-    const signed = await signGalleryPhotoUrls(data.perspectives);
-    setPerspectives(signed);
-    setLoading(false);
-  }, [hangoutId, sessionToken]);
+  const retryLoad = useCallback(() => {
+    setReloadKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadGallery();
-    }, 0);
+    let cancelled = false;
+
+    async function load() {
+      setLoadError(null);
+      setLoading(true);
+
+      const { data, error } = await getGallery(hangoutId, sessionToken);
+      if (cancelled) return;
+
+      if (error || !data) {
+        setPerspectives([]);
+        setLoadError(error ?? "Could not load gallery");
+        setLoading(false);
+        return;
+      }
+
+      const signed = await signGalleryPhotoUrls(data.perspectives);
+      if (cancelled) return;
+
+      setPerspectives(signed);
+      setLoading(false);
+    }
+
+    void load();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      cancelled = true;
     };
-  }, [loadGallery]);
+  }, [hangoutId, reloadKey, sessionToken]);
 
   const filteredPerspectives = useMemo(() => {
     if (filter === "all") return perspectives;
@@ -127,7 +136,7 @@ export function GalleryExperience({
     return (
       <div className="space-y-4 text-center">
         <p className="text-sm text-pink">{loadError}</p>
-        <Button type="button" variant="secondary" onClick={() => void loadGallery()}>
+        <Button type="button" variant="secondary" onClick={retryLoad}>
           Try again
         </Button>
       </div>
@@ -159,7 +168,7 @@ export function GalleryExperience({
         <Button
           type="button"
           variant={filter === "all" ? "primary" : "secondary"}
-          className="!w-auto shrink-0 px-4"
+          className="w-auto! shrink-0 px-4"
           onClick={() => setFilter("all")}
         >
           All
@@ -169,7 +178,7 @@ export function GalleryExperience({
             key={perspective.participantId}
             type="button"
             variant={filter === perspective.participantId ? "primary" : "secondary"}
-            className="!w-auto shrink-0 px-4"
+            className="w-auto! shrink-0 px-4"
             onClick={() => setFilter(perspective.participantId)}
           >
             {perspective.nickname}
@@ -236,7 +245,7 @@ export function GalleryExperience({
                 {perspective.photos.map((photo, index) => (
                   <div
                     key={photo.id}
-                    className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-lavender/30"
+                    className="relative aspect-3/4 overflow-hidden rounded-2xl bg-lavender/30"
                   >
                     {photo.signedUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
