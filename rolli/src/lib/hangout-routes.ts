@@ -20,26 +20,6 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
   }
 }
 
-/** Path segment for the current hangout phase page (e.g. "session"). */
-export function hangoutPhaseSegment(status: HangoutStatus): string {
-  switch (status) {
-    case "active":
-      return "session";
-    case "waiting":
-      return "waiting";
-    case "developing":
-      return "developing";
-    case "revealing":
-      return "reveal";
-    case "guessing":
-      return "guessing";
-    case "completed":
-      return "gallery";
-    default:
-      return "waiting";
-  }
-}
-
 const GUESSING_PATH_SUFFIX = "/guessing";
 
 /**

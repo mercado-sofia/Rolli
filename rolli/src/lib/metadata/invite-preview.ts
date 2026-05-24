@@ -1,4 +1,4 @@
-import { APP_BASE_URL, APP_NAME } from "@/lib/constants";
+import { APP_NAME } from "@/lib/constants";
 
 export type InvitePreviewCopy = {
   title: string;
@@ -6,14 +6,6 @@ export type InvitePreviewCopy = {
   imageHeading: string;
   imageTagline: string;
 };
-
-export function getSiteOrigin(): string {
-  return APP_BASE_URL.replace(/\/$/, "");
-}
-
-export function getInviteUrl(slug: string): string {
-  return `${getSiteOrigin()}/h/${slug}`;
-}
 
 export function getInvitePreviewCopy(hangoutTitle?: string): InvitePreviewCopy {
   if (hangoutTitle) {

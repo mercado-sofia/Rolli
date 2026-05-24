@@ -1,5 +1,16 @@
 export const APP_NAME = "Rolli";
 
+/** Static files under /public — use these paths in metadata, Image src, and audio. */
+export const PUBLIC_ASSETS = {
+  images: {
+    logo: "/images/rolli-logo.png",
+  },
+  audio: {
+    sfx: "/audio/sfx",
+    music: "/audio/music",
+  },
+} as const;
+
 /** Public site URL used in generated invitation links */
 export const APP_BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL ?? "https://rolli.app";

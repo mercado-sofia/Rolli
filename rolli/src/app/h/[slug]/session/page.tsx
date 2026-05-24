@@ -114,7 +114,7 @@ export default function SessionPage() {
             disabled={ending}
             onClick={() => void handleDevelopMemories()}
           >
-            {ending ? "Developing…" : "Develop Memories"}
+            {ending ? "Ending…" : "End hangout"}
           </Button>
         </>
       )}

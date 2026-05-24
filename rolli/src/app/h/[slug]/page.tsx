@@ -2,10 +2,8 @@ import type { Metadata } from "next";
 
 import { InviteLanding } from "@/app/h/[slug]/invite-landing";
 import { APP_NAME } from "@/lib/constants";
-import {
-  getInvitePreviewCopy,
-  getInviteUrl,
-} from "@/lib/metadata/invite-preview";
+import { buildInviteUrl } from "@/lib/invite";
+import { getInvitePreviewCopy } from "@/lib/metadata/invite-preview";
 import { fetchHangoutBySlugServer } from "@/lib/services/hangouts-server";
 
 type InvitePageProps = {
@@ -18,7 +16,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const { data: hangout } = await fetchHangoutBySlugServer(slug);
   const copy = getInvitePreviewCopy(hangout?.title);
-  const pageUrl = getInviteUrl(slug);
+  const pageUrl = buildInviteUrl(slug);
 
   const ogImageUrl = `${pageUrl}/opengraph-image`;
 

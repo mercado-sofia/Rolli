@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, PUBLIC_ASSETS } from "@/lib/constants";
 
 import "./globals.css";
 
@@ -34,6 +34,10 @@ export const metadata: Metadata = {
     title: APP_NAME,
     description:
       "Anonymous photos, delayed reveal, and a playful guessing game for friend hangouts.",
+  },
+  icons: {
+    icon: PUBLIC_ASSETS.images.logo,
+    apple: PUBLIC_ASSETS.images.logo,
   },
 };
 
