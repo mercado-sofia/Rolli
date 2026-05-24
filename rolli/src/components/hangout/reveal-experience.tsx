@@ -32,34 +32,46 @@ export function RevealExperience({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
-  const loadReveal = useCallback(async () => {
-    setLoadError(null);
-
-    const { data, error } = await getRevealState(hangoutId, sessionToken);
-
-    if (error || !data) {
-      setLoadError(error ?? "Could not load reveal");
-      setLoading(false);
-      return;
-    }
-
-    const signed = await signRevealPhotoUrls(data.perspectives);
-    setPerspectives(signed);
-    setLoading(false);
-  }, [hangoutId, sessionToken]);
+  const retryLoad = useCallback(() => {
+    setReloadKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadReveal();
-    }, 0);
+    let cancelled = false;
+
+    async function load() {
+      setLoadError(null);
+      setLoading(true);
+
+      const { data, error } = await getRevealState(hangoutId, sessionToken);
+      if (cancelled) return;
+
+      if (error || !data) {
+        setPerspectives([]);
+        setCurrentIndex(0);
+        setLoadError(error ?? "Could not load reveal");
+        setLoading(false);
+        return;
+      }
+
+      const signed = await signRevealPhotoUrls(data.perspectives);
+      if (cancelled) return;
+
+      setPerspectives(signed);
+      setCurrentIndex(0);
+      setLoading(false);
+    }
+
+    void load();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      cancelled = true;
     };
-  }, [loadReveal]);
+  }, [hangoutId, reloadKey, sessionToken]);
 
   const current = perspectives[currentIndex];
   const isLastPerspective = currentIndex >= perspectives.length - 1;
@@ -100,7 +112,7 @@ export function RevealExperience({
     return (
       <div className="space-y-4 text-center">
         <p className="text-sm text-pink">{loadError}</p>
-        <Button type="button" variant="secondary" onClick={() => void loadReveal()}>
+        <Button type="button" variant="secondary" onClick={retryLoad}>
           Try again
         </Button>
       </div>
@@ -161,7 +173,7 @@ export function RevealExperience({
               {current.photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-lavender/40"
+                  className="relative aspect-3/4 overflow-hidden rounded-2xl bg-lavender/40"
                 >
                   {photo.signedUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

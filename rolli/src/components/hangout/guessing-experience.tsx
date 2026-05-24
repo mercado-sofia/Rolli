@@ -36,6 +36,7 @@ export function GuessingExperience({
   const [results, setResults] = useState<GuessingResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [savingTargetId, setSavingTargetId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
@@ -43,42 +44,55 @@ export function GuessingExperience({
 
   const isCompleted = hangoutStatus === "completed";
 
-  const loadGuessing = useCallback(async () => {
-    setLoadError(null);
-    setLoading(true);
+  const retryLoad = useCallback(() => {
+    setReloadKey((key) => key + 1);
+  }, []);
 
-    if (isCompleted) {
-      const { data, error } = await getGuessingResults(hangoutId, sessionToken);
-      if (error || !data) {
-        setLoadError(error ?? "Could not load results");
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      setLoadError(null);
+      setLoading(true);
+
+      if (isCompleted) {
+        const { data, error } = await getGuessingResults(hangoutId, sessionToken);
+        if (cancelled) return;
+
+        if (error || !data) {
+          setResults(null);
+          setLoadError(error ?? "Could not load results");
+          setLoading(false);
+          return;
+        }
+
+        setResults(data);
+        setState(null);
         setLoading(false);
         return;
       }
-      setResults(data);
+
+      const { data, error } = await getGuessingState(hangoutId, sessionToken);
+      if (cancelled) return;
+
+      if (error || !data) {
+        setState(null);
+        setLoadError(error ?? "Could not load guessing");
+        setLoading(false);
+        return;
+      }
+
+      setResults(null);
+      setState(data);
       setLoading(false);
-      return;
     }
 
-    const { data, error } = await getGuessingState(hangoutId, sessionToken);
-    if (error || !data) {
-      setLoadError(error ?? "Could not load guessing");
-      setLoading(false);
-      return;
-    }
-
-    setState(data);
-    setLoading(false);
-  }, [hangoutId, isCompleted, sessionToken]);
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadGuessing();
-    }, 0);
+    void load();
 
     return () => {
-      window.clearTimeout(timeoutId);
+      cancelled = true;
     };
-  }, [loadGuessing]);
+  }, [hangoutId, isCompleted, reloadKey, sessionToken]);
 
   const votesByTarget = useMemo(() => {
     const map = new Map<string, string>();
@@ -142,14 +156,25 @@ export function GuessingExperience({
     return (
       <div className="space-y-4 text-center">
         <p className="text-sm text-pink">{loadError}</p>
-        <Button type="button" variant="secondary" onClick={() => void loadGuessing()}>
+        <Button type="button" variant="secondary" onClick={retryLoad}>
           Try again
         </Button>
       </div>
     );
   }
 
-  if (isCompleted && results) {
+  if (isCompleted) {
+    if (!results) {
+      return (
+        <div className="space-y-4 text-center">
+          <p className="text-sm text-muted">Results are not available yet.</p>
+          <Button type="button" variant="secondary" onClick={retryLoad}>
+            Refresh
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -186,7 +211,14 @@ export function GuessingExperience({
   }
 
   if (!state) {
-    return null;
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-sm text-muted">Could not load the guessing round.</p>
+        <Button type="button" variant="secondary" onClick={retryLoad}>
+          Try again
+        </Button>
+      </div>
+    );
   }
 
   const allVotesIn = state.votesSubmitted >= state.votesRequired;
@@ -231,7 +263,7 @@ export function GuessingExperience({
                       key={`${target.participantId}-${name}`}
                       type="button"
                       variant={selected === name ? "primary" : "secondary"}
-                      className="!w-auto shrink-0 px-4"
+                      className="w-auto! shrink-0 px-4"
                       disabled={isSaving || takenByOther}
                       onClick={() => void handleGuess(target.participantId, name)}
                     >
