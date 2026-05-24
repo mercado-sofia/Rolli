@@ -3,6 +3,7 @@ export type RevealPhoto = {
   storagePath: string;
   capturedAt: string;
   signedUrl?: string;
+  fileName?: string;
 };
 
 export type RevealPerspective = {

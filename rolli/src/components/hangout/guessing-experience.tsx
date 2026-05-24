@@ -15,6 +15,7 @@ import type { GuessingResults, GuessingState } from "@/types/guessing";
 
 type GuessingExperienceProps = {
   hangoutId: string;
+  hangoutSlug: string;
   sessionToken: string;
   hangoutTitle: string;
   hangoutStatus: HangoutStatus;
@@ -24,6 +25,7 @@ type GuessingExperienceProps = {
 
 export function GuessingExperience({
   hangoutId,
+  hangoutSlug,
   sessionToken,
   hangoutTitle,
   hangoutStatus,
@@ -177,6 +179,8 @@ export function GuessingExperience({
             </Card>
           ))}
         </div>
+
+        <Button href={`/h/${hangoutSlug}/gallery`}>View memory gallery</Button>
       </div>
     );
   }
