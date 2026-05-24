@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -206,6 +207,7 @@ export function GuessingExperience({
         </div>
 
         <Button href={`/h/${hangoutSlug}/gallery`}>View memory gallery</Button>
+        <BackHomeButton />
       </div>
     );
   }

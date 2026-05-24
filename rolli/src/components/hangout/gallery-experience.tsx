@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/download-photos";
@@ -273,6 +274,8 @@ export function GalleryExperience({
           ))}
         </div>
       )}
+
+      <BackHomeButton />
     </div>
   );
 }
