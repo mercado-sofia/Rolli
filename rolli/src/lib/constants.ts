@@ -7,7 +7,7 @@ export const APP_BASE_URL =
 export const HANGOUT_LIMITS = {
   maxParticipants: 10,
   minToStart: 2,
-  maxToStart: 8,
+  maxToStart: 10,
   maxPhotosPerUser: 10,
   autoEndHours: 24,
   hangoutPollMs: 2000,

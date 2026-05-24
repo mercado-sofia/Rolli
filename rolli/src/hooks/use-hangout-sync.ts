@@ -45,12 +45,7 @@ export function useHangoutSync({
   const onRevealingRef = useRef(onRevealing);
   const onGuessingRef = useRef(onGuessing);
   const onCompletedRef = useRef(onCompleted);
-  const didNotifyActiveRef = useRef(false);
-  const didNotifyWaitingRef = useRef(false);
-  const didNotifyDevelopingRef = useRef(false);
-  const didNotifyRevealingRef = useRef(false);
-  const didNotifyGuessingRef = useRef(false);
-  const didNotifyCompletedRef = useRef(false);
+  const lastNotifiedStatusRef = useRef<Hangout["status"] | null>(null);
 
   useEffect(() => {
     onActiveRef.current = onActive;
@@ -62,12 +57,7 @@ export function useHangoutSync({
   }, [onActive, onWaiting, onDeveloping, onRevealing, onGuessing, onCompleted]);
 
   useEffect(() => {
-    didNotifyActiveRef.current = false;
-    didNotifyWaitingRef.current = false;
-    didNotifyDevelopingRef.current = false;
-    didNotifyRevealingRef.current = false;
-    didNotifyGuessingRef.current = false;
-    didNotifyCompletedRef.current = false;
+    lastNotifiedStatusRef.current = null;
   }, [slug]);
 
   useEffect(() => {
@@ -96,34 +86,32 @@ export function useHangoutSync({
       setLoadError(null);
       setIsLoading(false);
 
-      if (data.status === "active" && onActiveRef.current && !didNotifyActiveRef.current) {
-        didNotifyActiveRef.current = true;
-        onActiveRef.current(data);
-      }
+      if (lastNotifiedStatusRef.current !== data.status) {
+        lastNotifiedStatusRef.current = data.status;
 
-      if (data.status === "waiting" && onWaitingRef.current && !didNotifyWaitingRef.current) {
-        didNotifyWaitingRef.current = true;
-        onWaitingRef.current(data);
-      }
+        if (data.status === "active" && onActiveRef.current) {
+          onActiveRef.current(data);
+        }
 
-      if (data.status === "developing" && onDevelopingRef.current && !didNotifyDevelopingRef.current) {
-        didNotifyDevelopingRef.current = true;
-        onDevelopingRef.current(data);
-      }
+        if (data.status === "waiting" && onWaitingRef.current) {
+          onWaitingRef.current(data);
+        }
 
-      if (data.status === "revealing" && onRevealingRef.current && !didNotifyRevealingRef.current) {
-        didNotifyRevealingRef.current = true;
-        onRevealingRef.current(data);
-      }
+        if (data.status === "developing" && onDevelopingRef.current) {
+          onDevelopingRef.current(data);
+        }
 
-      if (data.status === "guessing" && onGuessingRef.current && !didNotifyGuessingRef.current) {
-        didNotifyGuessingRef.current = true;
-        onGuessingRef.current(data);
-      }
+        if (data.status === "revealing" && onRevealingRef.current) {
+          onRevealingRef.current(data);
+        }
 
-      if (data.status === "completed" && onCompletedRef.current && !didNotifyCompletedRef.current) {
-        didNotifyCompletedRef.current = true;
-        onCompletedRef.current(data);
+        if (data.status === "guessing" && onGuessingRef.current) {
+          onGuessingRef.current(data);
+        }
+
+        if (data.status === "completed" && onCompletedRef.current) {
+          onCompletedRef.current(data);
+        }
       }
     }
 

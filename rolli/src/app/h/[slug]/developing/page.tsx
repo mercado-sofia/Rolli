@@ -38,12 +38,17 @@ export default function DevelopingPage() {
     router.replace(`/h/${slug}/guessing`);
   }, [router, slug]);
 
+  const goToGallery = useCallback(() => {
+    router.replace(`/h/${slug}/gallery`);
+  }, [router, slug]);
+
   const { hangout: syncedHangout, isLoading } = useHangoutSync({
     slug,
     onActive: goToSession,
     onWaiting: goToWaiting,
     onRevealing: goToReveal,
     onGuessing: goToGuessing,
+    onCompleted: goToGallery,
   });
 
   const displayHangout = syncedHangout ?? hangout;

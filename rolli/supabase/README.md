@@ -23,6 +23,7 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 8 | `migrations/008_guessing.sql` |
 | 9 | `migrations/009_gallery.sql` |
 | 10 | `migrations/010_auto_end_hangout.sql` |
+| 11 | `migrations/011_guessing_and_start_rules_hardening.sql` |
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
