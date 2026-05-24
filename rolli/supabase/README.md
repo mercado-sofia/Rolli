@@ -24,6 +24,8 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 9 | `migrations/009_gallery.sql` |
 | 10 | `migrations/010_auto_end_hangout.sql` |
 | 11 | `migrations/011_guessing_and_start_rules_hardening.sql` |
+| 12 | `migrations/012_fix_photo_upload_storage_rls.sql` |
+| 13 | `migrations/013_ensure_reveal_rpcs.sql` (run if reveal RPCs are missing) |
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
