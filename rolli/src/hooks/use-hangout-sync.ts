@@ -13,6 +13,7 @@ type UseHangoutSyncOptions = {
   enabled?: boolean;
   onActive?: (hangout: Hangout) => void;
   onWaiting?: (hangout: Hangout) => void;
+  onDeveloping?: (hangout: Hangout) => void;
 };
 
 export function useHangoutSync({
@@ -21,6 +22,7 @@ export function useHangoutSync({
   enabled = true,
   onActive,
   onWaiting,
+  onDeveloping,
 }: UseHangoutSyncOptions) {
   const setHangout = useSessionStore((state) => state.setHangout);
   const sessionHangout = useSessionStore((state) => state.hangout);
@@ -33,17 +35,21 @@ export function useHangoutSync({
 
   const onActiveRef = useRef(onActive);
   const onWaitingRef = useRef(onWaiting);
+  const onDevelopingRef = useRef(onDeveloping);
   const didNotifyActiveRef = useRef(false);
   const didNotifyWaitingRef = useRef(false);
+  const didNotifyDevelopingRef = useRef(false);
 
   useEffect(() => {
     onActiveRef.current = onActive;
     onWaitingRef.current = onWaiting;
-  }, [onActive, onWaiting]);
+    onDevelopingRef.current = onDeveloping;
+  }, [onActive, onWaiting, onDeveloping]);
 
   useEffect(() => {
     didNotifyActiveRef.current = false;
     didNotifyWaitingRef.current = false;
+    didNotifyDevelopingRef.current = false;
   }, [slug]);
 
   useEffect(() => {
@@ -80,6 +86,11 @@ export function useHangoutSync({
       if (data.status === "waiting" && onWaitingRef.current && !didNotifyWaitingRef.current) {
         didNotifyWaitingRef.current = true;
         onWaitingRef.current(data);
+      }
+
+      if (data.status === "developing" && onDevelopingRef.current && !didNotifyDevelopingRef.current) {
+        didNotifyDevelopingRef.current = true;
+        onDevelopingRef.current(data);
       }
     }
 

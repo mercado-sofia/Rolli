@@ -1,5 +1,6 @@
 export {
   createHangoutWithKeeper,
+  endHangout,
   fetchHangoutBySlug,
   joinHangout,
   startHangout,
