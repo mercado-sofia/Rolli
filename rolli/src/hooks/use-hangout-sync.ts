@@ -16,6 +16,7 @@ type UseHangoutSyncOptions = {
   onDeveloping?: (hangout: Hangout) => void;
   onRevealing?: (hangout: Hangout) => void;
   onGuessing?: (hangout: Hangout) => void;
+  onCompleted?: (hangout: Hangout) => void;
 };
 
 export function useHangoutSync({
@@ -27,6 +28,7 @@ export function useHangoutSync({
   onDeveloping,
   onRevealing,
   onGuessing,
+  onCompleted,
 }: UseHangoutSyncOptions) {
   const setHangout = useSessionStore((state) => state.setHangout);
   const sessionHangout = useSessionStore((state) => state.hangout);
@@ -42,11 +44,13 @@ export function useHangoutSync({
   const onDevelopingRef = useRef(onDeveloping);
   const onRevealingRef = useRef(onRevealing);
   const onGuessingRef = useRef(onGuessing);
+  const onCompletedRef = useRef(onCompleted);
   const didNotifyActiveRef = useRef(false);
   const didNotifyWaitingRef = useRef(false);
   const didNotifyDevelopingRef = useRef(false);
   const didNotifyRevealingRef = useRef(false);
   const didNotifyGuessingRef = useRef(false);
+  const didNotifyCompletedRef = useRef(false);
 
   useEffect(() => {
     onActiveRef.current = onActive;
@@ -54,7 +58,8 @@ export function useHangoutSync({
     onDevelopingRef.current = onDeveloping;
     onRevealingRef.current = onRevealing;
     onGuessingRef.current = onGuessing;
-  }, [onActive, onWaiting, onDeveloping, onRevealing, onGuessing]);
+    onCompletedRef.current = onCompleted;
+  }, [onActive, onWaiting, onDeveloping, onRevealing, onGuessing, onCompleted]);
 
   useEffect(() => {
     didNotifyActiveRef.current = false;
@@ -62,6 +67,7 @@ export function useHangoutSync({
     didNotifyDevelopingRef.current = false;
     didNotifyRevealingRef.current = false;
     didNotifyGuessingRef.current = false;
+    didNotifyCompletedRef.current = false;
   }, [slug]);
 
   useEffect(() => {
@@ -113,6 +119,11 @@ export function useHangoutSync({
       if (data.status === "guessing" && onGuessingRef.current && !didNotifyGuessingRef.current) {
         didNotifyGuessingRef.current = true;
         onGuessingRef.current(data);
+      }
+
+      if (data.status === "completed" && onCompletedRef.current && !didNotifyCompletedRef.current) {
+        didNotifyCompletedRef.current = true;
+        onCompletedRef.current(data);
       }
     }
 
