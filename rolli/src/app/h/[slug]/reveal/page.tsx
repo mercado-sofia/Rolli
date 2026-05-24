@@ -26,6 +26,10 @@ export default function RevealPage() {
     router.replace(`/h/${slug}/guessing`);
   }, [router, slug]);
 
+  const goToGallery = useCallback(() => {
+    router.replace(`/h/${slug}/gallery`);
+  }, [router, slug]);
+
   const goToSession = useCallback(() => {
     router.replace(`/h/${slug}/session`);
   }, [router, slug]);
@@ -38,6 +42,7 @@ export default function RevealPage() {
     slug,
     onDeveloping: goToDeveloping,
     onGuessing: goToGuessing,
+    onCompleted: goToGallery,
     onActive: goToSession,
     onWaiting: goToWaiting,
   });

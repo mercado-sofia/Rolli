@@ -36,7 +36,7 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 
 - **Film Keeper** — the room creator; starts and ends the hangout
 - **Max 10 participants** per room
-- **2–8 participants** required to start (Film Keeper cannot start alone)
+- **2–10 participants** required to start (Film Keeper cannot start alone)
 - **Auto-end** after 24 hours if no one ends the session manually
 
 ---
@@ -57,7 +57,7 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 
 ## Project status
 
-> **In progress** — hangouts, participants, and waiting-room flows use Supabase. Photo capture, reveal, guessing, and gallery are still being built.
+> **Implemented (MVP)** — full end-to-end hangout flow is live: waiting → active session → developing → reveal → guessing → completed gallery.
 
 ### Implemented
 
@@ -65,14 +65,19 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 - Landing, guide, start, create, and join flows
 - Supabase schema, RPC functions, and storage bucket migrations
 - Create hangout (Film Keeper + invitation link), join, waiting room with live participant count
-- Film Keeper can start hangout (2–8 participants) via database RPC
+- Film Keeper can start hangout (2–10 participants) via database RPC
+- Camera capture + upload to Supabase Storage
+- Developing screen and Film Keeper reveal controls
+- Reveal phase with perspective unlock flow
+- Guessing phase with private votes and score/results
+- Final gallery with per-photo and zip download actions
+- Automatic end after 24h (poll-based, optional pg_cron background job)
 
 ### Planned
 
-- Reveal, guessing, results, and gallery screens
-- Camera capture + photo upload to Supabase Storage
-- Realtime waiting room updates, auto-end after 24h
-- Download packs (full album, per-perspective, collective)
+- Realtime subscriptions (reduce polling)
+- Auth/rejoin hardening beyond session token
+- Ops jobs for cleanup/maintenance
 
 ---
 
@@ -121,6 +126,8 @@ npm run lint    # ESLint
 2. Copy the generated link and open it in another browser (or incognito)
 3. **Paste Invitation Link** on the join screen with a different nickname
 4. Both users land in the waiting room; Film Keeper can start when 2+ people are in
+5. Capture photos in session, then Film Keeper taps **Develop Memories**
+6. Continue through reveal, guessing, and final gallery
 
 ---
 

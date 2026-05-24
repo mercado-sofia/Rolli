@@ -66,6 +66,7 @@ export async function captureMemory(
   );
 
   if (captureError) {
+    await supabase.storage.from(BUCKET).remove([prepared.storage_path]);
     return { error: parseRpcError(captureError) };
   }
 
