@@ -1,74 +1,64 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { fetchHangoutBySlug, startHangout } from "@/lib/hangouts";
+import { useHangoutSync } from "@/hooks/use-hangout-sync";
+import { startHangout } from "@/lib/hangouts";
 import { useSessionStore } from "@/store/session-store";
-import type { Hangout } from "@/types/hangout";
-
-const POLL_MS = 5000;
 
 export default function WaitingRoomPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
-  const sessionHangout = useSessionStore((state) => state.hangout);
+  const slug = params.slug;
+
   const participant = useSessionStore((state) => state.participant);
   const setHangout = useSessionStore((state) => state.setHangout);
 
-  const [hangout, setLocalHangout] = useState<Hangout | null>(
-    sessionHangout?.slug === params.slug ? sessionHangout : null,
-  );
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const goToSession = useCallback(() => {
+    router.replace(`/h/${slug}/session`);
+  }, [router, slug]);
 
-    async function loadHangout() {
-      const { data, error } = await fetchHangoutBySlug(params.slug);
-      if (cancelled) return;
+  const { hangout, loadError, isLoading } = useHangoutSync({
+    slug,
+    onActive: goToSession,
+  });
 
-      if (error) {
-        setLoadError(error);
-        return;
-      }
-
-      if (data) {
-        setLocalHangout(data);
-        setHangout(data);
-        setLoadError(null);
-      }
-    }
-
-    const intervalId = window.setInterval(() => {
-      void loadHangout();
-    }, POLL_MS);
-
-    void loadHangout();
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, [params.slug, setHangout]);
-
-  const displayHangout = hangout;
-  const participantCount = displayHangout?.participantCount ?? 0;
+  const participantCount = hangout?.participantCount ?? 0;
   const isFilmKeeper = participant?.isFilmKeeper ?? false;
 
+  const hasValidSession =
+    Boolean(participant) &&
+    Boolean(hangout) &&
+    participant!.hangoutId === hangout!.id;
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!participant) {
+      router.replace(`/h/${slug}`);
+      return;
+    }
+
+    if (hangout && participant.hangoutId !== hangout.id) {
+      router.replace(`/h/${slug}`);
+    }
+  }, [isLoading, participant, hangout, router, slug]);
+
   async function handleStartHangout() {
-    if (!participant || !displayHangout) return;
+    if (!participant || !hangout) return;
 
     setStarting(true);
     setStartError(null);
 
     const { data, error } = await startHangout(
-      displayHangout.id,
+      hangout.id,
       participant.sessionToken,
     );
 
@@ -80,7 +70,15 @@ export default function WaitingRoomPage() {
     }
 
     setHangout(data);
-    router.push(`/h/${params.slug}/session`);
+    router.replace(`/h/${slug}/session`);
+  }
+
+  if (isLoading || !hasValidSession || !hangout || !participant) {
+    return (
+      <MobileShell className="justify-center">
+        <p className="text-center text-muted">Loading…</p>
+      </MobileShell>
+    );
   }
 
   return (
@@ -88,7 +86,7 @@ export default function WaitingRoomPage() {
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Waiting room</p>
         <h1 className="font-display mt-2 text-3xl text-ink">
-          {displayHangout?.title ?? "Your hangout"}
+          {hangout.title}
         </h1>
       </div>
 
@@ -105,13 +103,17 @@ export default function WaitingRoomPage() {
         </p>
       </Card>
 
+      {!isFilmKeeper && (
+        <p className="text-center text-sm text-muted">
+          Waiting for the Film Keeper to start the hangout…
+        </p>
+      )}
+
       <Card>
         <dl className="space-y-3 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">Your nickname</dt>
-            <dd className="font-medium text-ink">
-              {participant?.nickname ?? "—"}
-            </dd>
+            <dd className="font-medium text-ink">{participant.nickname}</dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Participants</dt>

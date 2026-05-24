@@ -10,6 +10,7 @@ export const HANGOUT_LIMITS = {
   maxToStart: 8,
   maxPhotosPerUser: 10,
   autoEndHours: 24,
+  hangoutPollMs: 2000,
 } as const;
 
 export const GUIDE_SLIDES = [
