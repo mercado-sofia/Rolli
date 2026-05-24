@@ -1,22 +1,25 @@
 "use client";
 
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
-import { GuessingExperience } from "@/components/hangout/guessing-experience";
+import { GalleryExperience } from "@/components/hangout/gallery-experience";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
-import { fetchHangoutBySlug } from "@/lib/hangouts";
 import { useSessionStore } from "@/store/session-store";
 
-export default function GuessingPage() {
+export default function GalleryPage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const slug = params.slug;
 
   const hangout = useSessionStore((state) => state.hangout);
   const participant = useSessionStore((state) => state.participant);
-  const setHangout = useSessionStore((state) => state.setHangout);
+
+  const goToGuessing = useCallback(() => {
+    router.replace(`/h/${slug}/guessing`);
+  }, [router, slug]);
 
   const goToReveal = useCallback(() => {
     router.replace(`/h/${slug}/reveal`);
@@ -34,20 +37,13 @@ export default function GuessingPage() {
     router.replace(`/h/${slug}/waiting`);
   }, [router, slug]);
 
-  const handleHangoutCompleted = useCallback(async () => {
-    const { data } = await fetchHangoutBySlug(slug);
-    if (data) {
-      setHangout(data);
-    }
-  }, [setHangout, slug]);
-
   const { hangout: syncedHangout, isLoading } = useHangoutSync({
     slug,
+    onGuessing: goToGuessing,
     onRevealing: goToReveal,
     onDeveloping: goToDeveloping,
     onActive: goToSession,
     onWaiting: goToWaiting,
-    onCompleted: () => void handleHangoutCompleted(),
   });
 
   const displayHangout = syncedHangout ?? hangout;
@@ -71,11 +67,13 @@ export default function GuessingPage() {
     }
   }, [isLoading, participant, displayHangout, router, slug]);
 
-  const isGuessingPhase =
-    displayHangout?.status === "guessing" ||
-    displayHangout?.status === "completed";
-
-  if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
+  if (
+    isLoading ||
+    !hasValidSession ||
+    !participant ||
+    !displayHangout ||
+    displayHangout.status !== "completed"
+  ) {
     return (
       <MobileShell className="justify-center">
         <p className="text-center text-muted">Loading…</p>
@@ -84,16 +82,19 @@ export default function GuessingPage() {
   }
 
   return (
-    <MobileShell className="justify-center gap-6 py-8">
-      <GuessingExperience
+    <MobileShell className="gap-6 py-8">
+      <GalleryExperience
         hangoutId={displayHangout.id}
-        hangoutSlug={slug}
         sessionToken={participant.sessionToken}
         hangoutTitle={displayHangout.title}
-        hangoutStatus={displayHangout.status}
-        isFilmKeeper={participant.isFilmKeeper}
-        onHangoutCompleted={() => void handleHangoutCompleted()}
       />
+
+      <Link
+        href={`/h/${slug}/guessing`}
+        className="block text-center text-sm text-muted underline underline-offset-4"
+      >
+        Back to results
+      </Link>
     </MobileShell>
   );
 }
