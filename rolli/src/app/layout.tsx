@@ -16,9 +16,25 @@ const display = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: APP_NAME,
+  title: {
+    default: APP_NAME,
+    template: `%s · ${APP_NAME}`,
+  },
   description:
     "A temporary anonymous disposable camera and social deduction experience for friend groups.",
+  openGraph: {
+    type: "website",
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description:
+      "Anonymous photos, delayed reveal, and a playful guessing game for friend hangouts.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: APP_NAME,
+    description:
+      "Anonymous photos, delayed reveal, and a playful guessing game for friend hangouts.",
+  },
 };
 
 export default function RootLayout({

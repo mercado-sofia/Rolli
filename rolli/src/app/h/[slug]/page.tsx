@@ -1,140 +1,55 @@
-"use client";
+import type { Metadata } from "next";
 
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { InviteLanding } from "@/app/h/[slug]/invite-landing";
+import { APP_NAME } from "@/lib/constants";
+import {
+  getInvitePreviewCopy,
+  getInviteUrl,
+} from "@/lib/metadata/invite-preview";
+import { fetchHangoutBySlugServer } from "@/lib/services/hangouts-server";
 
-import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
-import { MobileShell } from "@/components/layout/mobile-shell";
-import { Button } from "@/components/ui/button";
-import { fetchHangoutBySlug } from "@/lib/hangouts";
-import { hangoutParticipantPath } from "@/lib/hangout-routes";
-import { useSessionStore } from "@/store/session-store";
-import type { Hangout } from "@/types/hangout";
+type InvitePageProps = {
+  params: Promise<{ slug: string }>;
+};
 
-export default function InviteLandingPage() {
-  const params = useParams<{ slug: string }>();
-  const router = useRouter();
-  const slug = params.slug;
+export async function generateMetadata({
+  params,
+}: InvitePageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const { data: hangout } = await fetchHangoutBySlugServer(slug);
+  const copy = getInvitePreviewCopy(hangout?.title);
+  const pageUrl = getInviteUrl(slug);
 
-  const sessionHangout = useSessionStore((state) => state.hangout);
-  const sessionParticipant = useSessionStore((state) => state.participant);
+  const ogImageUrl = `${pageUrl}/opengraph-image`;
 
-  const [hangout, setHangout] = useState<Hangout | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  return {
+    title: copy.title,
+    description: copy.description,
+    openGraph: {
+      title: copy.title,
+      description: copy.description,
+      url: pageUrl,
+      siteName: APP_NAME,
+      type: "website",
+      locale: "en_US",
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: copy.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: copy.title,
+      description: copy.description,
+      images: [ogImageUrl],
+    },
+  };
+}
 
-  const hasMatchingSession =
-    Boolean(sessionParticipant) &&
-    Boolean(sessionHangout) &&
-    sessionHangout!.slug === slug &&
-    hangout !== null &&
-    sessionHangout!.id === hangout.id;
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await fetchHangoutBySlug(slug);
-
-      if (cancelled) return;
-
-      if (fetchError || !data) {
-        setHangout(null);
-        setError(fetchError ?? "Hangout not found");
-        setLoading(false);
-        return;
-      }
-
-      setHangout(data);
-      setLoading(false);
-    }
-
-    void load();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [slug]);
-
-  useEffect(() => {
-    if (loading || !hangout || !hasMatchingSession) return;
-
-    router.replace(hangoutParticipantPath(slug, hangout.status));
-  }, [loading, hangout, hasMatchingSession, router, slug]);
-
-  if (loading) {
-    return (
-      <MobileShell className="justify-center">
-        <p className="text-center text-muted">Loading invitation…</p>
-      </MobileShell>
-    );
-  }
-
-  if (error || !hangout) {
-    return (
-      <MobileShell className="justify-center gap-6 text-center">
-        <div>
-          <p className="text-sm font-medium text-muted">Invitation</p>
-          <h1 className="font-display mt-2 text-3xl text-ink">
-            Link not found
-          </h1>
-          <p className="mt-3 text-sm text-muted">
-            {error ?? "This hangout does not exist or the link is incorrect."}
-          </p>
-        </div>
-        <Button href="/start" variant="secondary">
-          Back to start
-        </Button>
-      </MobileShell>
-    );
-  }
-
-  if (hasMatchingSession) {
-    return (
-      <MobileShell className="justify-center">
-        <p className="text-center text-muted">Taking you to your hangout…</p>
-      </MobileShell>
-    );
-  }
-
-  if (hangout.status !== "waiting") {
-    return (
-      <MobileShell className="justify-center gap-6 text-center">
-        <div>
-          <p className="text-sm font-medium text-muted">Invitation</p>
-          <h1 className="font-display mt-2 text-3xl text-ink">
-            {hangout.title}
-          </h1>
-          <p className="mt-3 text-sm text-muted">
-            This hangout has already started or ended. New guests cannot join.
-          </p>
-        </div>
-        <Link
-          href="/"
-          className="text-sm text-muted underline underline-offset-4"
-        >
-          Go home
-        </Link>
-      </MobileShell>
-    );
-  }
-
-  return (
-    <MobileShell className="justify-center gap-8">
-      <div>
-        <p className="text-sm font-medium text-muted">You&apos;re invited</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">{hangout.title}</h1>
-        <p className="mt-3 text-sm text-muted">
-          Choose an anonymous nickname. Your real name stays hidden until the
-          hangout ends.
-        </p>
-      </div>
-
-      <JoinHangoutForm slug={slug} hangoutTitle={hangout.title} />
-    </MobileShell>
-  );
+export default function InvitePage() {
+  return <InviteLanding />;
 }
