@@ -21,6 +21,12 @@ type CameraCaptureProps = {
 
 type CameraPhase = "idle" | "opening" | "ready" | "capturing";
 
+function waitForNextFrame(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+}
+
 export function CameraCapture({
   hangoutId,
   sessionToken,
@@ -29,6 +35,7 @@ export function CameraCapture({
 }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const flashTimeoutRef = useRef<number | null>(null);
 
   const [phase, setPhase] = useState<CameraPhase>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +61,16 @@ export function CameraCapture({
   const openCamera = useCallback(async () => {
     if (photosRemaining <= 0) return;
 
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera is not supported on this device.");
+      return;
+    }
+
     setError(null);
     setPhase("opening");
+
+    // Mount the viewfinder (video element) before attaching the stream.
+    await waitForNextFrame();
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -69,11 +84,13 @@ export function CameraCapture({
 
       streamRef.current = stream;
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      const video = videoRef.current;
+      if (!video) {
+        throw new Error("Camera not ready");
       }
 
+      video.srcObject = stream;
+      await video.play();
       setPhase("ready");
     } catch {
       stopCamera();
@@ -130,7 +147,13 @@ export function CameraCapture({
       }
 
       setFlash(true);
-      window.setTimeout(() => setFlash(false), 180);
+      if (flashTimeoutRef.current) {
+        window.clearTimeout(flashTimeoutRef.current);
+      }
+      flashTimeoutRef.current = window.setTimeout(() => {
+        setFlash(false);
+        flashTimeoutRef.current = null;
+      }, 180);
 
       onCaptured(data.participant);
       stopCamera();
@@ -147,6 +170,9 @@ export function CameraCapture({
 
   useEffect(() => {
     return () => {
+      if (flashTimeoutRef.current) {
+        window.clearTimeout(flashTimeoutRef.current);
+      }
       stopCamera();
     };
   }, [stopCamera]);
@@ -155,7 +181,7 @@ export function CameraCapture({
     return (
       <>
         {error && <p className="text-center text-sm text-pink">{error}</p>}
-        <Button type="button" disabled={isDisabled} onClick={openCamera}>
+        <Button type="button" disabled={isDisabled} onClick={() => void openCamera()}>
           {photosRemaining <= 0 ? "No photos left" : "Capture memory"}
         </Button>
       </>
@@ -170,7 +196,7 @@ export function CameraCapture({
       isCapturing={phase === "capturing"}
       isOpening={phase === "opening"}
       onCancel={closeCamera}
-      onCapture={takePhoto}
+      onCapture={() => void takePhoto()}
     />
   );
 }
@@ -194,7 +220,7 @@ function CaptureViewfinder({
 }) {
   return (
     <div className="space-y-4">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-ink">
+      <div className="relative aspect-3/4 overflow-hidden rounded-3xl bg-ink">
         <video
           ref={videoRef}
           autoPlay
