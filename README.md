@@ -86,8 +86,8 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 ### Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the SQL migrations in order from [`supabase/migrations/`](supabase/migrations/) (see [`supabase/README.md`](supabase/README.md)).
-3. Copy `rolli/.env.local.example` → `rolli/.env.local` and add your project URL and anon key.
+2. Run the SQL migrations in order from [`rolli/supabase/migrations/`](rolli/supabase/migrations/) (see [`rolli/supabase/README.md`](rolli/supabase/README.md)).
+3. Copy `rolli/.env.local.example` → `rolli/.env.local` (or create `rolli/.env`) and add your project URL and anon key.
 
 ### Install & run
 
@@ -102,6 +102,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Deploy (Vercel)
+
+Set **Root Directory** to `rolli` in the Vercel project settings. Leave **Output Directory** empty (Next.js default). Add the same env vars as local, with `NEXT_PUBLIC_APP_URL` set to your production URL.
 
 ### Other scripts
 
@@ -125,19 +129,20 @@ npm run lint    # ESLint
 ```text
 Rolli/
 ├── README.md                          # You are here
-├── supabase/
-│   ├── README.md                      # Migration setup guide
-│   └── migrations/                    # SQL to run in Supabase
 ├── Rolli — Project Documentation.txt  # Full product spec
-└── rolli/                             # Next.js application
+└── rolli/                             # Next.js application + Supabase
+    ├── supabase/
+    │   ├── README.md                  # Migration setup guide
+    │   └── migrations/                # SQL to run in Supabase
     ├── src/
     │   ├── app/                       # Routes (App Router)
     │   ├── components/                # UI, layout, feature components
     │   ├── lib/
     │   │   ├── services/              # Supabase hangout API
-    │   │   └── supabase/              # Client & row mappers
+    │   │   └── supabase/              # Browser client & row mappers
     │   ├── store/                     # Zustand session (participant token)
     │   └── types/                     # Shared TypeScript types
+    ├── vercel.json
     └── package.json
 ```
 

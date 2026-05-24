@@ -1,5 +1,7 @@
 # Rolli — Supabase setup
 
+Database migrations and Supabase CLI config for the Rolli app. This folder lives alongside the Next.js app in `rolli/`.
+
 ## 1. Create a Supabase project
 
 1. Go to [supabase.com](https://supabase.com) and create a project.
@@ -16,16 +18,17 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 3 | `migrations/003_rpc_functions.sql` |
 | 4 | `migrations/004_storage.sql` |
 
-Or with the [Supabase CLI](https://supabase.com/docs/guides/cli):
+Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
 ```bash
+cd rolli
 supabase link --project-ref <your-project-ref>
 supabase db push
 ```
 
 ## 3. Configure the Next.js app
 
-In `rolli/`, copy the example env file and fill in your values:
+From `rolli/`, create your env file and add your Supabase keys:
 
 ```bash
 cp .env.local.example .env.local
@@ -37,7 +40,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-Restart `npm run dev` after changing env vars.
+For production (Vercel), set the same variables in the project dashboard. Use your live URL for `NEXT_PUBLIC_APP_URL` (e.g. `https://rolli.vercel.app`).
+
+Restart `npm run dev` after changing env vars locally.
 
 ## 4. Storage
 
@@ -51,3 +56,12 @@ Migration `004_storage.sql` creates a private bucket `hangout-photos` for captur
 - **votes** — private guessing phase answers
 
 Sensitive operations use **SECURITY DEFINER** RPC functions so the anon key never exposes raw tables directly.
+
+## Folder layout note
+
+```text
+rolli/
+├── supabase/          ← you are here (migrations, this README)
+├── src/lib/supabase/  ← Next.js Supabase client code (different folder)
+└── .env.local         ← app environment variables
+```
