@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
+import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export default function SessionPage() {
 
   const hangout = useSessionStore((state) => state.hangout);
   const participant = useSessionStore((state) => state.participant);
+  const setParticipant = useSessionStore((state) => state.setParticipant);
 
   const goToWaiting = useCallback(() => {
     router.replace(`/h/${slug}/waiting`);
@@ -84,7 +86,12 @@ export default function SessionPage() {
         <p className="mt-2 text-3xl font-semibold text-ink">{photosRemaining}</p>
       </Card>
 
-      <Button type="button">Capture memory (mock)</Button>
+      <CameraCapture
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+        photosRemaining={photosRemaining}
+        onCaptured={setParticipant}
+      />
 
       {participant.isFilmKeeper && (
         <Button variant="secondary" type="button">

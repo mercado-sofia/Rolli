@@ -18,6 +18,7 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 3 | `migrations/003_rpc_functions.sql` |
 | 4 | `migrations/004_storage.sql` |
 | 5 | `migrations/005_random_hangout_slug.sql` |
+| 6 | `migrations/006_photo_capture.sql` |
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -47,7 +48,7 @@ Restart `npm run dev` after changing env vars locally.
 
 ## 4. Storage
 
-Migration `004_storage.sql` creates a private bucket `hangout-photos` for captured memories. Photo upload from the app will use this bucket in a later feature.
+Migration `004_storage.sql` creates a private bucket `hangout-photos`. Migration `006_photo_capture.sql` adds upload slots, capture RPCs, and storage policies for the camera feature.
 
 ## Schema overview
 
