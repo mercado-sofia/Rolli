@@ -13,7 +13,6 @@ import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { createHangoutWithKeeper } from "@/lib/hangouts";
 import { buildInviteUrl } from "@/lib/invite";
-import { slugify } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 const schema = z.object({
@@ -50,10 +49,8 @@ export default function CreatePage() {
 
   async function onSubmit(values: FormValues) {
     setSubmitError(null);
-    const slug = slugify(values.title);
 
     const { data, error } = await createHangoutWithKeeper({
-      slug,
       title: values.title,
       nickname: values.nickname,
       realName: values.realName,
@@ -66,6 +63,7 @@ export default function CreatePage() {
 
     setSession(data.hangout, data.participant);
 
+    const { slug } = data.hangout;
     setCreated({
       slug,
       title: values.title,

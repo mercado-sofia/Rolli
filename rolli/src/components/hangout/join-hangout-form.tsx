@@ -108,7 +108,7 @@ export function JoinHangoutForm({
           <Field
             id="inviteLink"
             label="Invitation link"
-            placeholder="rolli.app/h/your-hangout-slug"
+            placeholder="rolli.app/h/a3f9c2b1e8d4"
             error={errors.inviteLink?.message}
             readOnly={Boolean(slugFromUrl)}
             {...register("inviteLink")}

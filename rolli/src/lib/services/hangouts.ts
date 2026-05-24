@@ -9,7 +9,6 @@ import type { Hangout } from "@/types/hangout";
 import type { Participant } from "@/types/participant";
 
 export type CreateHangoutInput = {
-  slug: string;
   title: string;
   nickname: string;
   realName: string;
@@ -36,7 +35,6 @@ export async function createHangoutWithKeeper(
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc("create_hangout_with_keeper", {
-    p_slug: input.slug,
     p_title: input.title,
     p_nickname: input.nickname,
     p_real_name: input.realName,
