@@ -3,9 +3,10 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect } from "react";
 
+import { GuessingExperience } from "@/components/hangout/guessing-experience";
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { Card } from "@/components/ui/card";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
+import { fetchHangoutBySlug } from "@/lib/hangouts";
 import { useSessionStore } from "@/store/session-store";
 
 export default function GuessingPage() {
@@ -15,6 +16,7 @@ export default function GuessingPage() {
 
   const hangout = useSessionStore((state) => state.hangout);
   const participant = useSessionStore((state) => state.participant);
+  const setHangout = useSessionStore((state) => state.setHangout);
 
   const goToReveal = useCallback(() => {
     router.replace(`/h/${slug}/reveal`);
@@ -32,12 +34,20 @@ export default function GuessingPage() {
     router.replace(`/h/${slug}/waiting`);
   }, [router, slug]);
 
+  const handleHangoutCompleted = useCallback(async () => {
+    const { data } = await fetchHangoutBySlug(slug);
+    if (data) {
+      setHangout(data);
+    }
+  }, [setHangout, slug]);
+
   const { hangout: syncedHangout, isLoading } = useHangoutSync({
     slug,
     onRevealing: goToReveal,
     onDeveloping: goToDeveloping,
     onActive: goToSession,
     onWaiting: goToWaiting,
+    onCompleted: () => void handleHangoutCompleted(),
   });
 
   const displayHangout = syncedHangout ?? hangout;
@@ -74,42 +84,15 @@ export default function GuessingPage() {
   }
 
   return (
-    <MobileShell className="justify-center gap-8">
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted">Guessing phase</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">
-          {displayHangout.title}
-        </h1>
-        <p className="mt-3 text-sm text-muted">
-          Match each anonymous nickname to a real name. Full guessing UI
-          arrives in the next update.
-        </p>
-      </div>
-
-      <Card gradient className="text-center">
-        <p className="text-4xl">🕵️</p>
-        <p className="font-display mt-4 text-2xl leading-snug">
-          Who was who?
-        </p>
-        <p className="mt-3 text-sm text-white/80">
-          The reveal is done — now comes the social deduction round.
-        </p>
-      </Card>
-
-      <Card>
-        <dl className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted">Your nickname</dt>
-            <dd className="font-medium text-ink">{participant.nickname}</dd>
-          </div>
-          <div className="flex justify-between">
-            <dt className="text-muted">Status</dt>
-            <dd className="font-medium capitalize text-ink">
-              {displayHangout.status}
-            </dd>
-          </div>
-        </dl>
-      </Card>
+    <MobileShell className="justify-center gap-6 py-8">
+      <GuessingExperience
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+        hangoutTitle={displayHangout.title}
+        hangoutStatus={displayHangout.status}
+        isFilmKeeper={participant.isFilmKeeper}
+        onHangoutCompleted={() => void handleHangoutCompleted()}
+      />
     </MobileShell>
   );
 }
