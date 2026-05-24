@@ -1,35 +1,22 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { fetchHangoutBySlug } from "@/lib/hangouts";
+import { createClient } from "@/lib/supabase/client";
+import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
+const POLL_MS = HANGOUT_LIMITS.hangoutPollMs;
+
 type UseHangoutSyncOptions = {
   slug: string;
-  pollMs?: number;
   enabled?: boolean;
-  onActive?: (hangout: Hangout) => void;
-  onWaiting?: (hangout: Hangout) => void;
-  onDeveloping?: (hangout: Hangout) => void;
-  onRevealing?: (hangout: Hangout) => void;
-  onGuessing?: (hangout: Hangout) => void;
-  onCompleted?: (hangout: Hangout) => void;
 };
 
-export function useHangoutSync({
-  slug,
-  pollMs = HANGOUT_LIMITS.hangoutPollMs,
-  enabled = true,
-  onActive,
-  onWaiting,
-  onDeveloping,
-  onRevealing,
-  onGuessing,
-  onCompleted,
-}: UseHangoutSyncOptions) {
+export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) {
   const setHangout = useSessionStore((state) => state.setHangout);
   const sessionHangout = useSessionStore((state) => state.hangout);
 
@@ -39,93 +26,85 @@ export function useHangoutSync({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const onActiveRef = useRef(onActive);
-  const onWaitingRef = useRef(onWaiting);
-  const onDevelopingRef = useRef(onDeveloping);
-  const onRevealingRef = useRef(onRevealing);
-  const onGuessingRef = useRef(onGuessing);
-  const onCompletedRef = useRef(onCompleted);
-  const lastNotifiedStatusRef = useRef<Hangout["status"] | null>(null);
-
-  useEffect(() => {
-    onActiveRef.current = onActive;
-    onWaitingRef.current = onWaiting;
-    onDevelopingRef.current = onDeveloping;
-    onRevealingRef.current = onRevealing;
-    onGuessingRef.current = onGuessing;
-    onCompletedRef.current = onCompleted;
-  }, [onActive, onWaiting, onDeveloping, onRevealing, onGuessing, onCompleted]);
-
-  useEffect(() => {
-    lastNotifiedStatusRef.current = null;
-  }, [slug]);
-
   useEffect(() => {
     if (!enabled || !slug) return;
 
     let cancelled = false;
+    let pollIntervalId: number | undefined;
+    let removeChannel: (() => void) | undefined;
 
-    async function load() {
-      const { data, error } = await fetchHangoutBySlug(slug);
+    function applyHangout(data: Hangout) {
       if (cancelled) return;
+      setLocalHangout(data);
+      setHangout(data);
+      setLoadError(null);
+      setIsLoading(false);
+    }
+
+    async function load(): Promise<Hangout | null> {
+      const { data, error } = await fetchHangoutBySlug(slug);
+      if (cancelled) return null;
 
       if (error) {
         setLoadError(error);
         setIsLoading(false);
-        return;
+        return null;
       }
 
       if (!data) {
         setLoadError("Hangout not found");
         setIsLoading(false);
-        return;
+        return null;
       }
 
-      setLocalHangout(data);
-      setHangout(data);
-      setLoadError(null);
-      setIsLoading(false);
-
-      if (lastNotifiedStatusRef.current !== data.status) {
-        lastNotifiedStatusRef.current = data.status;
-
-        if (data.status === "active" && onActiveRef.current) {
-          onActiveRef.current(data);
-        }
-
-        if (data.status === "waiting" && onWaitingRef.current) {
-          onWaitingRef.current(data);
-        }
-
-        if (data.status === "developing" && onDevelopingRef.current) {
-          onDevelopingRef.current(data);
-        }
-
-        if (data.status === "revealing" && onRevealingRef.current) {
-          onRevealingRef.current(data);
-        }
-
-        if (data.status === "guessing" && onGuessingRef.current) {
-          onGuessingRef.current(data);
-        }
-
-        if (data.status === "completed" && onCompletedRef.current) {
-          onCompletedRef.current(data);
-        }
-      }
+      applyHangout(data);
+      return data;
     }
 
-    const intervalId = window.setInterval(() => {
-      void load();
-    }, pollMs);
+    async function setup() {
+      const initial = await load();
+      if (cancelled) return;
 
-    void load();
+      pollIntervalId = window.setInterval(() => {
+        void load();
+      }, POLL_MS);
+
+      if (!initial) return;
+
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`hangout-status:${initial.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "hangouts",
+            filter: `id=eq.${initial.id}`,
+          },
+          (payload) => {
+            const row = payload.new as HangoutRowJson;
+            if (row.slug !== slug) return;
+            applyHangout(mapHangout(row));
+          },
+        )
+        .subscribe();
+
+      removeChannel = () => {
+        void supabase.removeChannel(channel);
+      };
+    }
+
+    void setup();
 
     return () => {
       cancelled = true;
-      window.clearInterval(intervalId);
+      if (pollIntervalId) {
+        window.clearInterval(pollIntervalId);
+      }
+      removeChannel?.();
     };
-  }, [slug, pollMs, enabled, setHangout]);
+  }, [enabled, setHangout, slug]);
 
   return { hangout, loadError, isLoading };
 }

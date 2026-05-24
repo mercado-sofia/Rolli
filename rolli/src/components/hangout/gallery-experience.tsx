@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/download-photos";
 import { getGallery, signGalleryPhotoUrls } from "@/lib/gallery";
 import type { RevealPerspective } from "@/types/reveal";
@@ -29,10 +30,26 @@ export function GalleryExperience({
   const [downloading, setDownloading] = useState<string | null>(null);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [signedAt, setSignedAt] = useState<number | null>(null);
 
   const retryLoad = useCallback(() => {
     setReloadKey((key) => key + 1);
   }, []);
+
+  const resignPhotos = useCallback(async () => {
+    const { data, error } = await getGallery(hangoutId, sessionToken);
+    if (error || !data) return;
+
+    const signed = await signGalleryPhotoUrls(data.perspectives);
+    setPerspectives(signed);
+    setSignedAt(Date.now());
+  }, [hangoutId, sessionToken]);
+
+  useResignPhotosOnVisibility({
+    signedAt,
+    onResign: resignPhotos,
+    enabled: !loading && perspectives.length > 0,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +63,7 @@ export function GalleryExperience({
 
       if (error || !data) {
         setPerspectives([]);
+        setSignedAt(null);
         setLoadError(error ?? "Could not load gallery");
         setLoading(false);
         return;
@@ -55,6 +73,7 @@ export function GalleryExperience({
       if (cancelled) return;
 
       setPerspectives(signed);
+      setSignedAt(Date.now());
       setLoading(false);
     }
 

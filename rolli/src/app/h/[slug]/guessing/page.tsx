@@ -1,79 +1,47 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useParams } from "next/navigation";
 
 import { GuessingExperience } from "@/components/hangout/guessing-experience";
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
+import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { fetchHangoutBySlug } from "@/lib/hangouts";
 import { useSessionStore } from "@/store/session-store";
 
 export default function GuessingPage() {
   const params = useParams<{ slug: string }>();
-  const router = useRouter();
   const slug = params.slug;
 
-  const hangout = useSessionStore((state) => state.hangout);
-  const participant = useSessionStore((state) => state.participant);
+  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
 
-  const goToReveal = useCallback(() => {
-    router.replace(`/h/${slug}/reveal`);
-  }, [router, slug]);
+  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
+  const displayHangout = syncedHangout ?? hangoutStore;
 
-  const goToDeveloping = useCallback(() => {
-    router.replace(`/h/${slug}/developing`);
-  }, [router, slug]);
-
-  const goToSession = useCallback(() => {
-    router.replace(`/h/${slug}/session`);
-  }, [router, slug]);
-
-  const goToWaiting = useCallback(() => {
-    router.replace(`/h/${slug}/waiting`);
-  }, [router, slug]);
-
-  const handleHangoutCompleted = useCallback(async () => {
-    const { data } = await fetchHangoutBySlug(slug);
-    if (data) {
-      setHangout(data);
-    }
-  }, [setHangout, slug]);
-
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({
+  useHangoutRouteGuard({
     slug,
-    onRevealing: goToReveal,
-    onDeveloping: goToDeveloping,
-    onActive: goToSession,
-    onWaiting: goToWaiting,
-    onCompleted: () => void handleHangoutCompleted(),
+    hangout: displayHangout,
+    isLoading,
+    allowGuessingWhenCompleted: true,
   });
-
-  const displayHangout = syncedHangout ?? hangout;
-
-  const hasValidSession =
-    Boolean(participant) &&
-    Boolean(displayHangout) &&
-    displayHangout!.slug === slug &&
-    participant!.hangoutId === displayHangout!.id;
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!participant || !displayHangout || displayHangout.slug !== slug) {
-      router.replace(`/h/${slug}`);
-      return;
-    }
-
-    if (participant.hangoutId !== displayHangout.id) {
-      router.replace(`/h/${slug}`);
-    }
-  }, [isLoading, participant, displayHangout, router, slug]);
+  const { participant, hasValidSession } = useHangoutSessionGuard({
+    slug,
+    hangout: displayHangout,
+    isLoading,
+  });
 
   const isGuessingPhase =
     displayHangout?.status === "guessing" ||
     displayHangout?.status === "completed";
+
+  async function handleHangoutCompleted() {
+    const { data } = await fetchHangoutBySlug(slug);
+    if (data) {
+      setHangout(data);
+    }
+  }
 
   if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
     return (

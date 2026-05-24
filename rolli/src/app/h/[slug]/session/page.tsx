@@ -1,13 +1,16 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
+import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
+import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { endHangout } from "@/lib/hangouts";
@@ -18,50 +21,25 @@ export default function SessionPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangout = useSessionStore((state) => state.hangout);
-  const participant = useSessionStore((state) => state.participant);
+  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
 
-  const goToWaiting = useCallback(() => {
-    router.replace(`/h/${slug}/waiting`);
-  }, [router, slug]);
+  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
+  const displayHangout = syncedHangout ?? hangoutStore;
 
-  const goToDeveloping = useCallback(() => {
-    router.replace(`/h/${slug}/developing`);
-  }, [router, slug]);
-
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({
+  useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
+  const { participant, hasValidSession } = useHangoutSessionGuard({
     slug,
-    onWaiting: goToWaiting,
-    onDeveloping: goToDeveloping,
+    hangout: displayHangout,
+    isLoading,
   });
 
-  const displayHangout = syncedHangout ?? hangout;
   const photosRemaining =
     HANGOUT_LIMITS.maxPhotosPerUser - (participant?.photosTaken ?? 0);
-
-  const hasValidSession =
-    Boolean(participant) &&
-    Boolean(displayHangout) &&
-    displayHangout!.slug === slug &&
-    participant!.hangoutId === displayHangout!.id;
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!participant || !displayHangout || displayHangout.slug !== slug) {
-      router.replace(`/h/${slug}`);
-      return;
-    }
-
-    if (participant.hangoutId !== displayHangout.id) {
-      router.replace(`/h/${slug}`);
-    }
-  }, [isLoading, participant, displayHangout, router, slug]);
 
   async function handleDevelopMemories() {
     if (!participant || !displayHangout) return;
@@ -134,12 +112,17 @@ export default function SessionPage() {
             variant="secondary"
             type="button"
             disabled={ending}
-            onClick={handleDevelopMemories}
+            onClick={() => void handleDevelopMemories()}
           >
             {ending ? "Developing…" : "Develop Memories"}
           </Button>
         </>
       )}
+
+      <LeaveRoomButton
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+      />
     </MobileShell>
   );
 }

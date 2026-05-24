@@ -5,16 +5,42 @@ type DownloadPhoto = {
   url: string;
 };
 
+const MAX_FETCH_ATTEMPTS = 3;
+const FETCH_RETRY_DELAY_MS = 400;
+
 function sanitizeFileName(value: string): string {
   return value.replace(/[^\w.-]+/g, "_").slice(0, 64);
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 async function fetchPhotoBlob(url: string): Promise<Blob> {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error("Could not download a photo");
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Download failed (${response.status})`);
+      }
+      return await response.blob();
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error : new Error("Could not download photo");
+      if (attempt < MAX_FETCH_ATTEMPTS) {
+        await sleep(FETCH_RETRY_DELAY_MS * attempt);
+      }
+    }
   }
-  return response.blob();
+
+  throw new Error(
+    lastError?.message ??
+      "Could not download a photo. Check your connection and try again.",
+  );
 }
 
 function triggerBlobDownload(blob: Blob, fileName: string) {

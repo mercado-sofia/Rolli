@@ -140,3 +140,49 @@ export async function endHangout(
 
   return { data: mapHangout(data as HangoutRowJson) };
 }
+
+export async function leaveHangout(
+  hangoutId: string,
+  sessionToken: string,
+): Promise<{ error?: string }> {
+  const supabase = createClient();
+
+  const { error } = await supabase.rpc("leave_hangout", {
+    p_hangout_id: hangoutId,
+    p_session_token: sessionToken,
+  });
+
+  if (error) {
+    return { error: parseRpcError(error) };
+  }
+
+  return {};
+}
+
+export async function rejoinHangout(
+  slug: string,
+  sessionToken: string,
+): Promise<{ data?: HangoutSessionResult; error?: string }> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("rejoin_hangout", {
+    p_slug: slug,
+    p_session_token: sessionToken,
+  });
+
+  if (error) {
+    return { error: parseRpcError(error) };
+  }
+
+  const payload = data as {
+    hangout: HangoutRowJson;
+    participant: ParticipantSessionJson;
+  };
+
+  return {
+    data: {
+      hangout: mapHangout(payload.hangout),
+      participant: mapParticipant(payload.participant),
+    },
+  };
+}

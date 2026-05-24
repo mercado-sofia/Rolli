@@ -72,12 +72,20 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 - Guessing phase with private votes and score/results
 - Final gallery with per-photo and zip download actions
 - Automatic end after 24h (poll-based, optional pg_cron background job)
+- Canonical route guard (wrong phase URLs redirect automatically)
+- Supabase Realtime on `hangouts` with poll fallback
+- Leave room + rejoin via invite (migration **014**)
+- Signed URL refresh on tab focus; download retries
 
 ### Planned
 
-- Realtime subscriptions (reduce polling)
-- Auth/rejoin hardening beyond session token
-- Ops jobs for cleanup/maintenance
+- Rate limiting on RPCs
+- Automated E2E tests
+- Full auth / magic-link rejoin without a prior `leave_hangout`
+
+### Session recovery (MVP)
+
+If browser storage is cleared **without** using **Leave room**, the old `session_token` is lost and the user cannot call `rejoin_hangout`. They may join again with the same nickname only if their participant row was left inactive. See [rolli/supabase/MIGRATION_CHECKLIST.md](rolli/supabase/MIGRATION_CHECKLIST.md).
 
 ---
 
@@ -91,8 +99,11 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 ### Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run the SQL migrations in order from [`rolli/supabase/migrations/`](rolli/supabase/migrations/) (see [`rolli/supabase/README.md`](rolli/supabase/README.md)).
-3. Copy `rolli/.env.local.example` → `rolli/.env.local` (or create `rolli/.env`) and add your project URL and anon key.
+2. Run SQL migrations **001–016** in order (see [`rolli/supabase/README.md`](rolli/supabase/README.md) and [`rolli/supabase/MIGRATION_CHECKLIST.md`](rolli/supabase/MIGRATION_CHECKLIST.md)).
+3. Copy `rolli/.env.local.example` → `rolli/.env.local` and set:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_APP_URL` (required for correct invite link previews, e.g. `http://localhost:3000`)
 
 ### Install & run
 

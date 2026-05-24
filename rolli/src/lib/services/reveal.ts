@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabase/client";
+import { signPhotoPerspectives } from "@/lib/signed-photo-urls";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import type { Hangout } from "@/types/hangout";
 import type { RevealPerspective, RevealState } from "@/types/reveal";
-
-const BUCKET = "hangout-photos";
-const SIGNED_URL_TTL_SEC = 3600;
 
 function parseRpcError(error: {
   message?: string;
@@ -113,27 +111,5 @@ export async function finishReveal(
 export async function signRevealPhotoUrls(
   perspectives: RevealPerspective[],
 ): Promise<RevealPerspective[]> {
-  const supabase = createClient();
-
-  const signed = await Promise.all(
-    perspectives.map(async (perspective) => {
-      const photos = await Promise.all(
-        perspective.photos.map(async (photo) => {
-          const { data, error } = await supabase.storage
-            .from(BUCKET)
-            .createSignedUrl(photo.storagePath, SIGNED_URL_TTL_SEC);
-
-          if (error || !data?.signedUrl) {
-            return photo;
-          }
-
-          return { ...photo, signedUrl: data.signedUrl };
-        }),
-      );
-
-      return { ...perspective, photos };
-    }),
-  );
-
-  return signed;
+  return signPhotoPerspectives(perspectives);
 }

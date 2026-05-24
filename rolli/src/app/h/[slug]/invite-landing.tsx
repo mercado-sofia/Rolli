@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
-import { fetchHangoutBySlug } from "@/lib/hangouts";
+import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangouts";
 import { hangoutParticipantPath } from "@/lib/hangout-routes";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
@@ -19,10 +19,13 @@ export function InviteLanding() {
 
   const sessionHangout = useSessionStore((state) => state.hangout);
   const sessionParticipant = useSessionStore((state) => state.participant);
+  const setSession = useSessionStore((state) => state.setSession);
 
   const [hangout, setHangout] = useState<Hangout | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [rejoining, setRejoining] = useState(false);
+  const [rejoinFailed, setRejoinFailed] = useState(false);
 
   const hasMatchingSession =
     Boolean(sessionParticipant) &&
@@ -61,15 +64,61 @@ export function InviteLanding() {
   }, [slug]);
 
   useEffect(() => {
+    if (loading || !hangout || hasMatchingSession || rejoinFailed) return;
+    if (!sessionParticipant?.sessionToken) return;
+    if (hangout.status !== "waiting") return;
+
+    let cancelled = false;
+
+    async function tryRejoin() {
+      setRejoining(true);
+
+      const { data, error: rejoinError } = await rejoinHangout(
+        slug,
+        sessionParticipant!.sessionToken,
+      );
+
+      if (cancelled) return;
+
+      setRejoining(false);
+
+      if (rejoinError || !data) {
+        setRejoinFailed(true);
+        return;
+      }
+
+      setSession(data.hangout, data.participant);
+      router.replace(hangoutParticipantPath(slug, data.hangout.status));
+    }
+
+    void tryRejoin();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    hangout,
+    hasMatchingSession,
+    loading,
+    rejoinFailed,
+    router,
+    sessionParticipant,
+    setSession,
+    slug,
+  ]);
+
+  useEffect(() => {
     if (loading || !hangout || !hasMatchingSession) return;
 
     router.replace(hangoutParticipantPath(slug, hangout.status));
   }, [loading, hangout, hasMatchingSession, router, slug]);
 
-  if (loading) {
+  if (loading || rejoining) {
     return (
       <MobileShell className="justify-center">
-        <p className="text-center text-muted">Loading invitation…</p>
+        <p className="text-center text-muted">
+          {rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
+        </p>
       </MobileShell>
     );
   }

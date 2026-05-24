@@ -1,8 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
+import { signPhotoPerspectives } from "@/lib/signed-photo-urls";
 import type { RevealPerspective } from "@/types/reveal";
-
-const BUCKET = "hangout-photos";
-const SIGNED_URL_TTL_SEC = 3600;
 
 function parseRpcError(error: { message?: string; details?: string }): string {
   return error.message ?? error.details ?? "Something went wrong";
@@ -63,31 +61,5 @@ export async function getGallery(
 export async function signGalleryPhotoUrls(
   perspectives: RevealPerspective[],
 ): Promise<RevealPerspective[]> {
-  const supabase = createClient();
-
-  const signed = await Promise.all(
-    perspectives.map(async (perspective) => {
-      const photos = await Promise.all(
-        perspective.photos.map(async (photo, index) => {
-          const { data, error } = await supabase.storage
-            .from(BUCKET)
-            .createSignedUrl(photo.storagePath, SIGNED_URL_TTL_SEC);
-
-          if (error || !data?.signedUrl) {
-            return photo;
-          }
-
-          return {
-            ...photo,
-            signedUrl: data.signedUrl,
-            fileName: `${perspective.nickname}-${String(index + 1).padStart(2, "0")}.jpg`,
-          };
-        }),
-      );
-
-      return { ...perspective, photos };
-    }),
-  );
-
-  return signed;
+  return signPhotoPerspectives(perspectives, { includeFileName: true });
 }

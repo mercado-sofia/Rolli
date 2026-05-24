@@ -1,11 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
+import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { startReveal } from "@/lib/reveal";
 import { useSessionStore } from "@/store/session-store";
@@ -15,62 +17,21 @@ export default function DevelopingPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangout = useSessionStore((state) => state.hangout);
-  const participant = useSessionStore((state) => state.participant);
+  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const goToSession = useCallback(() => {
-    router.replace(`/h/${slug}/session`);
-  }, [router, slug]);
+  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
+  const displayHangout = syncedHangout ?? hangoutStore;
 
-  const goToWaiting = useCallback(() => {
-    router.replace(`/h/${slug}/waiting`);
-  }, [router, slug]);
-
-  const goToReveal = useCallback(() => {
-    router.replace(`/h/${slug}/reveal`);
-  }, [router, slug]);
-
-  const goToGuessing = useCallback(() => {
-    router.replace(`/h/${slug}/guessing`);
-  }, [router, slug]);
-
-  const goToGallery = useCallback(() => {
-    router.replace(`/h/${slug}/gallery`);
-  }, [router, slug]);
-
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({
+  useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
+  const { participant, hasValidSession } = useHangoutSessionGuard({
     slug,
-    onActive: goToSession,
-    onWaiting: goToWaiting,
-    onRevealing: goToReveal,
-    onGuessing: goToGuessing,
-    onCompleted: goToGallery,
+    hangout: displayHangout,
+    isLoading,
   });
-
-  const displayHangout = syncedHangout ?? hangout;
-
-  const hasValidSession =
-    Boolean(participant) &&
-    Boolean(displayHangout) &&
-    displayHangout!.slug === slug &&
-    participant!.hangoutId === displayHangout!.id;
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!participant || !displayHangout || displayHangout.slug !== slug) {
-      router.replace(`/h/${slug}`);
-      return;
-    }
-
-    if (participant.hangoutId !== displayHangout.id) {
-      router.replace(`/h/${slug}`);
-    }
-  }, [isLoading, participant, displayHangout, router, slug]);
 
   async function handleStartReveal() {
     if (!participant || !displayHangout) return;
@@ -94,15 +55,13 @@ export default function DevelopingPage() {
     router.replace(`/h/${slug}/reveal`);
   }
 
-  if (isLoading || !hasValidSession || !participant || !displayHangout) {
-    return (
-      <MobileShell className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
-  }
-
-  if (displayHangout.status !== "developing") {
+  if (
+    isLoading ||
+    !hasValidSession ||
+    !participant ||
+    !displayHangout ||
+    displayHangout.status !== "developing"
+  ) {
     return (
       <MobileShell className="justify-center">
         <p className="text-center text-muted">Loading…</p>

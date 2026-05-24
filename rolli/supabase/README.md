@@ -26,6 +26,13 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 11 | `migrations/011_guessing_and_start_rules_hardening.sql` |
 | 12 | `migrations/012_fix_photo_upload_storage_rls.sql` |
 | 13 | `migrations/013_ensure_reveal_rpcs.sql` (run if reveal RPCs are missing) |
+| 14 | `migrations/014_leave_rejoin_and_join_rules.sql` |
+| 15 | `migrations/015_enable_hangout_realtime.sql` |
+| 16 | `migrations/016_hardening_misc.sql` |
+
+See **[MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md)** for verification SQL, Realtime setup, and optional pg_cron / slot cleanup jobs.
+
+**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`).
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -62,7 +69,16 @@ Migration `004_storage.sql` creates a private bucket `hangout-photos`. Migration
 Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `started_at` is more than 24 hours ago (same as Film Keeper tapping **Develop Memories** → status `developing`).
 
 - **On every poll:** `get_hangout_public` checks and auto-ends that hangout if expired (works with the app’s 2s sync).
-- **Optional background job:** enable the `pg_cron` extension, then schedule `auto_end_expired_hangouts()` every 15 minutes (SQL snippet at the bottom of `010_auto_end_hangout.sql`) so hangouts end even when nobody has the app open.
+- **Realtime:** migration **015** publishes `hangouts` for instant status updates; polling remains as fallback.
+- **Optional background job:** enable the `pg_cron` extension, then schedule `auto_end_expired_hangouts()` every 15 minutes (SQL snippet at the bottom of `010_auto_end_hangout.sql`) so hangouts end even when nobody has the app open. See [MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md) — do not enable cron without opting in.
+
+## Leave / rejoin (014)
+
+- **`leave_hangout`** — marks participant inactive; Film Keeper cannot leave while status is `waiting`.
+- **`rejoin_hangout`** — reactivates a participant who left, using the same `session_token`.
+- **`join_hangout`** — reactivates an inactive nickname row; blocks duplicate active nicknames and real names (case-insensitive).
+
+If a user clears browser storage without leaving, they cannot recover their session (MVP limitation).
 
 ## Schema overview
 

@@ -19,3 +19,51 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
       return `/h/${slug}/waiting`;
   }
 }
+
+/** Path segment for the current hangout phase page (e.g. "session"). */
+export function hangoutPhaseSegment(status: HangoutStatus): string {
+  switch (status) {
+    case "active":
+      return "session";
+    case "waiting":
+      return "waiting";
+    case "developing":
+      return "developing";
+    case "revealing":
+      return "reveal";
+    case "guessing":
+      return "guessing";
+    case "completed":
+      return "gallery";
+    default:
+      return "waiting";
+  }
+}
+
+const GUESSING_PATH_SUFFIX = "/guessing";
+
+/**
+ * Returns the path to redirect to when the user is on the wrong phase page, or null if OK.
+ */
+export function getHangoutRouteRedirect(
+  slug: string,
+  currentPath: string,
+  status: HangoutStatus,
+  options?: { allowGuessingWhenCompleted?: boolean },
+): string | null {
+  const canonical = hangoutParticipantPath(slug, status);
+
+  if (currentPath === canonical) {
+    return null;
+  }
+
+  if (
+    options?.allowGuessingWhenCompleted &&
+    status === "completed" &&
+    currentPath.endsWith(GUESSING_PATH_SUFFIX)
+  ) {
+    return null;
+  }
+
+  return canonical;
+}

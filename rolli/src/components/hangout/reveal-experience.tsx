@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import {
   finishReveal,
   getRevealState,
@@ -33,12 +34,28 @@ export function RevealExperience({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [signedAt, setSignedAt] = useState<number | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
   const retryLoad = useCallback(() => {
     setReloadKey((key) => key + 1);
   }, []);
+
+  const resignPhotos = useCallback(async () => {
+    const { data, error } = await getRevealState(hangoutId, sessionToken);
+    if (error || !data) return;
+
+    const signed = await signRevealPhotoUrls(data.perspectives);
+    setPerspectives(signed);
+    setSignedAt(Date.now());
+  }, [hangoutId, sessionToken]);
+
+  useResignPhotosOnVisibility({
+    signedAt,
+    onResign: resignPhotos,
+    enabled: !loading && perspectives.length > 0,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -53,6 +70,7 @@ export function RevealExperience({
       if (error || !data) {
         setPerspectives([]);
         setCurrentIndex(0);
+        setSignedAt(null);
         setLoadError(error ?? "Could not load reveal");
         setLoading(false);
         return;
@@ -63,6 +81,7 @@ export function RevealExperience({
 
       setPerspectives(signed);
       setCurrentIndex(0);
+      setSignedAt(Date.now());
       setLoading(false);
     }
 
