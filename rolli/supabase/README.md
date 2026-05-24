@@ -19,6 +19,7 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 4 | `migrations/004_storage.sql` |
 | 5 | `migrations/005_random_hangout_slug.sql` |
 | 6 | `migrations/006_photo_capture.sql` |
+| 7 | `migrations/007_reveal_flow.sql` |
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 

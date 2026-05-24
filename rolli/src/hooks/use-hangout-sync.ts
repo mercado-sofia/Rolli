@@ -14,6 +14,8 @@ type UseHangoutSyncOptions = {
   onActive?: (hangout: Hangout) => void;
   onWaiting?: (hangout: Hangout) => void;
   onDeveloping?: (hangout: Hangout) => void;
+  onRevealing?: (hangout: Hangout) => void;
+  onGuessing?: (hangout: Hangout) => void;
 };
 
 export function useHangoutSync({
@@ -23,6 +25,8 @@ export function useHangoutSync({
   onActive,
   onWaiting,
   onDeveloping,
+  onRevealing,
+  onGuessing,
 }: UseHangoutSyncOptions) {
   const setHangout = useSessionStore((state) => state.setHangout);
   const sessionHangout = useSessionStore((state) => state.hangout);
@@ -36,20 +40,28 @@ export function useHangoutSync({
   const onActiveRef = useRef(onActive);
   const onWaitingRef = useRef(onWaiting);
   const onDevelopingRef = useRef(onDeveloping);
+  const onRevealingRef = useRef(onRevealing);
+  const onGuessingRef = useRef(onGuessing);
   const didNotifyActiveRef = useRef(false);
   const didNotifyWaitingRef = useRef(false);
   const didNotifyDevelopingRef = useRef(false);
+  const didNotifyRevealingRef = useRef(false);
+  const didNotifyGuessingRef = useRef(false);
 
   useEffect(() => {
     onActiveRef.current = onActive;
     onWaitingRef.current = onWaiting;
     onDevelopingRef.current = onDeveloping;
-  }, [onActive, onWaiting, onDeveloping]);
+    onRevealingRef.current = onRevealing;
+    onGuessingRef.current = onGuessing;
+  }, [onActive, onWaiting, onDeveloping, onRevealing, onGuessing]);
 
   useEffect(() => {
     didNotifyActiveRef.current = false;
     didNotifyWaitingRef.current = false;
     didNotifyDevelopingRef.current = false;
+    didNotifyRevealingRef.current = false;
+    didNotifyGuessingRef.current = false;
   }, [slug]);
 
   useEffect(() => {
@@ -91,6 +103,16 @@ export function useHangoutSync({
       if (data.status === "developing" && onDevelopingRef.current && !didNotifyDevelopingRef.current) {
         didNotifyDevelopingRef.current = true;
         onDevelopingRef.current(data);
+      }
+
+      if (data.status === "revealing" && onRevealingRef.current && !didNotifyRevealingRef.current) {
+        didNotifyRevealingRef.current = true;
+        onRevealingRef.current(data);
+      }
+
+      if (data.status === "guessing" && onGuessingRef.current && !didNotifyGuessingRef.current) {
+        didNotifyGuessingRef.current = true;
+        onGuessingRef.current(data);
       }
     }
 
