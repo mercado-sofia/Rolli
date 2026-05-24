@@ -6,8 +6,22 @@ import type { RevealPerspective, RevealState } from "@/types/reveal";
 const BUCKET = "hangout-photos";
 const SIGNED_URL_TTL_SEC = 3600;
 
-function parseRpcError(error: { message?: string; details?: string }): string {
-  return error.message ?? error.details ?? "Something went wrong";
+function parseRpcError(error: {
+  message?: string;
+  details?: string;
+  code?: string;
+}): string {
+  const message = error.message ?? error.details ?? "Something went wrong";
+
+  if (
+    error.code === "PGRST202" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find the function")
+  ) {
+    return "Reveal is not set up on the database yet. Run migrations 007 and 013 in Supabase SQL Editor, then try again.";
+  }
+
+  return message;
 }
 
 type RevealPhotoJson = {
