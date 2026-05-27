@@ -39,7 +39,7 @@ function DesktopPolaroidPanel() {
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.15, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto h-[460px] w-full max-w-md md:-mt-10 lg:-mt-14"
+      className="relative mx-auto h-[460px] w-full max-w-md md:-mt-3 lg:-mt-2"
     >
       {polaroids.map((p, i) => (
         <PolaroidCard key={i} polaroid={p} index={i} size="lg" />
@@ -114,7 +114,7 @@ export function LandingHero() {
         <MobileShell
           ambient={false}
           fillViewport={false}
-          className="flex h-full min-h-full flex-col justify-between gap-3 px-5 pt-(--navbar-total-height) pb-[max(3rem,calc(env(safe-area-inset-bottom)+1.5rem))] sm:px-8 sm:pb-[max(3.5rem,calc(env(safe-area-inset-bottom)+2rem))]"
+          className="flex h-full min-h-full flex-col justify-between gap-3 px-5 pt-(--navbar-total-height) pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+1rem))] sm:px-8 sm:pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+1.5rem))]"
         >
           <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-pink/30 blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute -right-16 top-1/3 h-72 w-72 rounded-full bg-lavender-deep/20 blur-3xl" aria-hidden />
