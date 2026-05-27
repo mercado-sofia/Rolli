@@ -34,7 +34,7 @@ export default function GuidePage() {
         <h1 className="font-display mt-2 text-3xl text-ink">How Rolli works</h1>
       </div>
 
-      <Card gradient className="relative min-h-[420px] overflow-hidden">
+      <Card gradient className="relative min-h-[min(420px,62dvh)] overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.title}
@@ -84,10 +84,10 @@ export default function GuidePage() {
 
       <div className="flex flex-col gap-3">
         <div className="flex gap-3 md:hidden">
-          <Button type="button" variant="secondary" onClick={goPrev}>
+          <Button type="button" variant="secondary" className="flex-1" onClick={goPrev}>
             Previous
           </Button>
-          <Button type="button" onClick={goNext}>
+          <Button type="button" className="flex-1" onClick={goNext}>
             {isLast ? "Continue" : "Next"}
           </Button>
         </div>

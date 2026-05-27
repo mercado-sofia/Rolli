@@ -163,17 +163,18 @@ export default function CreatePage() {
               Proceed
             </Button>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Button
                 type="button"
                 variant="secondary"
+                className="sm:flex-1"
                 onClick={() => setStep(1)}
                 disabled={isSubmitting}
               >
                 Back
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Creating…" : "Generate invitation link"}
+              <Button type="submit" className="sm:flex-1" disabled={isSubmitting}>
+                {isSubmitting ? "Creating…" : "Generate link"}
               </Button>
             </div>
           )}

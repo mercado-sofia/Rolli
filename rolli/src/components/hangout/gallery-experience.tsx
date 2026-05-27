@@ -187,7 +187,7 @@ export function GalleryExperience({
         <Button
           type="button"
           variant={filter === "all" ? "primary" : "secondary"}
-          className="w-auto! shrink-0 px-4"
+          className="min-h-12 w-auto! shrink-0 px-4"
           onClick={() => setFilter("all")}
         >
           All
@@ -197,7 +197,7 @@ export function GalleryExperience({
             key={perspective.participantId}
             type="button"
             variant={filter === perspective.participantId ? "primary" : "secondary"}
-            className="w-auto! shrink-0 px-4"
+            className="min-h-12 w-auto! shrink-0 px-4"
             onClick={() => setFilter(perspective.participantId)}
           >
             {perspective.nickname}
@@ -281,7 +281,7 @@ export function GalleryExperience({
                     {photo.signedUrl && (
                       <button
                         type="button"
-                        className="absolute bottom-2 right-2 rounded-full bg-ink/80 px-3 py-1 text-xs text-white"
+                        className="absolute bottom-2 right-2 inline-flex min-h-10 min-w-14 items-center justify-center rounded-full bg-ink/80 px-4 py-2 text-sm text-white"
                         disabled={downloading === photo.id}
                         onClick={() =>
                           void handleDownloadSingle(

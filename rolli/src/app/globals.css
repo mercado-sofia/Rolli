@@ -14,6 +14,8 @@
   --muted: #8e8e93;
   --gradient-start: #b993d6;
   --gradient-end: #fbc2eb;
+  --navbar-height: 3.5rem;
+  --navbar-total-height: calc(var(--navbar-height) + env(safe-area-inset-top, 0px));
 }
 
 @theme inline {
@@ -53,7 +55,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 3.5rem;
+  scroll-padding-top: var(--navbar-total-height);
 }
 
 body {

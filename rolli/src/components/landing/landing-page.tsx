@@ -1,3 +1,4 @@
+import { LandingContact } from "@/components/landing/landing-contact";
 import { LandingFooter } from "@/components/landing/landing-footer";
 import { LandingGuide } from "@/components/landing/landing-guide";
 import { LandingHero } from "@/components/landing/landing-hero";
@@ -6,11 +7,12 @@ import { LandingPerfectFor } from "@/components/landing/landing-perfect-for";
 
 export function LandingPage() {
   return (
-    <div className="bg-canvas text-ink">
+    <div className="overflow-x-hidden bg-canvas text-ink">
       <LandingNavbar />
       <LandingHero />
       <LandingGuide />
       <LandingPerfectFor />
+      <LandingContact />
       <LandingFooter />
     </div>
   );

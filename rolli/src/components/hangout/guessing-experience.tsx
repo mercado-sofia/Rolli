@@ -197,10 +197,10 @@ export function GuessingExperience({
         <div className="space-y-3">
           {results.revealed.map((row) => (
             <Card key={row.participantId}>
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <span className="font-medium text-ink">{row.nickname}</span>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-sm sm:justify-between sm:text-left">
+                <span className="font-medium wrap-break-word text-ink">{row.nickname}</span>
                 <span className="text-muted">was</span>
-                <span className="font-medium text-ink">{row.realName}</span>
+                <span className="font-medium wrap-break-word text-ink">{row.realName}</span>
               </div>
             </Card>
           ))}
@@ -265,7 +265,7 @@ export function GuessingExperience({
                       key={`${target.participantId}-${name}`}
                       type="button"
                       variant={selected === name ? "primary" : "secondary"}
-                      className="w-auto! shrink-0 px-4"
+                      className="min-h-12 w-auto! shrink-0 px-4"
                       disabled={isSaving || takenByOther}
                       onClick={() => void handleGuess(target.participantId, name)}
                     >

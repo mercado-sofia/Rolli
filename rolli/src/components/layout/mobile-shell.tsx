@@ -6,18 +6,21 @@ type MobileShellProps = {
   children: ReactNode;
   className?: string;
   ambient?: boolean;
+  /** When false, parent controls height (e.g. hero fits below navbar). */
+  fillViewport?: boolean;
 };
 
 export function MobileShell({
   children,
   className,
   ambient = true,
+  fillViewport = true,
 }: MobileShellProps) {
   return (
     <div
       className={cn(
-        "relative min-h-dvh bg-canvas text-ink",
-        ambient && "overflow-x-hidden",
+        "relative overflow-x-hidden bg-canvas text-ink",
+        fillViewport ? "min-h-dvh" : "h-full min-h-0",
       )}
     >
       {ambient && (
@@ -31,7 +34,8 @@ export function MobileShell({
       )}
       <div
         className={cn(
-          "relative mx-auto flex min-h-dvh w-full max-w-md flex-col px-5 py-8",
+          "relative mx-auto flex w-full max-w-md flex-col px-4 sm:px-5",
+          fillViewport ? "min-h-dvh py-8" : "h-full min-h-0 py-0",
           className,
         )}
       >

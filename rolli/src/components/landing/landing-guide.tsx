@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
+import { FaQuestion } from "react-icons/fa";
 
 import { GuideSlideIcon } from "@/components/landing/landing-icons";
 import { Button } from "@/components/ui/button";
@@ -30,6 +31,52 @@ const GUIDE_DETAILS = [
   },
 ] as const;
 
+const GUIDE_HEADING_MARKS = [
+  { top: "3rem", right: "-11rem", size: 44, rotate: 24, delay: 0.15 },
+  { top: "0.5rem", right: "-9.5rem", size: 80, rotate: 12, delay: 0.35 },
+  { top: "2.2rem", right: "-6rem", size: 48, rotate: -10, delay: 0.55 },
+] as const;
+
+const GUIDE_HEADING_MARK_COLORS = [
+  "#F9C0EA",
+  "#DAAAE0",
+  "#BB95D7",
+] as const;
+
+function GuideHeadingQuestionMarks() {
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 hidden overflow-visible md:block"
+      aria-hidden
+    >
+      {GUIDE_HEADING_MARKS.map((mark, i) => (
+        <motion.div
+          key={i}
+          className="absolute"
+          style={{
+            top: mark.top,
+            right: mark.right,
+            rotate: `${mark.rotate}deg`,
+          }}
+          initial={{ opacity: 0, scale: 0.4, y: 12 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{
+            delay: mark.delay,
+            duration: 0.55,
+            ease: [0.34, 1.56, 0.64, 1],
+          }}
+        >
+          <FaQuestion
+            size={mark.size}
+            style={{ color: GUIDE_HEADING_MARK_COLORS[i] }}
+          />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 export function LandingGuide() {
   const [index, setIndex] = useState(0);
   const slide = GUIDE_SLIDES[index];
@@ -47,9 +94,13 @@ export function LandingGuide() {
   }
 
   return (
-    <section id="guide" className="scroll-mt-14 bg-canvas px-5 py-16 md:py-24">
+    <section
+      id="guide"
+      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] overflow-x-hidden bg-canvas px-5 py-16 md:py-24"
+    >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 md:gap-14">
-        <div className="mx-auto max-w-xl text-center md:max-w-2xl">
+        <div className="relative mx-auto max-w-xl overflow-visible text-center md:max-w-2xl">
+          <GuideHeadingQuestionMarks />
           <p className="text-sm font-medium text-muted">Guide for rolli</p>
           <h2 className="font-display mt-2 text-3xl text-ink md:text-4xl">
             How it works
@@ -101,7 +152,7 @@ export function LandingGuide() {
           </div>
 
           <div className="order-1 md:order-2">
-            <Card gradient className="relative min-h-[340px] overflow-hidden md:min-h-[420px]">
+            <Card gradient className="relative min-h-[min(340px,62dvh)] overflow-hidden md:min-h-[420px]">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={slide.title}

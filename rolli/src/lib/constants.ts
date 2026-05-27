@@ -1,10 +1,16 @@
 export const APP_NAME = "rolli";
 
 export const LANDING_NAV_SECTIONS = [
-  { id: "hero", label: "Home" },
-  { id: "guide", label: "Guide" },
-  { id: "perfect-for", label: "Perfect for" },
+  { id: "hero", label: "Home", shortLabel: "Home" },
+  { id: "guide", label: "Guide", shortLabel: "Guide" },
+  { id: "perfect-for", label: "Perfect for", shortLabel: "For" },
+  { id: "contact", label: "Contact", shortLabel: "Contact" },
 ] as const;
+
+/** Shown on the landing contact section — update with your real address. */
+export const LANDING_CONTACT = {
+  email: "syraecia@gmail.com",
+} as const;
 
 /** Static files under /public — use these paths in metadata and Image src. */
 export const PUBLIC_ASSETS = {

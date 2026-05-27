@@ -32,7 +32,7 @@ export function LandingPerfectFor() {
   return (
     <section
       id="perfect-for"
-      className="scroll-mt-14 border-t border-lavender/50 bg-white px-5 py-16 md:py-24"
+      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] overflow-x-hidden border-t border-lavender/50 bg-white px-5 py-16 md:py-24"
     >
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto max-w-xl text-center md:max-w-2xl">
@@ -46,7 +46,7 @@ export function LandingPerfectFor() {
           {useCases.map((item) => (
             <article
               key={item.title}
-              className="flex flex-col items-center rounded-3xl border border-lavender/60 bg-canvas/60 p-8 text-center md:p-10"
+              className="group flex flex-col items-center rounded-3xl border border-lavender bg-canvas/60 p-8 text-center transition-all duration-300 ease-out hover:-translate-y-2 hover:border-lavender-deep/40 hover:bg-white hover:shadow-glow md:p-10"
             >
               <GradientIconContainer size="lg">
                 <LandingIcon
@@ -55,7 +55,9 @@ export function LandingPerfectFor() {
                   className={item.strokeClass}
                 />
               </GradientIconContainer>
-              <h3 className="font-display mt-5 text-xl text-ink">{item.title}</h3>
+              <h3 className="font-display mt-5 text-xl text-ink transition-colors duration-300 group-hover:text-pink-accent">
+                {item.title}
+              </h3>
               <p className="mt-2 text-sm leading-relaxed text-muted">
                 {item.description}
               </p>

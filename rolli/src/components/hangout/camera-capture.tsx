@@ -236,10 +236,11 @@ function CaptureViewfinder({
         )}
       </div>
       {error && <p className="text-center text-sm text-pink">{error}</p>}
-      <div className="flex gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <Button
           type="button"
           variant="secondary"
+          className="sm:flex-1"
           disabled={isCapturing}
           onClick={onCancel}
         >
@@ -247,6 +248,7 @@ function CaptureViewfinder({
         </Button>
         <Button
           type="button"
+          className="sm:flex-1"
           disabled={isOpening || isCapturing}
           onClick={onCapture}
         >

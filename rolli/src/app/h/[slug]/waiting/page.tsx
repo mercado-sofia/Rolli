@@ -108,9 +108,11 @@ export default function WaitingRoomPage() {
 
       <Card>
         <dl className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted">Your nickname</dt>
-            <dd className="font-medium text-ink">{participant.nickname}</dd>
+          <div className="flex justify-between gap-4">
+            <dt className="shrink-0 text-muted">Your nickname</dt>
+            <dd className="max-w-[60%] text-right font-medium wrap-break-word text-ink">
+              {participant.nickname}
+            </dd>
           </div>
           <div className="flex justify-between">
             <dt className="text-muted">Participants</dt>

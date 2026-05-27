@@ -15,7 +15,7 @@ export function Field({ label, error, id, className, ...props }: FieldProps) {
         id={id}
         {...props}
         className={cn(
-          "w-full rounded-2xl border border-lavender/50 bg-white/90 px-4 py-3 text-ink outline-none ring-lavender-deep focus:ring-2",
+          "w-full rounded-2xl border border-lavender/50 bg-white/90 px-4 py-3 text-base text-ink outline-none ring-lavender-deep focus:ring-2",
           className,
         )}
       />

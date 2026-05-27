@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
-import { APP_NAME, PUBLIC_ASSETS } from "@/lib/constants";
+import { PUBLIC_ASSETS } from "@/lib/constants";
 import { PolaroidCard, polaroids } from "@/components/landing/polaroid-card";
 
 function MobileHeroCard() {
@@ -14,13 +14,13 @@ function MobileHeroCard() {
       initial={{ opacity: 0, scale: 0.97 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-      className="relative mx-auto h-[320px] w-full max-w-[300px] sm:max-w-sm"
+      className="relative mx-auto h-[clamp(200px,34dvh,280px)] w-full max-w-[min(300px,88vw)] shrink-0"
     >
       {polaroids.map((p, i) => (
         <PolaroidCard key={i} polaroid={p} index={i} size="xs" />
       ))}
       <div className="absolute inset-0 z-20 flex items-center justify-center">
-        <div className="relative h-48 w-48 overflow-hidden rounded-full border border-white/75 bg-white/85 shadow-soft backdrop-blur-sm">
+        <div className="relative size-[clamp(9rem,26dvh,12rem)] -translate-y-3 overflow-hidden rounded-full border border-white/75 bg-white/85 shadow-soft backdrop-blur-sm sm:-translate-y-4">
           <Image
             src={PUBLIC_ASSETS.images.logo}
             alt="Rolli logo"
@@ -69,7 +69,6 @@ function HeroBackgroundEllipses() {
           backgroundColor: "#FFF2FA",
           left: "-85px",
           top: "334px",
-          filter: "blur(1px)",
         }}
         animate={{ x: [0, 20, -10, 0], y: [0, -16, 10, 0], scale: [1, 1.02, 0.99, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
@@ -83,7 +82,6 @@ function HeroBackgroundEllipses() {
           backgroundColor: "#FFE1F4",
           left: "-85px",
           top: "540px",
-          filter: "blur(1px)",
         }}
         animate={{ x: [0, -18, 12, 0], y: [0, 14, -12, 0], scale: [1, 0.98, 1.02, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
@@ -95,9 +93,8 @@ function HeroBackgroundEllipses() {
           width: "324px",
           height: "308px",
           backgroundColor: "#FFE1F4",
-          right: "-60px",
-          bottom: "-50px",
-          filter: "blur(1px)",
+          right: "-100px",
+          bottom: "-140px",
         }}
         animate={{ x: [0, -24, 8, 0], y: [0, -10, 14, 0], scale: [1, 1.03, 0.98, 1] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
@@ -108,10 +105,17 @@ function HeroBackgroundEllipses() {
 
 export function LandingHero() {
   return (
-    <section id="hero" className="scroll-mt-14 pt-14">
-      {/* Mobile hero — polaroid card + start button only */}
-      <div className="md:hidden">
-        <MobileShell ambient={false} className="justify-center px-5 py-10 sm:px-8 sm:py-12">
+    <section
+      id="hero"
+      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0))] overflow-x-hidden"
+    >
+      {/* Mobile hero — full viewport height; content clears fixed navbar inside */}
+      <div className="relative h-dvh min-h-dvh overflow-hidden supports-[height:100svh]:h-svh supports-[height:100svh]:min-h-svh md:hidden">
+        <MobileShell
+          ambient={false}
+          fillViewport={false}
+          className="flex h-full min-h-full flex-col justify-between gap-3 px-5 pt-(--navbar-total-height) pb-[max(3rem,calc(env(safe-area-inset-bottom)+1.5rem))] sm:px-8 sm:pb-[max(3.5rem,calc(env(safe-area-inset-bottom)+2rem))]"
+        >
           <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-pink/30 blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute -right-16 top-1/3 h-72 w-72 rounded-full bg-lavender-deep/20 blur-3xl" aria-hidden />
           <div className="pointer-events-none absolute bottom-10 left-1/4 h-48 w-48 rounded-full bg-pink/20 blur-3xl" aria-hidden />
@@ -130,42 +134,41 @@ export function LandingHero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-1 flex-col items-center justify-center gap-8"
+            className="flex min-h-0 flex-1 flex-col items-center justify-center gap-[clamp(0.75rem,2.5dvh,1.5rem)]"
           >
             <MobileHeroCard />
 
-            <div className="mx-auto max-w-xs text-center">
-              <h1 className="font-display text-2xl leading-tight tracking-tight text-ink">
+            <div className="mx-auto mt-[clamp(1.25rem,3.5dvh,2rem)] max-w-xs shrink-0 text-center">
+              <h1 className="font-display text-[clamp(1.25rem,4.5dvh,1.5rem)] leading-tight tracking-tight text-ink">
                 Capture memories anonymously.
               </h1>
-              <p className="mt-2 text-sm leading-relaxed text-pink-muted/80">
+              <p className="mt-1.5 text-[clamp(0.8125rem,2.2dvh,0.875rem)] leading-relaxed text-pink-muted/80">
                 Reveal them only when the hangout ends.
               </p>
             </div>
+          </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.45, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-              className="flex w-full flex-col items-center gap-4 pt-1"
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="flex w-full shrink-0 flex-col items-center pt-1"
+          >
+            <Button
+              href="/start"
+              className="h-[54px] w-full max-w-sm bg-gradient-pastel text-[15px] shadow-glow active:scale-[0.98]"
             >
-              <Button
-                href="/start"
-                className="h-[54px] bg-gradient-pastel text-[15px] shadow-glow active:scale-[0.98]"
-              >
-                Start a hangout
-              </Button>
-            </motion.div>
+              Start a hangout
+            </Button>
           </motion.div>
         </MobileShell>
       </div>
 
       {/* Desktop hero — bg image, left copy + right polaroid */}
-      <div className="relative hidden min-h-[calc(100dvh-3.5rem)] overflow-hidden md:block">
-        <div className="absolute inset-0 bg-white" aria-hidden />
+      <div className="relative hidden min-h-dvh overflow-hidden supports-[height:100svh]:min-h-svh md:block">
         <HeroBackgroundEllipses />
 
-        <div className="relative mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-6xl items-center px-8 py-16 lg:px-12">
+        <div className="relative mx-auto flex min-h-dvh w-full max-w-6xl items-center px-8 py-16 supports-[height:100svh]:min-h-svh lg:px-12">
           <div className="grid w-full grid-cols-2 items-center gap-12 lg:gap-16">
             <motion.div
               initial={{ opacity: 0, x: -24 }}
@@ -179,8 +182,9 @@ export function LandingHero() {
               </span>
 
               <div className="space-y-3">
-                <p className="text-sm font-semibold uppercase tracking-overline text-pink-accent">
-                  Disposable camera
+                <p className="text-sm font-semibold uppercase tracking-overline">
+                  <span className="text-pink-accent">Disposable</span>{" "}
+                  <span className="text-pink-accent">camera</span>
                 </p>
                 <h1 className="font-display text-4xl leading-tight tracking-tight text-ink lg:text-5xl">
                   Capture memories anonymously.

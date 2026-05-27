@@ -9,7 +9,7 @@ export default function StartPage() {
     <MobileShell className="justify-center gap-8">
       <div>
         <p className="text-sm font-medium text-muted">Start</p>
-        <h1 className="font-display mt-2 text-4xl leading-tight text-ink">
+        <h1 className="font-display mt-2 text-3xl leading-tight text-ink sm:text-4xl">
           Ready for tonight&apos;s hangout?
         </h1>
         <p className="mt-3 max-w-sm text-muted">
