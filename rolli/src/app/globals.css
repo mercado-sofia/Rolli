@@ -8,7 +8,9 @@
   --lavender: #ede8f5;
   --lavender-deep: #b993d6;
   --pink: #fbc2eb;
-  --pink-accent: #c96b9a;
+  --pink-accent: #7d1348;
+  --pink-muted: #c4a9b5;
+  --pink-deep: #5c1036;
   --muted: #8e8e93;
   --gradient-start: #b993d6;
   --gradient-end: #fbc2eb;
@@ -23,11 +25,15 @@
   --color-lavender-deep: var(--lavender-deep);
   --color-pink: var(--pink);
   --color-pink-accent: var(--pink-accent);
+  --color-pink-muted: var(--pink-muted);
+  --color-pink-deep: var(--pink-deep);
   --color-muted: var(--muted);
   --font-sans: var(--font-sans);
   --font-display: var(--font-sans);
   --shadow-soft: 0 24px 48px rgba(26, 26, 26, 0.06);
   --shadow-glow: 0 16px 40px rgba(185, 147, 214, 0.28);
+  --shadow-navbar: 0 10px 48px 4px rgba(253, 236, 246, 0.7),
+    0 4px 36px 3px rgba(251, 194, 235, 0.18);
   --tracking-overline: 0.14em;
   --background-image-gradient-pastel: linear-gradient(
     135deg,
@@ -43,6 +49,11 @@
   100% {
     transform: translateX(200%);
   }
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 3.5rem;
 }
 
 body {

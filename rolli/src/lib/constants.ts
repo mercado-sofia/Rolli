@@ -1,9 +1,16 @@
 export const APP_NAME = "rolli";
 
+export const LANDING_NAV_SECTIONS = [
+  { id: "hero", label: "Home" },
+  { id: "guide", label: "Guide" },
+  { id: "perfect-for", label: "Perfect for" },
+] as const;
+
 /** Static files under /public — use these paths in metadata and Image src. */
 export const PUBLIC_ASSETS = {
   images: {
     logo: "/images/rolli-logo.png",
+    landingHeroBg: "/images/landing-hero-bg.png",
   },
 } as const;
 
@@ -22,15 +29,25 @@ export const HANGOUT_LIMITS = {
 
 export const GUIDE_SLIDES = [
   {
-    emoji: "📸",
+    icon: "camera",
     title: "Everyone captures memories anonymously.",
   },
   {
-    emoji: "🎞️",
+    icon: "film",
     title: "Photos stay hidden until the hangout ends.",
   },
   {
-    emoji: "🌙",
+    icon: "moon",
     title: "Every perspective tells a different story.",
   },
 ] as const;
+
+export type GuideSlideIconKey = (typeof GUIDE_SLIDES)[number]["icon"];
+
+export type PolaroidIconKey =
+  | "flower"
+  | "sparkles"
+  | "party"
+  | "iceCream"
+  | "moon"
+  | "music";

@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { GuideSlideIcon } from "@/components/landing/landing-icons";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -43,7 +44,9 @@ export default function GuidePage() {
             transition={{ duration: 0.35 }}
             className="flex h-full flex-col justify-center gap-6 pt-16 text-center"
           >
-            <span className="text-5xl">{slide.emoji}</span>
+            <div className="flex justify-center">
+              <GuideSlideIcon iconKey={slide.icon} size={48} />
+            </div>
             <p className="font-display text-2xl leading-snug">{slide.title}</p>
           </motion.div>
         </AnimatePresence>
