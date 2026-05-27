@@ -1,9 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "primary" | "secondary" | "glass";
+type ButtonVariant = "primary" | "secondary";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -13,11 +15,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-ink text-white shadow-soft hover:bg-ink/90 active:scale-[0.98]",
+    "bg-ink text-white shadow-soft hover:bg-[#2a2a2a] active:scale-[0.98]",
   secondary:
-    "border border-lavender/40 bg-white/70 text-ink hover:bg-white active:scale-[0.98]",
-  glass:
-    "border border-white/30 bg-white/25 text-white backdrop-blur-md hover:bg-white/35 active:scale-[0.98]",
+    "border border-black/8 bg-white text-ink shadow-soft hover:bg-white/90 active:scale-[0.98]",
 };
 
 export function Button({
@@ -29,15 +29,23 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-medium transition-all duration-300",
+    "group/btn relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-6 text-sm font-medium transition-all duration-300 hover:-translate-y-1 active:translate-y-0",
     variantStyles[variant],
     disabled && "pointer-events-none opacity-50",
     className,
   );
 
+  const shimmer = (
+    <span
+      className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/40 to-transparent group-hover/btn:animate-[shimmer_0.5s_ease-out_forwards]"
+      aria-hidden
+    />
+  );
+
   if (href && !disabled) {
     return (
       <Link href={href} className={classes}>
+        {shimmer}
         {children}
       </Link>
     );
@@ -45,6 +53,7 @@ export function Button({
 
   return (
     <button className={classes} disabled={disabled} {...props}>
+      {shimmer}
       {children}
     </button>
   );

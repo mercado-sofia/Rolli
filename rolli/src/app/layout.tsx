@@ -1,17 +1,12 @@
 import type { Metadata } from "next";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Inter } from "next/font/google";
 
 import { APP_NAME, PUBLIC_ASSETS } from "@/lib/constants";
 
 import "./globals.css";
 
-const sans = DM_Sans({
+const sans = Inter({
   variable: "--font-sans",
-  subsets: ["latin"],
-});
-
-const display = Playfair_Display({
-  variable: "--font-display",
   subsets: ["latin"],
 });
 
@@ -47,7 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} h-full`}>
+    <html lang="en" className={`${sans.variable} h-full`}>
       <body className="min-h-full antialiased">{children}</body>
     </html>
   );

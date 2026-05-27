@@ -1,13 +1,9 @@
-export const APP_NAME = "Rolli";
+export const APP_NAME = "rolli";
 
-/** Static files under /public — use these paths in metadata, Image src, and audio. */
+/** Static files under /public — use these paths in metadata and Image src. */
 export const PUBLIC_ASSETS = {
   images: {
     logo: "/images/rolli-logo.png",
-  },
-  audio: {
-    sfx: "/audio/sfx",
-    music: "/audio/music",
   },
 } as const;
 

@@ -33,7 +33,7 @@ export default function GuidePage() {
         <h1 className="font-display mt-2 text-3xl text-ink">How Rolli works</h1>
       </div>
 
-      <Card gradient className="relative min-h-[420px]">
+      <Card gradient className="relative min-h-[420px] overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.title}

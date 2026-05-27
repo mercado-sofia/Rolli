@@ -1,0 +1,7 @@
+# Dependencies and build output (app lives in rolli/)
+rolli/node_modules/
+rolli/.next/
+rolli/out/
+
+# OS
+.DS_Store
