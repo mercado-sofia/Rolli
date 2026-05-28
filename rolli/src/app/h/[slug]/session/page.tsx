@@ -10,11 +10,11 @@ import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { HANGOUT_LIMITS } from "@/lib/constants";
-import { endHangout } from "@/lib/hangouts";
+import { endHangout } from "@/lib/hangout/hangouts";
 import { useSessionStore } from "@/store/session-store";
 
 export default function SessionPage() {
@@ -22,15 +22,13 @@ export default function SessionPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
 
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({

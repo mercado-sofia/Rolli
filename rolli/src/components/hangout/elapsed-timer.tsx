@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { useElapsedTimer } from "@/hooks/use-elapsed-timer";
-import { formatDuration } from "@/lib/format-duration";
+import { formatDuration } from "@/lib/hangout/format-duration";
 
 type ElapsedTimerProps = {
   startedAt: string | null;

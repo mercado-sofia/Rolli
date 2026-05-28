@@ -1,4 +1,5 @@
 export {
+  abandonHangout,
   createHangoutWithKeeper,
   endHangout,
   fetchHangoutBySlug,

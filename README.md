@@ -62,7 +62,7 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 ### Implemented
 
 - Mobile-responsive pastel UI shell
-- Landing, guide, start, create, and join flows
+- Landing page (how-it-works guide section), start, create, and join flows
 - Supabase schema, RPC functions, and storage bucket migrations
 - Create hangout (Film Keeper + invitation link), join, waiting room with live participant count
 - Film Keeper can start hangout (2–10 participants) via database RPC

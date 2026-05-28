@@ -10,7 +10,7 @@ import {
   finishReveal,
   getRevealState,
   signRevealPhotoUrls,
-} from "@/lib/reveal";
+} from "@/lib/hangout/reveal";
 import type { Hangout } from "@/types/hangout";
 import type { RevealPerspective } from "@/types/reveal";
 

@@ -9,10 +9,10 @@ import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
-import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangouts";
-import { hangoutParticipantPath } from "@/lib/hangout-routes";
+import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
+import { hangoutParticipantPath } from "@/lib/hangout/routes";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -160,9 +160,15 @@ export function InviteLanding() {
   }
 
   if (hangout.status !== "waiting") {
+    const isCancelled = hangout.status === "cancelled";
+
     return (
       <SetupFlowShell
-        hint="This hangout already started or ended — new guests can't join."
+        hint={
+          isCancelled
+            ? "The Film Keeper cancelled this hangout before it started."
+            : "This hangout already started or ended — new guests can't join."
+        }
         header={
           <SetupFlowHeader
             currentStep={setupFlowSteps.inviteJoin}
@@ -174,7 +180,9 @@ export function InviteLanding() {
         }
       >
         <p className="text-center text-sm text-muted">
-          This hangout has already started or ended. New guests cannot join.
+          {isCancelled
+            ? "This hangout was abandoned. New guests cannot join."
+            : "This hangout has already started or ended. New guests cannot join."}
         </p>
         <Link
           href="/"

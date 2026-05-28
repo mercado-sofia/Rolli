@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { SIGNED_URL_REFRESH_MS } from "@/lib/signed-photo-urls";
+import { SIGNED_URL_REFRESH_MS } from "@/lib/hangout/signed-photo-urls";
 
 type UseResignPhotosOnVisibilityOptions = {
   signedAt: number | null;

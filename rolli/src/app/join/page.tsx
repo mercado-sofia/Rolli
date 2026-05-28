@@ -9,7 +9,7 @@ import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 
 const JOIN_FORM_ID = "join-hangout-form";
 

@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
-import { buildShareInviteUrl, extractSlugFromInviteLink } from "@/lib/invite";
+import { buildShareInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
 import { cn } from "@/lib/utils";
 
 type InviteLinkCardProps = {

@@ -9,10 +9,10 @@ import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
-import { startReveal } from "@/lib/reveal";
+import { startReveal } from "@/lib/hangout/reveal";
 import { useSessionStore } from "@/store/session-store";
 
 export default function DevelopingPage() {
@@ -20,14 +20,12 @@ export default function DevelopingPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({

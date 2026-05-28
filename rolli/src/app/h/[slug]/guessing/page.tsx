@@ -5,21 +5,18 @@ import { useParams } from "next/navigation";
 import { GuessingExperience } from "@/components/hangout/guessing-experience";
 import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
-import { fetchHangoutBySlug } from "@/lib/hangouts";
+import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
 import { useSessionStore } from "@/store/session-store";
 
 export default function GuessingPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
-
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({
     slug,

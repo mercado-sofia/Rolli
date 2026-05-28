@@ -10,8 +10,8 @@ import { Field } from "@/components/ui/field";
 import { FormCallout } from "@/components/ui/form-callout";
 import { FormSubmittingBridge } from "@/components/ui/form-submitting-bridge";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
-import { joinHangout } from "@/lib/hangouts";
-import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/invite";
+import { joinHangout } from "@/lib/hangout/hangouts";
+import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
 import { useSessionStore } from "@/store/session-store";
 
 const baseJoinSchema = z.object({

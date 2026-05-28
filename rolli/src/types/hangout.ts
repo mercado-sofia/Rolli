@@ -4,7 +4,8 @@ export type HangoutStatus =
   | "developing"
   | "revealing"
   | "guessing"
-  | "completed";
+  | "completed"
+  | "cancelled";
 
 export type Hangout = {
   id: string;

@@ -15,6 +15,8 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
       return `/h/${slug}/guessing`;
     case "completed":
       return `/h/${slug}/gallery`;
+    case "cancelled":
+      return `/h/${slug}`;
     default:
       return `/h/${slug}/waiting`;
   }

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { signPhotoPerspectives } from "@/lib/signed-photo-urls";
+import { signPhotoPerspectives } from "@/lib/hangout/signed-photo-urls";
 import type { RevealPerspective } from "@/types/reveal";
 
 function parseRpcError(error: { message?: string; details?: string }): string {

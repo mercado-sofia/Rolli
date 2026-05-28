@@ -6,9 +6,9 @@ import { useCallback } from "react";
 import { RevealExperience } from "@/components/hangout/reveal-experience";
 import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -17,11 +17,9 @@ export default function RevealPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
 
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({

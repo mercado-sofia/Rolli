@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 import { APP_NAME } from "@/lib/constants";
-import { getInvitePreviewCopy } from "@/lib/metadata/invite-preview";
+import { getInvitePreviewCopy } from "@/lib/hangout/invite-preview";
 import { fetchHangoutBySlugServer } from "@/lib/services/hangouts-server";
 
 export const runtime = "edge";

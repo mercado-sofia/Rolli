@@ -5,7 +5,6 @@ import { useEffect } from "react";
 
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
-import type { Participant } from "@/types/participant";
 
 type UseHangoutSessionGuardOptions = {
   slug: string;
@@ -43,8 +42,5 @@ export function useHangoutSessionGuard({
   return {
     participant: hasValidSession ? participant : null,
     hasValidSession,
-  } as {
-    participant: Participant | null;
-    hasValidSession: boolean;
   };
 }

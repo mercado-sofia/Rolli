@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import { Button } from "@/components/ui/button";
-import { captureMemory } from "@/lib/photos";
+import { captureMemory } from "@/lib/hangout/photos";
 import type { Participant } from "@/types/participant";
 
 type CameraCaptureProps = {

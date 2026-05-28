@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { getHangoutRouteRedirect } from "@/lib/hangout-routes";
+import { getHangoutRouteRedirect } from "@/lib/hangout/routes";
 import type { Hangout } from "@/types/hangout";
 
 type UseHangoutRouteGuardOptions = {

@@ -10,7 +10,7 @@ import {
   getGuessingResults,
   getGuessingState,
   submitVote,
-} from "@/lib/guessing";
+} from "@/lib/hangout/guessing";
 import type { HangoutStatus } from "@/types/hangout";
 import type { GuessingResults, GuessingState } from "@/types/guessing";
 

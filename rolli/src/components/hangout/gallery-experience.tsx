@@ -6,8 +6,8 @@ import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
-import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/download-photos";
-import { getGallery, signGalleryPhotoUrls } from "@/lib/gallery";
+import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
+import { getGallery, signGalleryPhotoUrls } from "@/lib/hangout/gallery";
 import type { RevealPerspective } from "@/types/reveal";
 
 type GalleryExperienceProps = {

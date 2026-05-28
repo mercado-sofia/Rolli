@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { leaveHangout } from "@/lib/hangouts";
+import { leaveHangout } from "@/lib/hangout/hangouts";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 

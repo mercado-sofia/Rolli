@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LuMoon } from "react-icons/lu";
 
+import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
 import { MobileShell } from "@/components/layout/mobile-shell";
@@ -11,13 +12,13 @@ import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { AppBackButton } from "@/components/ui/app-back-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
-import { hangoutSharePath } from "@/lib/hangout-routes";
-import { startHangout } from "@/lib/hangouts";
+import { hangoutSharePath } from "@/lib/hangout/routes";
+import { startHangout } from "@/lib/hangout/hangouts";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -26,14 +27,12 @@ export default function WaitingRoomPage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
   const setHangout = useSessionStore((state) => state.setHangout);
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
-  const { hangout: syncedHangout, loadError, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, loadError, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({
@@ -92,6 +91,7 @@ export default function WaitingRoomPage() {
 
   return (
     <SetupFlowShell
+      contentAlign="raised"
       hint={hint}
       header={
         <AppBackButton
@@ -122,6 +122,10 @@ export default function WaitingRoomPage() {
             >
               {starting ? "Starting…" : "Start hangout"}
             </Button>
+            <AbandonHangoutControl
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+            />
           </>
         ) : (
           <LeaveRoomButton

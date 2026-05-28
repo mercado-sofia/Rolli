@@ -7,23 +7,19 @@ import { MobileShell } from "@/components/layout/mobile-shell";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
+import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { useHangoutSync } from "@/hooks/use-hangout-sync";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { buildInviteUrl } from "@/lib/invite";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/setup-flow";
-import { useSessionStore } from "@/store/session-store";
+import { buildInviteUrl } from "@/lib/hangout/invite";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 
 export default function HangoutSharePage() {
   const params = useParams<{ slug: string }>();
   const router = useRouter();
   const slug = params.slug;
 
-  const hangoutStore = useSessionStore((state) => state.hangout);
-
-  const { hangout: syncedHangout, isLoading } = useHangoutSync({ slug });
-  const displayHangout = syncedHangout ?? hangoutStore;
+  const { displayHangout, isLoading } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { hasValidSession } = useHangoutSessionGuard({

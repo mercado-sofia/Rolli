@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { signPhotoPerspectives } from "@/lib/signed-photo-urls";
+import { signPhotoPerspectives } from "@/lib/hangout/signed-photo-urls";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import type { Hangout } from "@/types/hangout";
 import type { RevealPerspective, RevealState } from "@/types/reveal";

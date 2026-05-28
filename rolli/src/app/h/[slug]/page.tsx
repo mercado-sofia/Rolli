@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { InviteLanding } from "@/app/h/[slug]/invite-landing";
 import { APP_NAME } from "@/lib/constants";
-import { getInvitePreviewCopy } from "@/lib/metadata/invite-preview";
+import { getInvitePreviewCopy } from "@/lib/hangout/invite-preview";
 import {
   getInviteOgImageUrl,
   getInvitePageUrl,

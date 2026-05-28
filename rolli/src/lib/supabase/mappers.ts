@@ -31,6 +31,7 @@ const HANGOUT_STATUSES: HangoutStatus[] = [
   "revealing",
   "guessing",
   "completed",
+  "cancelled",
 ];
 
 function toHangoutStatus(value: string): HangoutStatus {
