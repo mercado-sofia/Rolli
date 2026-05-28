@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -97,7 +98,7 @@ export function LandingNavbar() {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-lavender/40 bg-white/80 text-ink transition-colors hover:bg-white sm:hidden"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/80 text-ink transition-colors hover:bg-white sm:hidden"
           aria-expanded={menuOpen}
           aria-controls="landing-mobile-menu"
           aria-label={menuOpen ? "Close menu" : "Open menu"}
@@ -123,34 +124,50 @@ export function LandingNavbar() {
         </ul>
       </nav>
 
-      {menuOpen && (
-        <>
-          <button
-            type="button"
-            className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-40 bg-ink/20 sm:hidden"
-            aria-label="Close menu"
-            onClick={() => setMenuOpen(false)}
-          />
-          <div
-            id="landing-mobile-menu"
-            className="absolute inset-x-0 top-full z-50 border-b border-lavender/50 bg-white/95 px-3 py-3 shadow-soft backdrop-blur-md sm:hidden"
-          >
-            <ul className="flex flex-col gap-1">
-              {LANDING_NAV_SECTIONS.map((section) => (
-                <li key={section.id}>
-                  <button
-                    type="button"
-                    onClick={() => handleNavClick(section.id)}
-                    className="flex min-h-11 w-full items-center rounded-2xl px-4 text-left text-sm font-medium text-ink transition-colors hover:bg-lavender/40"
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.button
+              type="button"
+              className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-40 bg-ink/20 sm:hidden"
+              aria-label="Close menu"
+              onClick={() => setMenuOpen(false)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            />
+            <motion.div
+              id="landing-mobile-menu"
+              className="absolute inset-x-0 top-full z-50 border-b border-lavender/50 bg-white/95 px-3 py-3 shadow-soft backdrop-blur-md sm:hidden"
+              initial={{ opacity: 0, y: -10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <ul className="flex flex-col gap-1">
+                {LANDING_NAV_SECTIONS.map((section, index) => (
+                  <motion.li
+                    key={section.id}
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ delay: 0.03 * index, duration: 0.16 }}
                   >
-                    {section.label}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
-      )}
+                    <button
+                      type="button"
+                      onClick={() => handleNavClick(section.id)}
+                      className="flex min-h-11 w-full items-center rounded-2xl px-4 text-left text-sm font-medium text-ink transition-colors hover:bg-lavender/40"
+                    >
+                      {section.label}
+                    </button>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

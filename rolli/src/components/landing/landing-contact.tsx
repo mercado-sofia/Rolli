@@ -9,12 +9,12 @@ export function LandingContact() {
   return (
     <section
       id="contact"
-      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] border-t border-lavender/50 bg-canvas px-5 py-14 md:py-20"
+      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0))] border-t border-lavender/50 bg-white px-5 py-14 md:py-20"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center">
         <p className="text-sm font-medium text-muted">Contact</p>
         <h2 className="font-display mt-2 text-2xl text-ink md:text-3xl">
-          Questions? Reach out anytime.
+          <span style={{ color: "#FBA2C2" }}>Questions</span>? Reach out anytime.
         </h2>
         <p className="mt-3 max-w-md text-sm leading-relaxed text-muted md:text-base">
           If you have feedback, partnership ideas, or need help with Rolli, I&apos;d love to hear

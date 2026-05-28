@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { PUBLIC_ASSETS } from "@/lib/constants";
 import { PolaroidCard, polaroids } from "@/components/landing/polaroid-card";
 
+const mobilePolaroids = [
+  { ...polaroids[0], left: "-6%" },
+  { ...polaroids[1], right: "-10%" },
+  { ...polaroids[2], left: "-8%" },
+  { ...polaroids[3], right: "-12%" },
+  { ...polaroids[4], left: "2%" },
+  { ...polaroids[5], right: "-4%" },
+];
+
 function MobileHeroCard() {
   return (
     <motion.div
@@ -16,7 +25,7 @@ function MobileHeroCard() {
       transition={{ delay: 0.1, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       className="relative mx-auto h-[clamp(200px,34dvh,280px)] w-full max-w-[min(300px,88vw)] shrink-0"
     >
-      {polaroids.map((p, i) => (
+      {mobilePolaroids.map((p, i) => (
         <PolaroidCard key={i} polaroid={p} index={i} size="xs" />
       ))}
       <div className="absolute inset-0 z-20 flex items-center justify-center">
@@ -58,17 +67,19 @@ function DesktopPolaroidPanel() {
   );
 }
 
-function HeroBackgroundEllipses() {
+function HeroBackgroundEllipses({ mobile = false }: { mobile?: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: "882px",
-          height: "784px",
+          width: mobile ? "220px" : "882px",
+          height: mobile ? "196px" : "784px",
           backgroundColor: "#FFF2FA",
-          left: "-85px",
-          top: "334px",
+          left: mobile ? "-56px" : "-85px",
+          top: mobile ? "210px" : "334px",
+          filter: mobile ? "blur(34px)" : undefined,
+          opacity: mobile ? 0.9 : 1,
         }}
         animate={{ x: [0, 20, -10, 0], y: [0, -16, 10, 0], scale: [1, 1.02, 0.99, 1] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
@@ -77,11 +88,13 @@ function HeroBackgroundEllipses() {
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: "722px",
-          height: "644px",
+          width: mobile ? "190px" : "722px",
+          height: mobile ? "168px" : "644px",
           backgroundColor: "#FFE1F4",
-          left: "-85px",
-          top: "540px",
+          left: mobile ? "-48px" : "-85px",
+          top: mobile ? "330px" : "540px",
+          filter: mobile ? "blur(32px)" : undefined,
+          opacity: mobile ? 0.88 : 1,
         }}
         animate={{ x: [0, -18, 12, 0], y: [0, 14, -12, 0], scale: [1, 0.98, 1.02, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
@@ -90,11 +103,13 @@ function HeroBackgroundEllipses() {
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: "324px",
-          height: "308px",
+          width: mobile ? "124px" : "324px",
+          height: mobile ? "118px" : "308px",
           backgroundColor: "#FFE1F4",
-          right: "-100px",
-          bottom: "-140px",
+          right: mobile ? "-26px" : "-100px",
+          bottom: mobile ? "-24px" : "-140px",
+          filter: mobile ? "blur(26px)" : undefined,
+          opacity: mobile ? 0.9 : 1,
         }}
         animate={{ x: [0, -24, 8, 0], y: [0, -10, 14, 0], scale: [1, 1.03, 0.98, 1] }}
         transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
@@ -111,15 +126,13 @@ export function LandingHero() {
     >
       {/* Mobile hero — full viewport height; content clears fixed navbar inside */}
       <div className="relative h-dvh min-h-dvh overflow-hidden supports-[height:100svh]:h-svh supports-[height:100svh]:min-h-svh md:hidden">
+        <HeroBackgroundEllipses mobile />
         <MobileShell
           ambient={false}
           fillViewport={false}
+          backgroundClassName="bg-white"
           className="flex h-full min-h-full flex-col justify-between gap-3 px-5 pt-(--navbar-total-height) pb-[max(2.25rem,calc(env(safe-area-inset-bottom)+1rem))] sm:px-8 sm:pb-[max(2.75rem,calc(env(safe-area-inset-bottom)+1.5rem))]"
         >
-          <div className="pointer-events-none absolute -left-20 top-10 h-64 w-64 rounded-full bg-pink/30 blur-3xl" aria-hidden />
-          <div className="pointer-events-none absolute -right-16 top-1/3 h-72 w-72 rounded-full bg-lavender-deep/20 blur-3xl" aria-hidden />
-          <div className="pointer-events-none absolute bottom-10 left-1/4 h-48 w-48 rounded-full bg-pink/20 blur-3xl" aria-hidden />
-
           <div
             className="pointer-events-none absolute inset-0 opacity-40"
             style={{
@@ -140,7 +153,7 @@ export function LandingHero() {
 
             <div className="mx-auto mt-[clamp(1.25rem,3.5dvh,2rem)] max-w-xs shrink-0 text-center">
               <h1 className="font-display text-[clamp(1.25rem,4.5dvh,1.5rem)] leading-tight tracking-tight text-ink">
-                Capture memories anonymously.
+                Capture <span style={{ color: "#FBA2C2" }}>memories</span> anonymously.
               </h1>
               <p className="mt-1.5 text-[clamp(0.8125rem,2.2dvh,0.875rem)] leading-relaxed text-pink-muted/80">
                 Reveal them only when the hangout ends.
@@ -187,7 +200,7 @@ export function LandingHero() {
                   <span className="text-pink-accent">camera</span>
                 </p>
                 <h1 className="font-display text-4xl leading-tight tracking-tight text-ink lg:text-5xl">
-                  Capture memories anonymously.
+                  Capture <span style={{ color: "#FBA2C2" }}>memories</span> anonymously.
                 </h1>
                 <p className="max-w-md text-lg leading-relaxed text-pink-muted/80">
                   Reveal them only when the hangout ends.

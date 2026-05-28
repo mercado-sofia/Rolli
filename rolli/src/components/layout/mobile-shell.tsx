@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 type MobileShellProps = {
   children: ReactNode;
   className?: string;
+  backgroundClassName?: string;
   ambient?: boolean;
   /** When false, parent controls height (e.g. hero fits below navbar). */
   fillViewport?: boolean;
@@ -13,13 +14,15 @@ type MobileShellProps = {
 export function MobileShell({
   children,
   className,
+  backgroundClassName = "bg-canvas",
   ambient = true,
   fillViewport = true,
 }: MobileShellProps) {
   return (
     <div
       className={cn(
-        "relative overflow-x-hidden bg-canvas text-ink",
+        "relative overflow-x-hidden text-ink",
+        backgroundClassName,
         fillViewport ? "min-h-dvh" : "h-full min-h-0",
       )}
     >

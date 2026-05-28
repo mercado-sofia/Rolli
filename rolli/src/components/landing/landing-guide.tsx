@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { type TouchEvent, useRef, useState } from "react";
 
 import { GuideSlideIcon } from "@/components/landing/landing-icons";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ const GUIDE_DETAILS = [
 
 export function LandingGuide() {
   const [index, setIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
   const slide = GUIDE_SLIDES[index];
   const details = GUIDE_DETAILS[index];
   const isLast = index === GUIDE_SLIDES.length - 1;
@@ -46,10 +47,26 @@ export function LandingGuide() {
     );
   }
 
+  function handleTouchStart(event: TouchEvent<HTMLElement>) {
+    touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLElement>) {
+    if (touchStartX.current === null) return;
+    const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
+    const deltaX = endX - touchStartX.current;
+    const swipeThreshold = 40;
+
+    if (deltaX <= -swipeThreshold) goNext();
+    if (deltaX >= swipeThreshold) goPrev();
+
+    touchStartX.current = null;
+  }
+
   return (
     <section
       id="guide"
-      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0px))] overflow-x-hidden bg-canvas px-5 py-16 md:py-24"
+      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0))] overflow-x-hidden bg-canvas px-5 py-16 md:py-24"
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 md:gap-14">
         <div className="relative mx-auto max-w-xl overflow-visible text-center md:max-w-2xl">
@@ -103,7 +120,11 @@ export function LandingGuide() {
             </Button>
           </div>
 
-          <div className="order-1 md:order-2">
+          <div
+            className="order-1 md:order-2"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <Card gradient className="relative min-h-[min(340px,62dvh)] overflow-hidden md:min-h-[420px]">
               <AnimatePresence mode="wait">
                 <motion.div
