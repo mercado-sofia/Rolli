@@ -26,7 +26,7 @@ export default function HangoutSharePage() {
   const displayHangout = syncedHangout ?? hangoutStore;
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
-  const { hasValidSession, isLoading: sessionLoading } = useHangoutSessionGuard({
+  const { hasValidSession } = useHangoutSessionGuard({
     slug,
     hangout: displayHangout,
     isLoading,
@@ -34,7 +34,6 @@ export default function HangoutSharePage() {
 
   if (
     isLoading ||
-    sessionLoading ||
     !hasValidSession ||
     !displayHangout ||
     displayHangout.status !== "waiting"
