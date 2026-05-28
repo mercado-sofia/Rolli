@@ -19,16 +19,16 @@ export function ElapsedTimer({ startedAt, autoEndHours }: ElapsedTimerProps) {
     autoEndMs !== null ? Math.max(0, autoEndMs - elapsedMs) : null;
 
   return (
-    <Card gradient className="text-center">
-      <p className="text-sm text-white/80">Elapsed time</p>
+    <Card className="text-center">
+      <p className="text-sm text-muted">Elapsed time</p>
       <p className="font-display mt-2 text-4xl tabular-nums sm:text-5xl">{elapsedLabel}</p>
       {remainingMs !== null && remainingMs > 0 && (
-        <p className="mt-3 text-sm text-white/70">
+        <p className="mt-3 text-sm text-muted">
           Auto-ends in {formatDuration(remainingMs)}
         </p>
       )}
       {remainingMs === 0 && (
-        <p className="mt-3 text-sm text-white/90">
+        <p className="mt-3 text-sm text-ink">
           Time&apos;s up — hangout is ending…
         </p>
       )}

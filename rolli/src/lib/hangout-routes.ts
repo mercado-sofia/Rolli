@@ -21,6 +21,11 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
 }
 
 const GUESSING_PATH_SUFFIX = "/guessing";
+const SHARE_PATH_SUFFIX = "/share";
+
+export function hangoutSharePath(slug: string): string {
+  return `/h/${slug}/share`;
+}
 
 /**
  * Returns the path to redirect to when the user is on the wrong phase page, or null if OK.
@@ -42,6 +47,10 @@ export function getHangoutRouteRedirect(
     status === "completed" &&
     currentPath.endsWith(GUESSING_PATH_SUFFIX)
   ) {
+    return null;
+  }
+
+  if (status === "waiting" && currentPath.endsWith(SHARE_PATH_SUFFIX)) {
     return null;
   }
 

@@ -8,7 +8,8 @@ export const runtime = "edge";
 
 export const alt = "Rolli hangout invitation";
 export const size = { width: 1200, height: 630 };
-export const contentType = "image/png";
+/** JPEG keeps previews under WhatsApp's ~300KB image limit (PNG often exceeds it). */
+export const contentType = "image/jpeg";
 
 type OgImageProps = {
   params: Promise<{ slug: string }>;
@@ -33,23 +34,22 @@ export default async function InviteOpenGraphImage({ params }: OgImageProps) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "64px",
-          background:
-            "linear-gradient(135deg, #fef3c7 0%, #fbcfe8 45%, #e9d5ff 100%)",
-          color: "#2d2a4a",
-          fontFamily: "Georgia, serif",
+          padding: "56px",
+          backgroundColor: "#fbc2eb",
+          color: "#1a1a1a",
+          fontFamily: "system-ui, sans-serif",
         }}
       >
         <div
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "16px",
-            fontSize: 36,
+            gap: "12px",
+            fontSize: 32,
             fontWeight: 600,
           }}
         >
-          <span style={{ fontSize: 44 }}>📸</span>
+          <span style={{ fontSize: 40 }}>📸</span>
           <span>{APP_NAME}</span>
         </div>
 
@@ -57,49 +57,31 @@ export default async function InviteOpenGraphImage({ params }: OgImageProps) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
-            maxWidth: "900px",
+            gap: "16px",
+            maxWidth: "920px",
           }}
         >
-          <p
-            style={{
-              margin: 0,
-              fontSize: 28,
-              opacity: 0.85,
-            }}
-          >
+          <p style={{ margin: 0, fontSize: 26, color: "#5c1036" }}>
             {"You're invited"}
           </p>
           <h1
             style={{
               margin: 0,
-              fontSize: 72,
-              lineHeight: 1.05,
+              fontSize: 64,
+              lineHeight: 1.08,
+              fontWeight: 700,
               letterSpacing: "-0.02em",
             }}
           >
             {displayTitle}
           </h1>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 30,
-              lineHeight: 1.4,
-              opacity: 0.9,
-            }}
-          >
+          <p style={{ margin: 0, fontSize: 28, lineHeight: 1.35, color: "#3d3d3d" }}>
             {copy.imageTagline}
           </p>
         </div>
 
-        <p
-          style={{
-            margin: 0,
-            fontSize: 24,
-            opacity: 0.75,
-          }}
-        >
-          Anonymous camera · hidden until reveal · guess the perspectives
+        <p style={{ margin: 0, fontSize: 22, color: "#5c1036" }}>
+          Anonymous camera · reveal later · guess the perspectives
         </p>
       </div>
     ),

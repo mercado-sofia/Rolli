@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { GuideSlideIcon } from "@/components/landing/landing-icons";
+import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -28,13 +29,14 @@ export default function GuidePage() {
   }
 
   return (
-    <MobileShell className="justify-between gap-8">
+    <MobileShell variant="app" className="justify-between gap-8">
+      <AppPageContent className="gap-8">
       <div>
         <p className="text-sm font-medium text-muted">Quick Guide</p>
         <h1 className="font-display mt-2 text-3xl text-ink">How Rolli works</h1>
       </div>
 
-      <Card gradient className="relative min-h-[min(420px,62dvh)] overflow-hidden">
+      <Card className="relative min-h-[min(420px,62dvh)] overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.title}
@@ -45,7 +47,7 @@ export default function GuidePage() {
             className="flex h-full flex-col justify-center gap-6 pt-16 text-center"
           >
             <div className="flex justify-center">
-              <GuideSlideIcon iconKey={slide.icon} size={48} />
+              <GuideSlideIcon iconKey={slide.icon} size={48} onGradient={false} />
             </div>
             <p className="font-display text-2xl leading-snug">{slide.title}</p>
           </motion.div>
@@ -56,7 +58,7 @@ export default function GuidePage() {
             <span
               key={dotIndex}
               className={`h-2 rounded-full transition-all ${
-                dotIndex === index ? "w-6 bg-white" : "w-2 bg-white/40"
+                dotIndex === index ? "w-6 bg-pink-highlight" : "w-2 bg-black/15"
               }`}
             />
           ))}
@@ -67,7 +69,7 @@ export default function GuidePage() {
         <button
           type="button"
           onClick={goPrev}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-lavender/40 bg-white/80 text-ink"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white text-ink"
           aria-label="Previous slide"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -75,12 +77,13 @@ export default function GuidePage() {
         <button
           type="button"
           onClick={goNext}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-lavender/40 bg-white/80 text-ink"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white text-ink"
           aria-label="Next slide"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
       </div>
+      </AppPageContent>
 
       <div className="flex flex-col gap-3">
         <div className="flex gap-3 md:hidden">

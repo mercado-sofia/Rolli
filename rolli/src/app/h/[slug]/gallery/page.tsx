@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
+import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
@@ -34,19 +35,21 @@ export default function GalleryPage() {
     displayHangout.status !== "completed"
   ) {
     return (
-      <MobileShell className="justify-center">
+      <MobileShell variant="app" className="justify-center">
         <p className="text-center text-muted">Loading…</p>
       </MobileShell>
     );
   }
 
   return (
-    <MobileShell className="gap-6 py-8">
-      <GalleryExperience
-        hangoutId={displayHangout.id}
-        sessionToken={participant.sessionToken}
-        hangoutTitle={displayHangout.title}
-      />
+    <MobileShell variant="app" className="gap-6">
+      <AppPageContent className="gap-6">
+        <GalleryExperience
+          hangoutId={displayHangout.id}
+          sessionToken={participant.sessionToken}
+          hangoutTitle={displayHangout.title}
+        />
+      </AppPageContent>
 
       <Link
         href={`/h/${slug}/guessing`}

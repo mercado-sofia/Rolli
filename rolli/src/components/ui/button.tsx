@@ -52,7 +52,12 @@ export function Button({
   }
 
   return (
-    <button className={classes} disabled={disabled} {...props}>
+    <button
+      className={classes}
+      disabled={disabled}
+      suppressHydrationWarning
+      {...props}
+    >
       {shimmer}
       {children}
     </button>

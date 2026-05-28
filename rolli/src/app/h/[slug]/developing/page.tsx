@@ -2,7 +2,10 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { LuFilm } from "react-icons/lu";
 
+import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
+import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -63,14 +66,15 @@ export default function DevelopingPage() {
     displayHangout.status !== "developing"
   ) {
     return (
-      <MobileShell className="justify-center">
+      <MobileShell variant="app" className="justify-center">
         <p className="text-center text-muted">Loading…</p>
       </MobileShell>
     );
   }
 
   return (
-    <MobileShell className="justify-center gap-8">
+    <MobileShell variant="app" className="justify-center gap-8">
+      <AppPageContent className="gap-8">
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Hangout ended</p>
         <h1 className="font-display mt-2 text-3xl text-ink">
@@ -81,12 +85,12 @@ export default function DevelopingPage() {
         </p>
       </div>
 
-      <Card gradient className="text-center">
-        <p className="text-4xl">🎞️</p>
+      <Card className="text-center">
+        <HangoutCardIcon icon={LuFilm} />
         <p className="font-display mt-4 text-2xl leading-snug">
           Memories in the darkroom
         </p>
-        <p className="mt-3 text-sm text-white/80">
+        <p className="mt-3 text-sm text-muted">
           Every anonymous perspective is being prepared for the big reveal.
         </p>
       </Card>
@@ -103,6 +107,7 @@ export default function DevelopingPage() {
           </div>
         </dl>
       </Card>
+      </AppPageContent>
 
       {participant.isFilmKeeper ? (
         <>

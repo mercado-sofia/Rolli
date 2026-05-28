@@ -7,12 +7,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { InviteLinkCard } from "@/components/hangout/invite-link-card";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
+import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { createHangoutWithKeeper } from "@/lib/hangouts";
 import { buildInviteUrl } from "@/lib/invite";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/setup-flow";
 import { useSessionStore } from "@/store/session-store";
 
 const schema = z.object({
@@ -29,6 +32,8 @@ type CreatedHangout = {
   inviteUrl: string;
 };
 
+const CREATE_FORM_ID = "create-hangout-form";
+
 export default function CreatePage() {
   const router = useRouter();
   const setSession = useSessionStore((state) => state.setSession);
@@ -40,7 +45,7 @@ export default function CreatePage() {
     register,
     handleSubmit,
     trigger,
-    getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -85,101 +90,131 @@ export default function CreatePage() {
 
   if (created) {
     return (
-      <MobileShell className="justify-center gap-8">
-        <div>
-          <p className="text-sm font-medium text-muted">Create</p>
-          <h1 className="font-display mt-2 text-3xl text-ink">
-            Your link is ready
-          </h1>
-          <p className="mt-3 text-sm text-muted">
-            You&apos;re the Film Keeper. Share the link, then head to the
-            waiting room when you&apos;re ready.
-          </p>
-        </div>
-
+      <SetupFlowShell
+        hint="Share the link with friends, then enter when you're ready."
+        header={
+          <SetupFlowHeader
+            currentStep={setupFlowSteps.createLinkReady}
+            totalSteps={SETUP_FLOW_TOTAL_STEPS}
+            onBack={() => {
+              setCreated(null);
+              setStep(2);
+            }}
+            backLabel="Back to identity"
+            title="Ready to roll!"
+            sublabel="Share with your friends"
+          />
+        }
+        footer={
+          <Button
+            type="button"
+            onClick={enterWaitingRoom}
+            className={APP_PRIMARY_BUTTON_CLASS}
+          >
+            Enter waiting room
+          </Button>
+        }
+      >
         <InviteLinkCard
           inviteUrl={created.inviteUrl}
           hangoutTitle={created.title}
         />
-
-        <Button type="button" onClick={enterWaitingRoom}>
-          Enter waiting room
-        </Button>
-      </MobileShell>
+      </SetupFlowShell>
     );
   }
 
-  return (
-    <MobileShell className="justify-center gap-8">
-      <div>
-        <p className="text-sm font-medium text-muted">Create</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">Start a hangout</h1>
-        <p className="mt-3 text-sm text-muted">
-          {step === 1
-            ? "First, name your hangout."
-            : "Now set your anonymous identity as Film Keeper."}
-        </p>
-      </div>
+  const currentStep =
+    step === 1 ? setupFlowSteps.createTitle : setupFlowSteps.createIdentity;
 
-      <Card>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Field
-            id="title"
-            label="Hangout title"
-            placeholder="2AM McDo Recovery"
-            error={errors.title?.message}
-            {...register("title")}
-          />
-          {step === 2 && (
+  return (
+    <SetupFlowShell
+      hint={
+        step === 1
+          ? "Something your friends will recognize works best."
+          : "Only your nickname shows until the hangout ends."
+      }
+      header={
+        <SetupFlowHeader
+          currentStep={currentStep}
+          totalSteps={SETUP_FLOW_TOTAL_STEPS}
+          backHref={step === 1 ? "/start" : undefined}
+          onBack={step === 2 ? () => setStep(1) : undefined}
+          backLabel={step === 1 ? "Back to start" : "Back to title"}
+          title={step === 1 ? "New hangout" : "Your identity"}
+          sublabel={
+            step === 1 ? "Name your hangout" : "Set your anonymous identity"
+          }
+          detail={
+            step === 2 ? (
+              <>
+                Hangout:{" "}
+                <span className="font-medium text-ink">{watch("title")}</span>
+              </>
+            ) : undefined
+          }
+        />
+      }
+      footer={
+        step === 1 ? (
+          <Button
+            type="button"
+            onClick={handleProceedToIdentityStep}
+            disabled={isSubmitting}
+            className={APP_PRIMARY_BUTTON_CLASS}
+          >
+            Proceed
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            form={CREATE_FORM_ID}
+            disabled={isSubmitting}
+            className={APP_PRIMARY_BUTTON_CLASS}
+          >
+            {isSubmitting ? "Creating…" : "Generate link"}
+          </Button>
+        )
+      }
+    >
+      <SetupFormCard>
+        <form
+          id={CREATE_FORM_ID}
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
+          {step === 1 ? (
+            <Field
+              id="title"
+              label="Hangout title"
+              placeholder="2AM McDo Recovery"
+              error={errors.title?.message}
+              {...register("title")}
+            />
+          ) : (
             <>
-              <div className="rounded-2xl bg-lavender/30 px-4 py-3 text-sm text-ink">
-                Hangout: <span className="font-medium">{getValues("title")}</span>
-              </div>
               <Field
                 id="nickname"
                 label="Anonymous nickname"
-                placeholder="emotionallyoffline"
+                placeholder="Enter nickname here"
                 error={errors.nickname?.message}
                 {...register("nickname")}
               />
               <Field
                 id="realName"
                 label="Real name (hidden)"
-                placeholder="Sofia"
+                placeholder="Enter real name here"
                 error={errors.realName?.message}
                 {...register("realName")}
               />
             </>
           )}
           {submitError && (
-            <p className="text-sm text-pink">{submitError}</p>
-          )}
-          {step === 1 ? (
-            <Button
-              type="button"
-              onClick={handleProceedToIdentityStep}
-              disabled={isSubmitting}
-            >
-              Proceed
-            </Button>
-          ) : (
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Button
-                type="button"
-                variant="secondary"
-                className="sm:flex-1"
-                onClick={() => setStep(1)}
-                disabled={isSubmitting}
-              >
-                Back
-              </Button>
-              <Button type="submit" className="sm:flex-1" disabled={isSubmitting}>
-                {isSubmitting ? "Creating…" : "Generate link"}
-              </Button>
-            </div>
+            <p className="rounded-2xl bg-pink/10 px-4 py-3 text-center text-[13px] text-pink-accent">
+              {submitError}
+            </p>
           )}
         </form>
-      </Card>
-    </MobileShell>
+      </SetupFormCard>
+    </SetupFlowShell>
   );
 }

@@ -181,8 +181,8 @@ export function RevealExperience({
             transition={{ duration: 0.45, ease: "easeOut" }}
             className="space-y-4"
           >
-            <Card gradient className="text-center">
-              <p className="text-xs uppercase tracking-widest text-white/70">
+            <Card className="text-center">
+              <p className="text-xs uppercase tracking-widest text-muted">
                 Anonymous perspective
               </p>
               <p className="font-display mt-2 text-3xl">{current.nickname}</p>
@@ -192,7 +192,7 @@ export function RevealExperience({
               {current.photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="relative aspect-3/4 overflow-hidden rounded-2xl bg-lavender/40"
+                  className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[#F8F8F8]"
                 >
                   {photo.signedUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import { APP_NAME, PUBLIC_ASSETS } from "@/lib/constants";
+import { getMetadataBase } from "@/lib/metadata/site";
 
 import "./globals.css";
 
@@ -15,6 +16,7 @@ const sans = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: getMetadataBase(),
   title: {
     default: APP_NAME,
     template: `%s · ${APP_NAME}`,

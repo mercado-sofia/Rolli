@@ -5,12 +5,18 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangouts";
 import { hangoutParticipantPath } from "@/lib/hangout-routes";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/setup-flow";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
+
+const INVITE_JOIN_FORM_ID = "invite-join-form";
 
 export function InviteLanding() {
   const params = useParams<{ slug: string }>();
@@ -26,6 +32,7 @@ export function InviteLanding() {
   const [error, setError] = useState<string | null>(null);
   const [rejoining, setRejoining] = useState(false);
   const [rejoinFailed, setRejoinFailed] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const hasMatchingSession =
     Boolean(sessionParticipant) &&
@@ -115,7 +122,7 @@ export function InviteLanding() {
 
   if (loading || rejoining) {
     return (
-      <MobileShell className="justify-center">
+      <MobileShell variant="app" className="justify-center">
         <p className="text-center text-muted">
           {rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
         </p>
@@ -125,26 +132,28 @@ export function InviteLanding() {
 
   if (error || !hangout) {
     return (
-      <MobileShell className="justify-center gap-6 text-center">
-        <div>
-          <p className="text-sm font-medium text-muted">Invitation</p>
-          <h1 className="font-display mt-2 text-3xl text-ink">
-            Link not found
-          </h1>
-          <p className="mt-3 text-sm text-muted">
-            {error ?? "This hangout does not exist or the link is incorrect."}
-          </p>
-        </div>
-        <Button href="/start" variant="secondary">
-          Back to start
-        </Button>
-      </MobileShell>
+      <SetupFlowShell
+        hint="Double-check the link or ask your Film Keeper for a new one."
+        header={
+          <SetupFlowHeader
+            currentStep={1}
+            totalSteps={SETUP_FLOW_TOTAL_STEPS}
+            backHref="/start"
+            title="Link not found"
+            sublabel="Invitation"
+          />
+        }
+      >
+        <p className="text-center text-sm text-muted">
+          {error ?? "This hangout does not exist or the link is incorrect."}
+        </p>
+      </SetupFlowShell>
     );
   }
 
   if (hasMatchingSession) {
     return (
-      <MobileShell className="justify-center">
+      <MobileShell variant="app" className="justify-center">
         <p className="text-center text-muted">Taking you to your hangout…</p>
       </MobileShell>
     );
@@ -152,38 +161,61 @@ export function InviteLanding() {
 
   if (hangout.status !== "waiting") {
     return (
-      <MobileShell className="justify-center gap-6 text-center">
-        <div>
-          <p className="text-sm font-medium text-muted">Invitation</p>
-          <h1 className="font-display mt-2 text-3xl text-ink">
-            {hangout.title}
-          </h1>
-          <p className="mt-3 text-sm text-muted">
-            This hangout has already started or ended. New guests cannot join.
-          </p>
-        </div>
+      <SetupFlowShell
+        hint="This hangout already started or ended — new guests can't join."
+        header={
+          <SetupFlowHeader
+            currentStep={setupFlowSteps.inviteJoin}
+            totalSteps={SETUP_FLOW_TOTAL_STEPS}
+            backHref="/"
+            title={hangout.title}
+            sublabel="Invitation closed"
+          />
+        }
+      >
+        <p className="text-center text-sm text-muted">
+          This hangout has already started or ended. New guests cannot join.
+        </p>
         <Link
           href="/"
-          className="text-sm text-muted underline underline-offset-4"
+          className="mt-6 block text-center text-sm text-muted underline underline-offset-4"
         >
           Go home
         </Link>
-      </MobileShell>
+      </SetupFlowShell>
     );
   }
 
   return (
-    <MobileShell className="justify-center gap-8">
-      <div>
-        <p className="text-sm font-medium text-muted">You&apos;re invited</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">{hangout.title}</h1>
-        <p className="mt-3 text-sm text-muted">
-          Choose an anonymous nickname. Your real name stays hidden until the
-          hangout ends.
-        </p>
-      </div>
-
-      <JoinHangoutForm slug={slug} hangoutTitle={hangout.title} />
-    </MobileShell>
+    <SetupFlowShell
+      hint="Join with a nickname — your real name stays secret until reveal."
+      header={
+        <SetupFlowHeader
+          currentStep={setupFlowSteps.inviteJoin}
+          totalSteps={SETUP_FLOW_TOTAL_STEPS}
+          backHref="/"
+          backLabel="Go home"
+          title={hangout.title}
+          sublabel="You're invited"
+        />
+      }
+      footer={
+        <Button
+          type="submit"
+          form={INVITE_JOIN_FORM_ID}
+          disabled={isSubmitting}
+          className={APP_PRIMARY_BUTTON_CLASS}
+        >
+          {isSubmitting ? "Joining…" : "Join hangout"}
+        </Button>
+      }
+    >
+      <JoinHangoutForm
+        slug={slug}
+        hangoutTitle={hangout.title}
+        formId={INVITE_JOIN_FORM_ID}
+        onSubmittingChange={setIsSubmitting}
+      />
+    </SetupFlowShell>
   );
 }

@@ -187,11 +187,11 @@ export function GuessingExperience({
           </p>
         </div>
 
-        <Card gradient className="text-center">
+        <Card className="text-center">
           <p className="font-display text-4xl">
             {results.myScore.correct}/{results.myScore.total}
           </p>
-          <p className="mt-2 text-sm text-white/80">Your score</p>
+          <p className="mt-2 text-sm text-muted">Your score</p>
         </Card>
 
         <div className="space-y-3">

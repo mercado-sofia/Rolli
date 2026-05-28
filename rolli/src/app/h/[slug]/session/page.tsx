@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
+import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -71,14 +72,15 @@ export default function SessionPage() {
     displayHangout.status !== "active"
   ) {
     return (
-      <MobileShell className="justify-center">
+      <MobileShell variant="app" className="justify-center">
         <p className="text-center text-muted">Loading…</p>
       </MobileShell>
     );
   }
 
   return (
-    <MobileShell className="justify-center gap-8">
+    <MobileShell variant="app" className="justify-center gap-8">
+      <AppPageContent className="gap-8">
       <div>
         <p className="text-sm font-medium text-muted">Active hangout</p>
         <h1 className="font-display mt-2 text-3xl text-ink">
@@ -102,6 +104,7 @@ export default function SessionPage() {
         photosRemaining={photosRemaining}
         onCaptured={setParticipant}
       />
+      </AppPageContent>
 
       {participant.isFilmKeeper && (
         <>

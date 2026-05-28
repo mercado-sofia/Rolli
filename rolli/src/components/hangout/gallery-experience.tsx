@@ -264,7 +264,7 @@ export function GalleryExperience({
                 {perspective.photos.map((photo, index) => (
                   <div
                     key={photo.id}
-                    className="relative aspect-3/4 overflow-hidden rounded-2xl bg-lavender/30"
+                    className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[#F8F8F8]"
                   >
                     {photo.signedUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element

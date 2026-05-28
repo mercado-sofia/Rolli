@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { leaveHangout } from "@/lib/hangouts";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 type BackHomeButtonProps = {
@@ -30,11 +31,13 @@ export function BackHomeButton({ label = "Back to home" }: BackHomeButtonProps) 
 type LeaveRoomButtonProps = {
   hangoutId: string;
   sessionToken: string;
+  className?: string;
 };
 
 export function LeaveRoomButton({
   hangoutId,
   sessionToken,
+  className,
 }: LeaveRoomButtonProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
@@ -66,6 +69,7 @@ export function LeaveRoomButton({
         type="button"
         variant="secondary"
         disabled={leaving}
+        className={cn(className)}
         onClick={() => void handleLeave()}
       >
         {leaving ? "Leaving…" : "Leave room"}

@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 
 import { InviteLanding } from "@/app/h/[slug]/invite-landing";
 import { APP_NAME } from "@/lib/constants";
-import { buildInviteUrl } from "@/lib/invite";
 import { getInvitePreviewCopy } from "@/lib/metadata/invite-preview";
+import {
+  getInviteOgImageUrl,
+  getInvitePageUrl,
+} from "@/lib/metadata/site";
 import { fetchHangoutBySlugServer } from "@/lib/services/hangouts-server";
 
 type InvitePageProps = {
@@ -16,13 +19,15 @@ export async function generateMetadata({
   const { slug } = await params;
   const { data: hangout } = await fetchHangoutBySlugServer(slug);
   const copy = getInvitePreviewCopy(hangout?.title);
-  const pageUrl = buildInviteUrl(slug);
-
-  const ogImageUrl = `${pageUrl}/opengraph-image`;
+  const pageUrl = getInvitePageUrl(slug);
+  const ogImageUrl = getInviteOgImageUrl(slug);
 
   return {
     title: copy.title,
     description: copy.description,
+    alternates: {
+      canonical: pageUrl,
+    },
     openGraph: {
       title: copy.title,
       description: copy.description,
@@ -33,8 +38,10 @@ export async function generateMetadata({
       images: [
         {
           url: ogImageUrl,
+          secureUrl: ogImageUrl,
           width: 1200,
           height: 630,
+          type: "image/jpeg",
           alt: copy.title,
         },
       ],

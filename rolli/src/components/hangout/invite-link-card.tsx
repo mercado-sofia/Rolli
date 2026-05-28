@@ -1,10 +1,11 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { GlassPanel } from "@/components/ui/glass-panel";
+import { SetupFormCard } from "@/components/ui/setup-form-card";
+import { buildShareInviteUrl, extractSlugFromInviteLink } from "@/lib/invite";
 import { cn } from "@/lib/utils";
 
 type InviteLinkCardProps = {
@@ -15,9 +16,18 @@ type InviteLinkCardProps = {
 export function InviteLinkCard({ inviteUrl, hangoutTitle }: InviteLinkCardProps) {
   const [copied, setCopied] = useState(false);
 
+  const shareUrl = useMemo(() => {
+    const slug = extractSlugFromInviteLink(inviteUrl);
+    try {
+      return buildShareInviteUrl(slug, new URL(inviteUrl).origin);
+    } catch {
+      return buildShareInviteUrl(slug);
+    }
+  }, [inviteUrl]);
+
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -26,42 +36,42 @@ export function InviteLinkCard({ inviteUrl, hangoutTitle }: InviteLinkCardProps)
   }
 
   return (
-    <GlassPanel className="space-y-4">
-      <div>
-        <p className="text-sm font-medium text-muted">Invitation link</p>
-        <p className="mt-1 text-sm text-muted">
+    <SetupFormCard className="space-y-6">
+      <div className="space-y-1.5">
+        <p className="text-[13px] font-medium text-ink">Invitation link</p>
+        <p className="text-sm leading-relaxed text-muted">
           Share this with friends for{" "}
-          <span className="font-medium text-ink">{hangoutTitle}</span>
+          <span className="font-medium text-pink-accent">{hangoutTitle}</span>
         </p>
       </div>
 
       <div
         className={cn(
-          "break-all rounded-2xl border border-lavender/50 bg-lavender/20 px-4 py-3",
-          "font-mono text-sm text-ink",
+          "break-all rounded-2xl border border-black/6 bg-[#F8F8F8] px-5 py-4",
+          "font-mono text-[13px] leading-relaxed text-ink",
         )}
       >
-        {inviteUrl}
+        {shareUrl}
       </div>
 
       <Button
         type="button"
         variant="secondary"
-        className="gap-2"
+        className="h-[52px] gap-2"
         onClick={copyLink}
       >
         {copied ? (
           <>
-            <Check className="mr-2 h-4 w-4" />
+            <Check className="h-4 w-4" />
             Copied!
           </>
         ) : (
           <>
-            <Copy className="mr-2 h-4 w-4" />
+            <Copy className="h-4 w-4" />
             Copy link
           </>
         )}
       </Button>
-    </GlassPanel>
+    </SetupFormCard>
   );
 }

@@ -15,7 +15,7 @@ export function Card({ children, className, gradient = false }: CardProps) {
         "rounded-3xl p-6 shadow-soft",
         gradient
           ? "bg-gradient-pastel text-white"
-          : "border border-white/60 bg-white/80 backdrop-blur-md",
+          : "border border-black/8 bg-white shadow-soft",
         className,
       )}
     >

@@ -6,9 +6,10 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
+import { FormCallout } from "@/components/ui/form-callout";
+import { FormSubmittingBridge } from "@/components/ui/form-submitting-bridge";
+import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { joinHangout } from "@/lib/hangouts";
 import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/invite";
 import { useSessionStore } from "@/store/session-store";
@@ -29,12 +30,16 @@ type JoinHangoutFormProps = {
   slug?: string;
   hangoutTitle?: string;
   showInviteLinkField?: boolean;
+  formId?: string;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
 };
 
 export function JoinHangoutForm({
   slug: slugFromUrl,
   hangoutTitle,
   showInviteLinkField = false,
+  formId = "join-hangout-form",
+  onSubmittingChange,
 }: JoinHangoutFormProps) {
   const router = useRouter();
   const setSession = useSessionStore((state) => state.setSession);
@@ -51,7 +56,7 @@ export function JoinHangoutForm({
     register,
     handleSubmit,
     setError,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<JoinFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -95,13 +100,16 @@ export function JoinHangoutForm({
   }
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <SetupFormCard>
+      <form id={formId} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {onSubmittingChange ? (
+          <FormSubmittingBridge onSubmittingChange={onSubmittingChange} />
+        ) : null}
         {hangoutTitle && (
-          <div className="rounded-2xl bg-lavender/30 px-4 py-3 text-sm text-ink">
+          <FormCallout>
             You&apos;re joining{" "}
-            <span className="font-medium">{hangoutTitle}</span>
-          </div>
+            <span className="font-medium text-ink">{hangoutTitle}</span>
+          </FormCallout>
         )}
 
         {showInviteLinkField && (
@@ -118,24 +126,24 @@ export function JoinHangoutForm({
         <Field
           id="nickname"
           label="Anonymous nickname"
-          placeholder="emotionallyoffline"
+          placeholder="Enter nickname here"
           error={errors.nickname?.message}
           {...register("nickname")}
         />
         <Field
           id="realName"
           label="Real name (hidden)"
-          placeholder="Sofia"
+          placeholder="Enter real name here"
           error={errors.realName?.message}
           {...register("realName")}
         />
 
-        {submitError && <p className="text-sm text-pink">{submitError}</p>}
-
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Joining…" : "Join hangout"}
-        </Button>
+        {submitError && (
+          <p className="rounded-2xl bg-pink/10 px-4 py-3 text-center text-[13px] text-pink-accent">
+            {submitError}
+          </p>
+        )}
       </form>
-    </Card>
+    </SetupFormCard>
   );
 }
