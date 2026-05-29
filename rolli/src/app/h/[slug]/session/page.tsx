@@ -145,10 +145,6 @@ export default function SessionPage() {
     );
   }
 
-  const footerHint = isFilmKeeper
-    ? "End the hangout when everyone is done capturing memories."
-    : "Capture your perspective — the Film Keeper will end the hangout when ready.";
-
   const povLabel = `${participant.nickname.toLowerCase()}'s pov`;
 
   const guideMenuButton = (
@@ -220,7 +216,13 @@ export default function SessionPage() {
         </div>
       </main>
 
-      <SetupFlowFooter hint={footerHint}>
+      <SetupFlowFooter
+        hint={
+          isFilmKeeper
+            ? undefined
+            : "Capture your perspective — the Film Keeper will end the hangout when ready."
+        }
+      >
         {isFilmKeeper && (
           <>
             {endError && (

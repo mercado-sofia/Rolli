@@ -18,7 +18,9 @@ export function RolliGuideModal({ open, onClose }: RolliGuideModalProps) {
       onClose={onClose}
       titleId="rolli-guide-title"
       title={content.title}
-      panelClassName="max-w-md"
+      centerTitle
+      bodyClassName="px-8 sm:px-10"
+      panelClassName="w-[min(100%,26rem)]"
     >
       <div className="space-y-5">
         {content.sections.map((section) => (

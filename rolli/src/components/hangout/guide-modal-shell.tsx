@@ -14,6 +14,10 @@ type GuideModalShellProps = {
   children: ReactNode;
   footer?: ReactNode;
   panelClassName?: string;
+  /** Horizontal padding for body (and footer). */
+  bodyClassName?: string;
+  /** Center title in the panel; close button floats over the corner. */
+  centerTitle?: boolean;
 };
 
 export function GuideModalCloseButton({ onClose }: { onClose: () => void }) {
@@ -45,6 +49,8 @@ export function GuideModalShell({
   children,
   footer,
   panelClassName,
+  bodyClassName,
+  centerTitle = false,
 }: GuideModalShellProps) {
   const { dialogRef, requestClose, handleDialogClose, handleCancel } =
     useGuideDialog(open, onClose);
@@ -91,10 +97,18 @@ export function GuideModalShell({
         >
           <GuideModalCloseButton onClose={requestClose} />
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 pb-5 pt-5 sm:px-6 sm:pt-6">
+          <div
+            className={cn(
+              "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-5 pt-5 sm:pt-6",
+              bodyClassName ?? "px-5 sm:px-6",
+            )}
+          >
             <h2
               id={titleId}
-              className="pr-10 font-display text-xl leading-snug text-ink"
+              className={cn(
+                "font-display text-xl leading-snug text-ink",
+                centerTitle ? "text-center" : "pr-10",
+              )}
             >
               {title}
             </h2>
@@ -102,7 +116,12 @@ export function GuideModalShell({
           </div>
 
           {footer ? (
-            <div className="shrink-0 border-t border-black/6 px-5 py-4 sm:px-6">
+            <div
+              className={cn(
+                "shrink-0 border-t border-black/6 py-4",
+                bodyClassName ?? "px-5 sm:px-6",
+              )}
+            >
               {footer}
             </div>
           ) : null}
