@@ -116,7 +116,7 @@ export function RevealPhotoCarousel({
     >
       <div
         ref={viewportRef}
-        className="relative mx-auto aspect-3/4 w-full max-w-md overflow-hidden"
+        className="relative mx-auto aspect-5/6 w-full max-w-sm max-h-[min(48dvh,22rem)] overflow-hidden"
       >
         {prev ? (
           <PeekPhotoCard

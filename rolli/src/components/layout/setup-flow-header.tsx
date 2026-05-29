@@ -9,7 +9,7 @@ type SetupFlowHeaderProps = {
   currentStep?: number;
   totalSteps?: number;
   title: string;
-  sublabel: string;
+  sublabel?: string;
   backHref?: string;
   onBack?: () => void;
   backLabel?: string;
@@ -118,9 +118,11 @@ export function SetupFlowHeader({
           >
             {title}
           </h1>
-          <p className="mt-2 text-xs font-medium uppercase tracking-overline text-pink-muted">
-            {sublabel}
-          </p>
+          {sublabel ? (
+            <p className="mt-2 text-xs font-medium uppercase tracking-overline text-pink-muted">
+              {sublabel}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -139,9 +141,11 @@ export function SetupFlowHeader({
         >
           {title}
         </h1>
-        <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">
-          {sublabel}
-        </p>
+        {sublabel ? (
+          <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+            {sublabel}
+          </p>
+        ) : null}
       </div>
     </header>
   );

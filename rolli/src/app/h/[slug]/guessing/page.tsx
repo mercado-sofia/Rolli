@@ -23,8 +23,10 @@ import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { Button } from "@/components/ui/button";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
+import { hangoutGalleryPath } from "@/lib/hangout/routes";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
@@ -112,7 +114,6 @@ export default function GuessingPage() {
           />
           <GuessingExperience
             hangoutId={displayHangout.id}
-            hangoutSlug={slug}
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
             isFilmKeeper={isFilmKeeper}
@@ -123,9 +124,15 @@ export default function GuessingPage() {
       </main>
 
       <SetupFlowFooter hint={footer.hint}>
-        {footer.children}
-        {isCompleted && (
-          <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+        {isCompleted ? (
+          <>
+            <Button href={hangoutGalleryPath(slug)} className={APP_PRIMARY_BUTTON_CLASS}>
+              View memory gallery
+            </Button>
+            <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+          </>
+        ) : (
+          footer.children
         )}
       </SetupFlowFooter>
     </SetupFlowShell>

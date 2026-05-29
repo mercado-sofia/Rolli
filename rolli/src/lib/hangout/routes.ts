@@ -45,6 +45,10 @@ export function hangoutSharePath(slug: string): string {
   return `/h/${slug}/share`;
 }
 
+export function hangoutGalleryPath(slug: string): string {
+  return `/h/${slug}${GALLERY_PATH_SUFFIX}`;
+}
+
 /**
  * Returns the path to redirect to when the user is on the wrong phase page, or null if OK.
  */

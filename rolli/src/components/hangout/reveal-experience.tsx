@@ -23,7 +23,6 @@ export type SetupFlowFooterState = {
 
 type RevealExperienceProps = {
   hangoutId: string;
-  hangoutTitle: string;
   sessionToken: string;
   isFilmKeeper: boolean;
   onFinishReveal: (hangout: Hangout) => void;
@@ -32,7 +31,6 @@ type RevealExperienceProps = {
 
 export function RevealExperience({
   hangoutId,
-  hangoutTitle,
   sessionToken,
   isFilmKeeper,
   onFinishReveal,
@@ -165,7 +163,7 @@ export function RevealExperience({
 
     if (!isLastPerspective) {
       onFooterChange({
-        hint: "Swipe through photos, then continue to the next perspective.",
+        hint: "Swipe through photos",
         children: (
           <Button
             type="button"
@@ -257,14 +255,13 @@ export function RevealExperience({
             className="space-y-2"
           >
             <p className="truncate px-1 text-center text-sm leading-snug">
-              <span className="font-medium text-ink">{hangoutTitle}</span>
+              <span className="font-medium text-ink">Anonymous</span>
               <span className="mx-1.5 text-muted" aria-hidden>
                 ·
               </span>
               <span className="font-display text-lg text-pink-highlight">
                 {current.nickname}
               </span>
-              <span className="sr-only"> — anonymous perspective</span>
             </p>
 
             {current.photos.length > 0 ? (

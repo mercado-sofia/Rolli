@@ -24,7 +24,6 @@ export type SetupFlowFooterState = {
 
 type GuessingExperienceProps = {
   hangoutId: string;
-  hangoutSlug: string;
   sessionToken: string;
   hangoutStatus: HangoutStatus;
   isFilmKeeper: boolean;
@@ -34,7 +33,6 @@ type GuessingExperienceProps = {
 
 export function GuessingExperience({
   hangoutId,
-  hangoutSlug,
   sessionToken,
   hangoutStatus,
   isFilmKeeper,
@@ -187,14 +185,6 @@ export function GuessingExperience({
     if (isCompleted && results) {
       onFooterChange({
         hint: "Browse every perspective in the memory gallery.",
-        children: (
-          <Button
-            href={`/h/${hangoutSlug}/gallery`}
-            className={cn(APP_PRIMARY_BUTTON_CLASS, "hidden md:inline-flex")}
-          >
-            View memory gallery
-          </Button>
-        ),
       });
       return;
     }
@@ -240,7 +230,6 @@ export function GuessingExperience({
     finishError,
     finishing,
     handleFinishGuessing,
-    hangoutSlug,
     isCompleted,
     isFilmKeeper,
     loadError,
@@ -307,13 +296,6 @@ export function GuessingExperience({
             </Card>
           ))}
         </div>
-
-        <Button
-          href={`/h/${hangoutSlug}/gallery`}
-          className={cn(APP_PRIMARY_BUTTON_CLASS, "md:hidden")}
-        >
-          View memory gallery
-        </Button>
       </div>
     );
   }
