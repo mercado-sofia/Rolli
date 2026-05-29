@@ -22,13 +22,20 @@ import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { createHangoutWithKeeper } from "@/lib/hangout/hangouts";
 import { buildInviteUrl } from "@/lib/hangout/invite";
 import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-page-layout";
+import { NICKNAME_MIN_LENGTH } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { useSessionStore } from "@/store/session-store";
 
 const schema = z.object({
   title: z.string().min(3, "Give your hangout a title"),
-  nickname: z.string().min(3, "Pick an anonymous nickname"),
+  nickname: z
+    .string()
+    .trim()
+    .min(
+      NICKNAME_MIN_LENGTH,
+      `Nickname must be at least ${NICKNAME_MIN_LENGTH} characters`,
+    ),
   realName: z.string().min(2, "Enter your real name (hidden until reveal)"),
 });
 

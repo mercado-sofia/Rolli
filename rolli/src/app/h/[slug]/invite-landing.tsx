@@ -24,12 +24,14 @@ import {
   isHangoutJoinable,
 } from "@/lib/hangout/join-eligibility";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
+import { isHangoutSessionValid } from "@/lib/hangout/session-validity";
 import {
   hangoutInviteReturnPath,
   setWaitingReturnPath,
 } from "@/lib/hangout/waiting-return-path";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { useSessionHydrated } from "@/hooks/use-session-hydrated";
 import { useSessionStore } from "@/store/session-store";
 import { cn } from "@/lib/utils";
 import type { Hangout } from "@/types/hangout";
@@ -67,7 +69,9 @@ export function InviteLanding() {
   const sessionHangout = useSessionStore((state) => state.hangout);
   const sessionParticipant = useSessionStore((state) => state.participant);
   const setSession = useSessionStore((state) => state.setSession);
+  const resetSession = useSessionStore((state) => state.resetSession);
   const leaveForHome = useSessionStore((state) => state.leaveForHome);
+  const sessionHydrated = useSessionHydrated();
 
   const [hangout, setHangout] = useState<Hangout | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,12 +85,9 @@ export function InviteLanding() {
     router.replace("/");
   }
 
-  const hasMatchingSession =
-    Boolean(sessionParticipant) &&
-    Boolean(sessionHangout) &&
-    sessionHangout!.slug === slug &&
-    hangout !== null &&
-    sessionHangout!.id === hangout.id;
+  const hasValidSession =
+    sessionHydrated &&
+    isHangoutSessionValid(slug, hangout, sessionParticipant, sessionHangout);
 
   useEffect(() => {
     let cancelled = false;
@@ -118,8 +119,34 @@ export function InviteLanding() {
   }, [slug]);
 
   useEffect(() => {
-    if (loading || !hangout || hasMatchingSession || rejoinFailed) return;
-    if (!sessionParticipant?.sessionToken) return;
+    if (!sessionHydrated || loading || !hangout || rejoining) return;
+    if (hasValidSession) return;
+
+    const canTryRejoin =
+      Boolean(sessionParticipant?.sessionToken) &&
+      isHangoutJoinable(hangout.status) &&
+      !rejoinFailed;
+
+    if (canTryRejoin) return;
+
+    if (sessionParticipant || sessionHangout) {
+      resetSession();
+    }
+  }, [
+    hangout,
+    hasValidSession,
+    loading,
+    rejoinFailed,
+    rejoining,
+    resetSession,
+    sessionHangout,
+    sessionHydrated,
+    sessionParticipant,
+  ]);
+
+  useEffect(() => {
+    if (loading || !hangout || hasValidSession || rejoinFailed) return;
+    if (!sessionHydrated || !sessionParticipant?.sessionToken) return;
     if (!isHangoutJoinable(hangout.status)) return;
 
     let cancelled = false;
@@ -155,25 +182,32 @@ export function InviteLanding() {
     };
   }, [
     hangout,
-    hasMatchingSession,
+    hasValidSession,
     loading,
     rejoinFailed,
     router,
+    sessionHydrated,
     sessionParticipant,
     setSession,
     slug,
   ]);
 
   useEffect(() => {
-    if (loading || !hangout || !hasMatchingSession) return;
+    if (!sessionHydrated || loading || !hangout || !hasValidSession) return;
 
     router.replace(hangoutParticipantPath(slug, hangout.status));
-  }, [loading, hangout, hasMatchingSession, router, slug]);
+  }, [loading, hangout, hasValidSession, router, sessionHydrated, slug]);
 
-  if (loading || rejoining) {
+  if (loading || !sessionHydrated || rejoining) {
     return (
       <InviteLandingSkeleton
-        message={rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
+        message={
+          rejoining
+            ? "Rejoining your hangout…"
+            : !sessionHydrated
+              ? "Loading your session…"
+              : "Loading invitation…"
+        }
       />
     );
   }
@@ -209,7 +243,7 @@ export function InviteLanding() {
     );
   }
 
-  if (hasMatchingSession) {
+  if (hasValidSession) {
     return <InviteLandingSkeleton message="Taking you to your hangout…" />;
   }
 

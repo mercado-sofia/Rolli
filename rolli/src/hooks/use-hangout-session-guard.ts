@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { useSessionHydrated } from "@/hooks/use-session-hydrated";
+import { isHangoutSessionValid } from "@/lib/hangout/session-validity";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -18,27 +20,31 @@ export function useHangoutSessionGuard({
   isLoading,
 }: UseHangoutSessionGuardOptions) {
   const router = useRouter();
+  const sessionHydrated = useSessionHydrated();
   const participant = useSessionStore((state) => state.participant);
+  const sessionHangout = useSessionStore((state) => state.hangout);
   const leavingApp = useSessionStore((state) => state.leavingApp);
 
   useEffect(() => {
-    if (isLoading || leavingApp) return;
+    if (!sessionHydrated || isLoading || leavingApp) return;
 
-    if (!participant || !hangout || hangout.slug !== slug) {
-      router.replace(`/h/${slug}`);
-      return;
-    }
-
-    if (participant.hangoutId !== hangout.id) {
+    if (!isHangoutSessionValid(slug, hangout, participant, sessionHangout)) {
       router.replace(`/h/${slug}`);
     }
-  }, [hangout, isLoading, leavingApp, participant, router, slug]);
+  }, [
+    hangout,
+    isLoading,
+    leavingApp,
+    participant,
+    router,
+    sessionHangout,
+    sessionHydrated,
+    slug,
+  ]);
 
   const hasValidSession =
-    participant !== null &&
-    hangout !== null &&
-    hangout.slug === slug &&
-    participant.hangoutId === hangout.id;
+    sessionHydrated &&
+    isHangoutSessionValid(slug, hangout, participant, sessionHangout);
 
   return {
     participant: hasValidSession ? participant : null,

@@ -10,6 +10,7 @@ import { Field } from "@/components/ui/field";
 import { FormCallout } from "@/components/ui/form-callout";
 import { FormSubmittingBridge } from "@/components/ui/form-submitting-bridge";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
+import { NICKNAME_MIN_LENGTH } from "@/lib/constants";
 import { joinHangout } from "@/lib/hangout/hangouts";
 import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
@@ -21,7 +22,13 @@ import { useSessionStore } from "@/store/session-store";
 
 const baseJoinSchema = z.object({
   inviteLink: z.string().optional(),
-  nickname: z.string().min(3, "Pick an anonymous nickname"),
+  nickname: z
+    .string()
+    .trim()
+    .min(
+      NICKNAME_MIN_LENGTH,
+      `Nickname must be at least ${NICKNAME_MIN_LENGTH} characters`,
+    ),
   realName: z.string().min(2, "Enter your real name (hidden until reveal)"),
 });
 

@@ -36,6 +36,8 @@ export const HANGOUT_LIMITS = {
   hangoutPollMs: 2000,
 } as const;
 
+export const NICKNAME_MIN_LENGTH = 2;
+
 export const GUIDE_STEPS = [
   {
     icon: "camera",
