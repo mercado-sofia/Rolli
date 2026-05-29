@@ -243,7 +243,7 @@ export function RevealExperience({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 pt-4 sm:pt-6">
       <AnimatePresence mode="wait">
         {current && (
           <motion.div
@@ -252,7 +252,7 @@ export function RevealExperience({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="space-y-2"
+            className="space-y-6 sm:space-y-8"
           >
             <p className="truncate px-1 text-center text-sm leading-snug">
               <span className="font-medium text-ink">Anonymous</span>
@@ -273,9 +273,11 @@ export function RevealExperience({
             ) : null}
 
             {current.photos.length === 0 && (
-              <p className="text-center text-sm text-muted">
-                No photos from this perspective.
-              </p>
+              <div className="relative mx-auto flex aspect-5/6 w-full max-w-sm max-h-[min(48dvh,22rem)] items-center justify-center">
+                <p className="px-4 text-center text-sm text-muted">
+                  No photos from this perspective.
+                </p>
+              </div>
             )}
           </motion.div>
         )}

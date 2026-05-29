@@ -27,21 +27,17 @@ const SWIPE_VELOCITY_THRESHOLD = 380;
 
 const SLIDE_TRANSITION = {
   x: { type: "spring", stiffness: 340, damping: 34, mass: 0.85 },
-  opacity: { duration: 0.22, ease: "easeOut" },
 } as const;
 
 const SLIDE_VARIANTS = {
   enter: (direction: number) => ({
     x: direction > 0 ? "72%" : "-72%",
-    opacity: 0.35,
   }),
   center: {
     x: 0,
-    opacity: 1,
   },
   exit: (direction: number) => ({
     x: direction > 0 ? "-72%" : "72%",
-    opacity: 0.35,
   }),
 };
 
@@ -133,7 +129,7 @@ export function RevealPhotoCarousel({
           />
         ) : null}
 
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
+        <AnimatePresence initial={false} custom={direction} mode="sync">
           <motion.div
             key={current.id}
             custom={direction}
@@ -206,7 +202,7 @@ function PeekPhotoCard({
       perspectiveLabel={perspectiveLabel}
       aria-hidden
       className={cn(
-        "pointer-events-none absolute top-1/2 z-0 h-[90%] w-[70%] -translate-y-1/2 opacity-75 shadow-md transition-opacity duration-300",
+        "pointer-events-none absolute top-1/2 z-0 h-[90%] w-[70%] -translate-y-1/2 opacity-75 shadow-md",
         side === "left" &&
           "left-0 translate-x-[-6%] -rotate-6 origin-bottom-right",
         side === "right" &&

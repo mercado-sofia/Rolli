@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
@@ -317,48 +318,40 @@ export function GuessingExperience({
         <p className="text-center text-sm text-pink">{submitError}</p>
       )}
 
-      <div className="space-y-4">
-        {state.targets.map((target) => {
-          const selected = votesByTarget.get(target.participantId) ?? "";
-          const isSaving = savingTargetId === target.participantId;
+      <Card border="neutral" className="p-4 sm:p-5">
+        <ul className="divide-y divide-container-border/70">
+          {state.targets.map((target) => {
+            const selected = votesByTarget.get(target.participantId) ?? "";
+            const isSaving = savingTargetId === target.participantId;
 
-          return (
-            <Card key={target.participantId} border="neutral">
-              <p className="text-sm font-medium text-ink">{target.nickname}</p>
-              <p className="mt-1 text-xs text-muted">
-                Who is behind this nickname?
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {state.realNameOptions.map((name) => {
-                  const takenByOther =
-                    usedNames.has(name) && selected !== name;
+            const selectOptions = state.realNameOptions.map((name) => ({
+              value: name,
+              label: name,
+              disabled: usedNames.has(name) && selected !== name,
+            }));
 
-                  return (
-                    <Button
-                      key={`${target.participantId}-${name}`}
-                      type="button"
-                      variant={selected === name ? "primary" : "secondary"}
-                      className="min-h-12 w-auto! shrink-0 px-4"
-                      disabled={isSaving || takenByOther}
-                      onClick={() =>
-                        void handleGuess(target.participantId, name)
-                      }
-                    >
-                      {name}
-                    </Button>
-                  );
-                })}
-              </div>
-              {selected && (
-                <p className="mt-2 text-xs text-muted">
-                  Your guess:{" "}
-                  <span className="font-medium text-ink">{selected}</span>
+            return (
+              <li
+                key={target.participantId}
+                className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-5"
+              >
+                <p className="shrink-0 font-display text-lg leading-snug text-pink-highlight sm:w-28 md:w-32">
+                  {target.nickname}
                 </p>
-              )}
-            </Card>
-          );
-        })}
-      </div>
+                <AppSelect
+                  className="w-full sm:min-w-0 sm:flex-1"
+                  value={selected}
+                  placeholder="Match to a real name"
+                  disabled={isSaving}
+                  aria-label={`Real name for ${target.nickname}`}
+                  options={selectOptions}
+                  onChange={(name) => void handleGuess(target.participantId, name)}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </Card>
 
       {state.targets.length === 0 && (
         <Card border="neutral" className="text-center text-sm text-muted">
