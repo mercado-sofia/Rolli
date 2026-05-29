@@ -131,7 +131,7 @@ export default function SessionPage() {
 
     setEndConfirmOpen(false);
     setHangout(data);
-    router.replace(`/h/${slug}/developing`);
+    router.replace(`/h/${slug}/reveal`);
   }
 
   if (

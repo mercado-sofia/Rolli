@@ -8,7 +8,7 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
     case "waiting":
       return `/h/${slug}/waiting`;
     case "developing":
-      return `/h/${slug}/developing`;
+      return `/h/${slug}/reveal`;
     case "revealing":
       return `/h/${slug}/reveal`;
     case "guessing":
@@ -75,6 +75,14 @@ export function getHangoutRouteRedirect(
 
   if (status === "waiting" && path.endsWith(SHARE_PATH_SUFFIX)) {
     return null;
+  }
+
+  if (status === "developing" && path === `/h/${slug}/reveal`) {
+    return null;
+  }
+
+  if (path === `/h/${slug}/developing`) {
+    return `/h/${slug}/reveal`;
   }
 
   return canonical;

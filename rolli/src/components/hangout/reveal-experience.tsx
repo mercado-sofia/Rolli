@@ -32,6 +32,10 @@ type RevealExperienceProps = {
   isFilmKeeper: boolean;
   onFinishReveal: (hangout: Hangout) => void;
   onFooterChange?: (footer: SetupFlowFooterState) => void;
+  /** When false, reveal UI still loads but footer actions stay hidden (developing overlay). */
+  footerEnabled?: boolean;
+  /** Re-run cache hydration when developing preload completes. */
+  prepareReady?: boolean;
 };
 
 export function RevealExperience({
@@ -40,6 +44,8 @@ export function RevealExperience({
   isFilmKeeper,
   onFinishReveal,
   onFooterChange,
+  footerEnabled = true,
+  prepareReady = false,
 }: RevealExperienceProps) {
   const preloaded = getRevealPreload(hangoutId);
   const usablePreload = isRevealPreloadUsable(preloaded) ? preloaded : null;
@@ -75,18 +81,33 @@ export function RevealExperience({
     enabled: !loading && perspectives.length > 0,
   });
 
+  const hydrateFromPreloadCache = useCallback(() => {
+    const cached = getRevealPreload(hangoutId);
+    if (!isRevealPreloadUsable(cached)) {
+      return false;
+    }
+
+    setPerspectives(cached.perspectives);
+    setSignedAt(cached.signedAt);
+    setLoadError(null);
+    setLoading(false);
+    return true;
+  }, [hangoutId]);
+
+  useEffect(() => {
+    if (prepareReady) {
+      hydrateFromPreloadCache();
+    }
+  }, [hydrateFromPreloadCache, prepareReady]);
+
   useEffect(() => {
     let cancelled = false;
 
     if (reloadKey === 0) {
-      const cached = getRevealPreload(hangoutId);
-      if (isRevealPreloadUsable(cached)) {
-        setPerspectives(cached.perspectives);
-        setSignedAt(cached.signedAt);
-        setLoadError(null);
-        setLoading(false);
+      if (hydrateFromPreloadCache()) {
         return;
       }
+      const cached = getRevealPreload(hangoutId);
       if (cached) {
         clearRevealPreload(hangoutId);
       }
@@ -122,7 +143,7 @@ export function RevealExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, reloadKey, sessionToken]);
+  }, [hangoutId, hydrateFromPreloadCache, reloadKey, sessionToken]);
 
   const current = perspectives[currentIndex];
   const isLastPerspective = currentIndex >= perspectives.length - 1;
@@ -154,7 +175,7 @@ export function RevealExperience({
   }, [hangoutId, onFinishReveal, sessionToken]);
 
   useEffect(() => {
-    if (!onFooterChange || loading || loadError) {
+    if (!footerEnabled || !onFooterChange || loading || loadError) {
       onFooterChange?.({});
       return;
     }
@@ -229,6 +250,7 @@ export function RevealExperience({
     currentIndex,
     finishError,
     finishing,
+    footerEnabled,
     isFilmKeeper,
     isLastPerspective,
     loadError,

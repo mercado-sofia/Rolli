@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { DevelopingPrepareOverlay } from "@/components/hangout/developing-prepare-overlay";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   RevealExperience,
@@ -22,6 +23,7 @@ import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -33,7 +35,10 @@ export default function RevealPage() {
   const slug = params.slug;
 
   const setHangout = useSessionStore((state) => state.setHangout);
-  const [footer, setFooter] = useState<SetupFlowFooterState>({});
+  const [revealFooter, setRevealFooter] = useState<SetupFlowFooterState>({});
+  const [developingFooter, setDevelopingFooter] = useState<SetupFlowFooterState>(
+    {},
+  );
 
   const { displayHangout, isLoading } = useDisplayHangout(slug);
 
@@ -50,6 +55,24 @@ export default function RevealPage() {
     hangout: displayHangout,
   });
 
+  const isDeveloping = displayHangout?.status === "developing";
+  const isRevealing = displayHangout?.status === "revealing";
+  const onRevealPhase = isDeveloping || isRevealing;
+
+  const prepare = useRevealPrepare({
+    hangoutId: displayHangout?.id ?? "",
+    sessionToken: participant?.sessionToken ?? "",
+    enabled:
+      Boolean(displayHangout?.id && participant?.sessionToken) && isDeveloping,
+  });
+
+  const handleHangoutUpdate = useCallback(
+    (updated: Hangout) => {
+      setHangout(updated);
+    },
+    [setHangout],
+  );
+
   const handleFinishReveal = useCallback(
     (updatedHangout: Hangout) => {
       setHangout(updatedHangout);
@@ -63,7 +86,7 @@ export default function RevealPage() {
     !hasValidSession ||
     !participant ||
     !displayHangout ||
-    displayHangout.status !== "revealing"
+    !onRevealPhase
   ) {
     return (
       <SetupFlowShell>
@@ -93,6 +116,8 @@ export default function RevealPage() {
     );
   }
 
+  const activeFooter = isDeveloping ? developingFooter : revealFooter;
+
   return (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
@@ -100,6 +125,7 @@ export default function RevealPage() {
           showProgress={false}
           title={displayHangout.title}
           titleTone="ink"
+          sublabel={isDeveloping ? "Developing memories" : undefined}
         />
       </header>
 
@@ -107,24 +133,41 @@ export default function RevealPage() {
         <div
           className={cn(
             SETUP_FLOW_MAIN_INNER_CLASS,
-            "flex min-h-0 flex-1 flex-col justify-center gap-4",
+            "relative flex min-h-0 flex-1 flex-col justify-center gap-4",
           )}
         >
           <FilmKeeperPromotionBanner
             visible={showPromotion}
             onDismiss={dismissPromotion}
           />
+
           <RevealExperience
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
             isFilmKeeper={isFilmKeeper}
             onFinishReveal={handleFinishReveal}
-            onFooterChange={setFooter}
+            onFooterChange={setRevealFooter}
+            footerEnabled={isRevealing}
+            prepareReady={prepare.isReady}
           />
+
+          {isDeveloping ? (
+            <DevelopingPrepareOverlay
+              hangout={displayHangout}
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              isFilmKeeper={isFilmKeeper}
+              prepare={prepare}
+              onHangoutUpdate={handleHangoutUpdate}
+              onFooterChange={setDevelopingFooter}
+            />
+          ) : null}
         </div>
       </main>
 
-      <SetupFlowFooter hint={footer.hint}>{footer.children}</SetupFlowFooter>
+      <SetupFlowFooter hint={activeFooter.hint}>
+        {activeFooter.children}
+      </SetupFlowFooter>
     </SetupFlowShell>
   );
 }

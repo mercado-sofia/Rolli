@@ -25,11 +25,11 @@ import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { Button } from "@/components/ui/button";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import {
   HANGOUT_GUESSING_PATH_SUFFIX,
   hangoutGalleryPath,
 } from "@/lib/hangout/routes";
+import { finishGuessing } from "@/lib/hangout/guessing";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
@@ -51,21 +51,37 @@ export default function GuessingPage() {
     guardPathSuffix: HANGOUT_GUESSING_PATH_SUFFIX,
   });
 
-  const openMemoryGallery = useCallback(() => {
-    router.push(hangoutGalleryPath(slug));
-  }, [router, slug]);
   const { participant, hasValidSession } = useHangoutSessionGuard({
     slug,
     hangout: displayHangout,
     isLoading,
   });
 
+  const openMemoryGallery = useCallback(async () => {
+    if (displayHangout?.status === "guessing" && participant) {
+      const { data, error } = await finishGuessing(
+        displayHangout.id,
+        participant.sessionToken,
+      );
+
+      if (data) {
+        setHangout(data);
+      } else if (error?.includes("not in the guessing phase")) {
+        const { data: refreshed } = await fetchHangoutBySlug(slug);
+        if (refreshed) {
+          setHangout(refreshed);
+        }
+      }
+    }
+
+    router.push(hangoutGalleryPath(slug));
+  }, [displayHangout, participant, router, setHangout, slug]);
+
   const isGuessingPhase =
     displayHangout?.status === "guessing" ||
     displayHangout?.status === "completed";
 
   const isCompleted = displayHangout?.status === "completed";
-  const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
   const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
     participant,
     hangout: displayHangout,
@@ -130,7 +146,6 @@ export default function GuessingPage() {
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
-            isFilmKeeper={isFilmKeeper}
             onHangoutCompleted={(hangout) => void handleHangoutCompleted(hangout)}
             onFooterChange={setFooter}
           />

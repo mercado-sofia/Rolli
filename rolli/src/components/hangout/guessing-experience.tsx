@@ -8,7 +8,6 @@ import { PerspectivePhotosOverlay } from "@/components/hangout/perspective-photo
 import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import {
@@ -34,7 +33,6 @@ type GuessingExperienceProps = {
   hangoutId: string;
   sessionToken: string;
   hangoutStatus: HangoutStatus;
-  isFilmKeeper: boolean;
   onHangoutCompleted: (hangout?: Hangout) => void;
   onFooterChange?: (footer: SetupFlowFooterState) => void;
 };
@@ -43,7 +41,6 @@ export function GuessingExperience({
   hangoutId,
   sessionToken,
   hangoutStatus,
-  isFilmKeeper,
   onHangoutCompleted,
   onFooterChange,
 }: GuessingExperienceProps) {
@@ -213,6 +210,8 @@ export function GuessingExperience({
 
   const allVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
 
+  const completingRef = useRef(false);
+
   const handleFinishGuessing = useCallback(async () => {
     setFinishing(true);
     setFinishError(null);
@@ -221,13 +220,30 @@ export function GuessingExperience({
 
     setFinishing(false);
 
-    if (error) {
-      setFinishError(error);
+    if (data) {
+      onHangoutCompleted(data);
       return;
     }
 
-    onHangoutCompleted(data);
+    if (error?.includes("not in the guessing phase")) {
+      onHangoutCompleted();
+      return;
+    }
+
+    if (error) {
+      setFinishError(error);
+      completingRef.current = false;
+    }
   }, [hangoutId, onHangoutCompleted, sessionToken]);
+
+  useEffect(() => {
+    if (isCompleted || !allVotesIn || loading || !state || completingRef.current) {
+      return;
+    }
+
+    completingRef.current = true;
+    void handleFinishGuessing();
+  }, [allVotesIn, handleFinishGuessing, isCompleted, loading, state]);
 
   async function handleGuess(
     targetParticipantId: string,
@@ -259,6 +275,14 @@ export function GuessingExperience({
       return;
     }
 
+    if (isCompleted && loadError) {
+      onFooterChange({
+        hint: "Results are not ready yet. Try refreshing this page.",
+        showGalleryButton: true,
+      });
+      return;
+    }
+
     if (isCompleted && results) {
       onFooterChange({
         hint: "Browse every perspective in the memory gallery.",
@@ -267,10 +291,10 @@ export function GuessingExperience({
       return;
     }
 
-    if (isCompleted && loadError) {
+    if (isCompleted) {
       onFooterChange({
-        hint:
-          "Results are not ready yet. The Film Keeper must tap Reveal results, then refresh this page.",
+        hint: "Loading results…",
+        showGalleryButton: true,
       });
       return;
     }
@@ -280,30 +304,15 @@ export function GuessingExperience({
       return;
     }
 
-    if (allVotesIn && isFilmKeeper) {
+    if (allVotesIn) {
       onFooterChange({
-        children: (
-          <>
-            {finishError && (
-              <p className="text-center text-sm text-pink">{finishError}</p>
-            )}
-            <Button
-              type="button"
-              disabled={finishing}
-              className={APP_PRIMARY_BUTTON_CLASS}
-              onClick={() => void handleFinishGuessing()}
-            >
-              {finishing ? "Finishing…" : "Reveal results"}
-            </Button>
-          </>
-        ),
-      });
-      return;
-    }
-
-    if (allVotesIn && !isFilmKeeper) {
-      onFooterChange({
-        hint: "All guesses saved. Waiting for the Film Keeper to reveal results…",
+        hint: finishing
+          ? "Finalizing results…"
+          : "All guesses saved — opening results and gallery…",
+        showGalleryButton: true,
+        children: finishError ? (
+          <p className="text-center text-sm text-pink">{finishError}</p>
+        ) : undefined,
       });
       return;
     }
@@ -315,9 +324,7 @@ export function GuessingExperience({
     allVotesIn,
     finishError,
     finishing,
-    handleFinishGuessing,
     isCompleted,
-    isFilmKeeper,
     loadError,
     loading,
     onFooterChange,
@@ -459,13 +466,6 @@ export function GuessingExperience({
         </Card>
       )}
 
-      {allVotesIn && !isFilmKeeper && (
-        <Card border="neutral" className="text-center md:hidden">
-          <p className="text-sm text-muted">
-            All guesses saved. Waiting for the Film Keeper to reveal results…
-          </p>
-        </Card>
-      )}
       </div>
 
       <PerspectivePhotosOverlay

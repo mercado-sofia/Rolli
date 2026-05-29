@@ -34,7 +34,7 @@ export function parseGalleryRpcError(error: RpcError): string {
   }
 
   if (message.includes("Gallery is available after the hangout is completed")) {
-    return "The memory gallery opens after the Film Keeper reveals final results.";
+    return "The memory gallery opens once everyone has finished guessing.";
   }
 
   return message;
