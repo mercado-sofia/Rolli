@@ -1,5 +1,4 @@
 export {
-  beginRevealCountdown,
   finishReveal,
   getRevealState,
   signRevealPhotoUrls,

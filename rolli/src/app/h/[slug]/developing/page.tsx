@@ -24,12 +24,14 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
-import { useRevealPreload } from "@/hooks/use-reveal-preload";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
-import { preloadRevealState } from "@/lib/hangout/reveal-preload";
-import { beginRevealCountdown, startReveal } from "@/lib/hangout/reveal";
+import {
+  preloadRevealAmbientAudio,
+  preloadRevealState,
+} from "@/lib/hangout/reveal-preload";
+import { startReveal } from "@/lib/hangout/reveal";
 import { playRevealAmbientAudio } from "@/lib/hangout/reveal-ambient-audio-controller";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -43,6 +45,9 @@ export default function DevelopingPage() {
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [countdownStartedAt, setCountdownStartedAt] = useState<number | null>(
+    null,
+  );
   const finishingRevealRef = useRef(false);
 
   const { displayHangout, isLoading } = useDisplayHangout(slug);
@@ -60,9 +65,7 @@ export default function DevelopingPage() {
     hangout: displayHangout,
   });
 
-  const countdownActive =
-    displayHangout?.status === "developing" &&
-    isRevealCountdownActive(displayHangout.revealCountdownAt);
+  const countdownActive = isRevealCountdownActive(countdownStartedAt);
 
   const handleCountdownComplete = useCallback(async () => {
     if (
@@ -83,6 +86,8 @@ export default function DevelopingPage() {
     setStarting(true);
     setStartError(null);
 
+    void playRevealAmbientAudio();
+
     const { data, error } = await startReveal(
       displayHangout.id,
       participant.sessionToken,
@@ -92,6 +97,7 @@ export default function DevelopingPage() {
 
     if (error || !data) {
       finishingRevealRef.current = false;
+      setCountdownStartedAt(null);
       setStartError(error ?? "Could not start reveal");
       return;
     }
@@ -101,42 +107,18 @@ export default function DevelopingPage() {
     router.replace(`/h/${slug}/reveal`);
   }, [displayHangout, isFilmKeeper, participant, router, setHangout, slug]);
 
-  useRevealPreload({
-    slug,
-    hangoutId: displayHangout?.id,
-    sessionToken: participant?.sessionToken,
-    enabled: countdownActive,
+  const { displaySeconds } = useRevealCountdown(countdownStartedAt, {
+    enabled: isFilmKeeper && displayHangout?.status === "developing",
+    onComplete: handleCountdownComplete,
   });
 
-  const { displaySeconds } = useRevealCountdown(
-    displayHangout?.revealCountdownAt,
-    {
-      enabled: displayHangout?.status === "developing",
-      onComplete: isFilmKeeper ? handleCountdownComplete : undefined,
-    },
-  );
-
-  async function handleBeginCountdown() {
+  function handleBeginCountdown() {
     if (!participant || !displayHangout || countdownActive) return;
 
-    void playRevealAmbientAudio();
-
-    setStarting(true);
     setStartError(null);
-
-    const { data, error } = await beginRevealCountdown(
-      displayHangout.id,
-      participant.sessionToken,
-    );
-
-    setStarting(false);
-
-    if (error || !data) {
-      setStartError(error ?? "Could not start countdown");
-      return;
-    }
-
-    setHangout(data);
+    router.prefetch(`/h/${slug}/reveal`);
+    preloadRevealAmbientAudio();
+    setCountdownStartedAt(Date.now());
   }
 
   if (
@@ -213,9 +195,7 @@ export default function DevelopingPage() {
         hint={
           isFilmKeeper
             ? undefined
-            : countdownActive
-              ? "Get ready — reveal starting soon…"
-              : "Waiting for the Film Keeper to start the reveal…"
+            : "Waiting for the Film Keeper to start the reveal…"
         }
       >
         {isFilmKeeper ? (
@@ -227,7 +207,7 @@ export default function DevelopingPage() {
               type="button"
               disabled={starting || countdownActive}
               className={APP_PRIMARY_BUTTON_CLASS}
-              onClick={() => void handleBeginCountdown()}
+              onClick={handleBeginCountdown}
             >
               {countdownActive
                 ? "Revealing…"

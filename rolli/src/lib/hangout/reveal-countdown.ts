@@ -2,10 +2,10 @@ export const REVEAL_COUNTDOWN_MS = 3000;
 export const REVEAL_COUNTDOWN_SECONDS = 3;
 
 export function getRevealCountdownEndsAt(
-  revealCountdownAt: string | null | undefined,
+  countdownStartedAt: number | null | undefined,
 ): number | null {
-  if (!revealCountdownAt) return null;
-  return new Date(revealCountdownAt).getTime() + REVEAL_COUNTDOWN_MS;
+  if (countdownStartedAt == null) return null;
+  return countdownStartedAt + REVEAL_COUNTDOWN_MS;
 }
 
 export function getRevealCountdownDisplaySeconds(endsAt: number): number | null {
@@ -15,9 +15,9 @@ export function getRevealCountdownDisplaySeconds(endsAt: number): number | null 
 }
 
 export function isRevealCountdownActive(
-  revealCountdownAt: string | null | undefined,
+  countdownStartedAt: number | null | undefined,
 ): boolean {
-  const endsAt = getRevealCountdownEndsAt(revealCountdownAt);
+  const endsAt = getRevealCountdownEndsAt(countdownStartedAt);
   if (!endsAt) return false;
   return Date.now() < endsAt;
 }

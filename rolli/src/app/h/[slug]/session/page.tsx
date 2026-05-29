@@ -277,7 +277,7 @@ export default function SessionPage() {
 
       <ConfirmDialog
         open={endConfirmOpen}
-        accent="pink"
+        accent="pink-highlight"
         icon={
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
             <TbPhoto size={36} className="text-pink-highlight" aria-hidden />

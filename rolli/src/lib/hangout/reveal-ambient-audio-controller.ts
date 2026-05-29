@@ -1,6 +1,8 @@
 import { REVEAL_AMBIENT_MUSIC_SRC } from "@/lib/hangout/reveal-music";
 
 export const REVEAL_MUSIC_VOLUME = 0.55;
+/** Skip the intro — playback begins here on each fresh start. */
+export const REVEAL_MUSIC_START_SECONDS = 2;
 
 let audio: HTMLAudioElement | null = null;
 
@@ -31,6 +33,9 @@ export async function playRevealAmbientAudio(): Promise<boolean> {
   if (!element.paused) return true;
 
   try {
+    if (element.currentTime < REVEAL_MUSIC_START_SECONDS) {
+      element.currentTime = REVEAL_MUSIC_START_SECONDS;
+    }
     await element.play();
     return true;
   } catch {
@@ -43,14 +48,10 @@ export function pauseRevealAmbientAudio(reset = true): void {
 
   audio.pause();
   if (reset) {
-    audio.currentTime = 0;
+    audio.currentTime = REVEAL_MUSIC_START_SECONDS;
   }
 }
 
-export function shouldPlayRevealAmbientMusic(
-  status: string | undefined,
-  revealCountdownAt: string | null | undefined,
-): boolean {
-  if (status === "revealing") return true;
-  return status === "developing" && revealCountdownAt != null;
+export function shouldPlayRevealAmbientMusic(status: string | undefined): boolean {
+  return status === "revealing" || status === "guessing";
 }

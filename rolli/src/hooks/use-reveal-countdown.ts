@@ -13,15 +13,15 @@ type UseRevealCountdownOptions = {
 };
 
 export function useRevealCountdown(
-  revealCountdownAt: string | null | undefined,
+  countdownStartedAt: number | null | undefined,
   { enabled = true, onComplete }: UseRevealCountdownOptions = {},
 ) {
   const [, setTick] = useState(0);
   const completedRef = useRef(false);
 
   const endsAt =
-    enabled && revealCountdownAt
-      ? getRevealCountdownEndsAt(revealCountdownAt)
+    enabled && countdownStartedAt != null
+      ? getRevealCountdownEndsAt(countdownStartedAt)
       : null;
 
   const displaySeconds =

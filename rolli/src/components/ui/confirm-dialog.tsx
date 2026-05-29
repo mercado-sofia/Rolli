@@ -3,7 +3,7 @@
 import { type ReactNode, useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import { APP_CONTAINER_CLASS, APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { APP_CONTAINER_CLASS, APP_PRIMARY_BUTTON_CLASS, HANGOUT_PINK_GRADIENT_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 type ConfirmDialogProps = {
@@ -21,7 +21,7 @@ type ConfirmDialogProps = {
   showCancelButton?: boolean;
   dismissible?: boolean;
   /** Confirm button and error tone — pink for destructive hangout actions (abandon). */
-  accent?: "pink" | "ink";
+  accent?: "pink" | "pink-highlight" | "ink";
 };
 
 export function ConfirmDialog({
@@ -138,7 +138,9 @@ export function ConfirmDialog({
               "touch-manipulation",
               accent === "ink"
                 ? "border border-ink bg-ink text-white hover:bg-[#2a2a2a]"
-                : "bg-pink-accent text-white hover:bg-pink-accent/90",
+                : accent === "pink-highlight"
+                  ? HANGOUT_PINK_GRADIENT_BUTTON_CLASS
+                  : "bg-pink-accent text-white hover:bg-pink-accent/90",
             )}
           >
             {loading ? "Working…" : confirmLabel}

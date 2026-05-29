@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { GuessingTargetNickname } from "@/components/hangout/guessing-target-nickname";
 import { PerspectivePhotosOverlay } from "@/components/hangout/perspective-photos-overlay";
 import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
@@ -413,12 +414,10 @@ export function GuessingExperience({
               return (
                 <li
                   key={target.participantId}
-                  className="flex items-center gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
+                  className="flex items-start gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
                 >
                   <div className="w-23 shrink-0 sm:w-28 md:w-32">
-                    <p className="truncate font-medium text-sm leading-snug text-ink sm:text-base">
-                      {target.nickname}
-                    </p>
+                    <GuessingTargetNickname nickname={target.nickname} />
                     <button
                       type="button"
                       onClick={() => setGalleryTarget(target)}
