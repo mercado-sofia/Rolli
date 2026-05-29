@@ -162,7 +162,7 @@ export function RevealExperience({
 
     if (!isLastPerspective) {
       onFooterChange({
-        hint: `Perspective ${currentIndex + 1} of ${perspectives.length} — swipe through each anonymous view.`,
+        hint: "Swipe through each anonymous perspective.",
         children: (
           <Button
             type="button"
@@ -245,12 +245,6 @@ export function RevealExperience({
 
   return (
     <div className="space-y-6">
-      <Card border="neutral" className="text-center">
-        <p className="text-xs font-medium uppercase tracking-overline text-pink-muted">
-          Perspective {currentIndex + 1} of {perspectives.length}
-        </p>
-      </Card>
-
       <AnimatePresence mode="wait">
         {current && (
           <motion.div

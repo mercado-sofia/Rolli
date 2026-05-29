@@ -205,7 +205,6 @@ export function GuessingExperience({
 
     if (allVotesIn && isFilmKeeper) {
       onFooterChange({
-        hint: "Everyone has submitted their guesses — reveal the results.",
         children: (
           <>
             {finishError && (
@@ -331,13 +330,6 @@ export function GuessingExperience({
 
   return (
     <div className="min-w-0 space-y-6">
-      <Card border="neutral" className="text-center">
-        <p className="text-sm text-muted">Progress</p>
-        <p className="mt-1 text-2xl font-semibold text-ink">
-          {state.votesSubmitted} / {state.votesRequired}
-        </p>
-      </Card>
-
       {submitError && (
         <p className="text-center text-sm text-pink">{submitError}</p>
       )}

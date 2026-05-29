@@ -9,7 +9,7 @@ export function LandingContact() {
   return (
     <section
       id="contact"
-      className={`${LANDING_SECTION_SCROLL_MT} border-t border-lavender/50 bg-white px-5 py-14 md:py-20`}
+      className={`${LANDING_SECTION_SCROLL_MT} border-t border-pink/40 bg-white px-5 py-14 md:py-20`}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center text-center">
         <p className="text-sm font-medium text-muted">Contact</p>
@@ -23,9 +23,9 @@ export function LandingContact() {
 
         <a
           href={mailtoHref}
-          className="mt-8 inline-flex max-w-full items-center gap-2.5 break-all rounded-full border border-lavender bg-white px-6 py-3 text-sm font-medium text-ink shadow-soft transition-colors hover:border-lavender-deep/40 hover:text-pink-accent"
+          className="mt-8 inline-flex max-w-full items-center gap-2.5 break-all rounded-full border border-pink/50 bg-white px-6 py-3 text-sm font-medium text-ink shadow-soft transition-colors hover:border-pink-highlight/50 hover:text-pink-accent"
         >
-          <Mail className="h-4 w-4 shrink-0 text-lavender-deep" aria-hidden />
+          <Mail className="h-4 w-4 shrink-0 text-pink-highlight" aria-hidden />
           {email}
         </a>
       </div>

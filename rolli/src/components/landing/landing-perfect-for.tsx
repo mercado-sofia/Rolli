@@ -30,7 +30,7 @@ export function LandingPerfectFor() {
   return (
     <section
       id="perfect-for"
-      className={`${LANDING_SECTION_SCROLL_MT} overflow-x-hidden border-t border-lavender/50 bg-white px-5 py-16 md:py-24`}
+      className={`${LANDING_SECTION_SCROLL_MT} overflow-x-hidden border-t border-pink/40 bg-white px-5 py-16 md:py-24`}
     >
       <div className="mx-auto w-full max-w-6xl">
         <div className="mx-auto max-w-xl text-center md:max-w-2xl">
@@ -44,9 +44,9 @@ export function LandingPerfectFor() {
           {useCases.map((item) => (
             <article
               key={item.title}
-              className="group flex flex-col items-center rounded-3xl border border-lavender bg-white p-8 text-center transition-all duration-300 ease-out hover:-translate-y-2 hover:border-lavender-deep/40 hover:bg-white hover:shadow-glow md:p-10"
+              className="group flex flex-col items-center rounded-3xl border border-pink/50 bg-white p-8 text-center transition-all duration-300 ease-out hover:-translate-y-2 hover:border-pink-highlight/50 hover:bg-white hover:shadow-glow md:p-10"
             >
-              <GradientIconContainer size="lg" className="shadow-glow">
+              <GradientIconContainer size="lg" borderTone="pink" className="shadow-glow">
                 <LandingIcon icon={item.icon} size={28} className="text-ink" />
               </GradientIconContainer>
               <h3 className="font-display mt-5 text-xl text-ink transition-colors duration-300 group-hover:text-pink-accent">

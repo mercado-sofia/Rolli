@@ -205,12 +205,6 @@ export default function WaitingRoomPage() {
                       {participant!.nickname}
                     </dd>
                   </div>
-                  <div className="flex justify-between">
-                    <dt className="text-muted">Participants</dt>
-                    <dd className="font-medium text-ink">
-                      {participantCount} / {HANGOUT_LIMITS.maxParticipants}
-                    </dd>
-                  </div>
                   {isFilmKeeper && (
                     <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
                       You are the Film Keeper
