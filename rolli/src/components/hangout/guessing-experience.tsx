@@ -58,6 +58,11 @@ export function GuessingExperience({
   const [photosLoading, setPhotosLoading] = useState(false);
   const [photosLoadError, setPhotosLoadError] = useState<string | null>(null);
   const perspectivePhotosLoadedRef = useRef(false);
+  const onHangoutCompletedRef = useRef(onHangoutCompleted);
+
+  useEffect(() => {
+    onHangoutCompletedRef.current = onHangoutCompleted;
+  }, [onHangoutCompleted]);
 
   const isCompleted = hangoutStatus === "completed";
 
@@ -70,7 +75,11 @@ export function GuessingExperience({
 
     async function load() {
       setLoadError(null);
-      setLoading(true);
+
+      const needsInitialLoad = isCompleted ? results === null : state === null;
+      if (reloadKey > 0 || needsInitialLoad) {
+        setLoading(true);
+      }
 
       if (isCompleted) {
         const { data, error } = await getGuessingResults(hangoutId, sessionToken);
@@ -102,7 +111,7 @@ export function GuessingExperience({
       setResults(null);
       setState(data.state);
       if (data.hangout?.status === "completed") {
-        onHangoutCompleted(data.hangout);
+        onHangoutCompletedRef.current(data.hangout);
       }
       setLoading(false);
     }
@@ -112,7 +121,7 @@ export function GuessingExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, isCompleted, onHangoutCompleted, reloadKey, sessionToken]);
+  }, [hangoutId, isCompleted, reloadKey, sessionToken]);
 
   useEffect(() => {
     perspectivePhotosLoadedRef.current = false;
@@ -188,7 +197,7 @@ export function GuessingExperience({
       if (cancelled || error || !data) return;
       setState(data.state);
       if (data.hangout?.status === "completed") {
-        onHangoutCompleted(data.hangout);
+        onHangoutCompletedRef.current(data.hangout);
       }
     }
 
@@ -200,7 +209,7 @@ export function GuessingExperience({
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [hangoutId, hangoutStatus, isCompleted, onHangoutCompleted, sessionToken]);
+  }, [hangoutId, hangoutStatus, isCompleted, sessionToken]);
 
   const myVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
   const allParticipantsVoted = state?.allParticipantsVoted ?? false;
@@ -228,12 +237,12 @@ export function GuessingExperience({
     setFinishing(false);
 
     if (data) {
-      onHangoutCompleted(data);
+      onHangoutCompletedRef.current(data);
       return;
     }
 
     if (error?.includes("not in the guessing phase")) {
-      onHangoutCompleted();
+      onHangoutCompletedRef.current();
       return;
     }
 
@@ -241,7 +250,7 @@ export function GuessingExperience({
       setFinishError(error);
       completingRef.current = false;
     }
-  }, [hangoutId, onHangoutCompleted, sessionToken]);
+  }, [hangoutId, sessionToken]);
 
   useEffect(() => {
     if (
@@ -281,7 +290,7 @@ export function GuessingExperience({
 
     setState(data.state);
     if (data.hangout?.status === "completed") {
-      onHangoutCompleted(data.hangout);
+      onHangoutCompletedRef.current(data.hangout);
     }
   }
 

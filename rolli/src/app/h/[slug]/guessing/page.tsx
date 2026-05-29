@@ -87,17 +87,20 @@ export default function GuessingPage() {
     hangout: displayHangout,
   });
 
-  async function handleHangoutCompleted(freshHangout?: Hangout) {
-    if (freshHangout) {
-      setHangout(freshHangout);
-      return;
-    }
+  const handleHangoutCompleted = useCallback(
+    async (freshHangout?: Hangout) => {
+      if (freshHangout) {
+        setHangout(freshHangout);
+        return;
+      }
 
-    const { data } = await fetchHangoutBySlug(slug);
-    if (data) {
-      setHangout(data);
-    }
-  }
+      const { data } = await fetchHangoutBySlug(slug);
+      if (data) {
+        setHangout(data);
+      }
+    },
+    [setHangout, slug],
+  );
 
   if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
     return (
@@ -146,7 +149,7 @@ export default function GuessingPage() {
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
-            onHangoutCompleted={(hangout) => void handleHangoutCompleted(hangout)}
+            onHangoutCompleted={handleHangoutCompleted}
             onFooterChange={setFooter}
           />
         </div>

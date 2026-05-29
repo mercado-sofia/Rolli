@@ -270,7 +270,6 @@ export default function WaitingRoomPage() {
             <AbandonHangoutControl
               hangoutId={displayHangout.id}
               sessionToken={participant.sessionToken}
-              hideTrigger={isCancelled}
               triggerVariant="pill"
               onAbandoned={setHangout}
               onUiStateChange={setAbandonUiState}
