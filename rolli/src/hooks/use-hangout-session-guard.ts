@@ -19,9 +19,10 @@ export function useHangoutSessionGuard({
 }: UseHangoutSessionGuardOptions) {
   const router = useRouter();
   const participant = useSessionStore((state) => state.participant);
+  const leavingApp = useSessionStore((state) => state.leavingApp);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || leavingApp) return;
 
     if (!participant || !hangout || hangout.slug !== slug) {
       router.replace(`/h/${slug}`);
@@ -31,7 +32,7 @@ export function useHangoutSessionGuard({
     if (participant.hangoutId !== hangout.id) {
       router.replace(`/h/${slug}`);
     }
-  }, [hangout, isLoading, participant, router, slug]);
+  }, [hangout, isLoading, leavingApp, participant, router, slug]);
 
   const hasValidSession =
     participant !== null &&

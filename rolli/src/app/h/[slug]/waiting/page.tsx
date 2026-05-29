@@ -47,7 +47,7 @@ export default function WaitingRoomPage() {
   const slug = params.slug;
 
   const setHangout = useSessionStore((state) => state.setHangout);
-  const resetSession = useSessionStore((state) => state.resetSession);
+  const leaveForHomeFromStore = useSessionStore((state) => state.leaveForHome);
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
@@ -61,9 +61,9 @@ export default function WaitingRoomPage() {
 
   const leaveForHome = useCallback(() => {
     setAbandonUiState("leaving");
-    resetSession();
+    leaveForHomeFromStore();
     router.replace("/");
-  }, [resetSession, router]);
+  }, [leaveForHomeFromStore, router]);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading: guardIsLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({

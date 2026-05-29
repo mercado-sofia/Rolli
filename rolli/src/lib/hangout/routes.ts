@@ -23,7 +23,15 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
 }
 
 const GUESSING_PATH_SUFFIX = "/guessing";
+const GALLERY_PATH_SUFFIX = "/gallery";
 const SHARE_PATH_SUFFIX = "/share";
+
+function isCompletedPhasePath(currentPath: string): boolean {
+  return (
+    currentPath.endsWith(GUESSING_PATH_SUFFIX) ||
+    currentPath.endsWith(GALLERY_PATH_SUFFIX)
+  );
+}
 
 export function hangoutSharePath(slug: string): string {
   return `/h/${slug}/share`;
@@ -36,7 +44,6 @@ export function getHangoutRouteRedirect(
   slug: string,
   currentPath: string,
   status: HangoutStatus,
-  options?: { allowGuessingWhenCompleted?: boolean },
 ): string | null {
   const canonical = hangoutParticipantPath(slug, status);
 
@@ -44,11 +51,7 @@ export function getHangoutRouteRedirect(
     return null;
   }
 
-  if (
-    options?.allowGuessingWhenCompleted &&
-    status === "completed" &&
-    currentPath.endsWith(GUESSING_PATH_SUFFIX)
-  ) {
+  if (status === "completed" && isCompletedPhasePath(currentPath)) {
     return null;
   }
 

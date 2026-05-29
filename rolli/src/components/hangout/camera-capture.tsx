@@ -22,6 +22,9 @@ type CameraCaptureProps = {
   photosTaken: number;
   maxPhotos: number;
   onCaptured: (participant: Participant) => void;
+  /** Session page: circular trigger + label below (e.g. "iya's pov"). */
+  appearance?: "default" | "session";
+  povLabel?: string;
 };
 
 type CameraPhase = "idle" | "opening" | "ready" | "capturing";
@@ -50,6 +53,8 @@ export function CameraCapture({
   photosTaken,
   maxPhotos,
   onCaptured,
+  appearance = "default",
+  povLabel,
 }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -68,17 +73,6 @@ export function CameraCapture({
   const isDisabled = photosRemaining <= 0 || phase === "capturing";
   const isOverlayOpen = phase !== "idle";
 
-  useEffect(() => {
-    if (!isOverlayOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isOverlayOpen]);
-
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
@@ -93,6 +87,26 @@ export function CameraCapture({
     setPhase("idle");
     setError(null);
   }, [stopCamera]);
+
+  useEffect(() => {
+    if (!isOverlayOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        closeCamera();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOverlayOpen, closeCamera]);
 
   const openCamera = useCallback(async () => {
     if (photosRemaining <= 0) return;
@@ -242,7 +256,13 @@ export function CameraCapture({
           aria-label={
             photosRemaining <= 0 ? "No photos left" : "Capture memory"
           }
+          appearance={appearance}
         />
+        {appearance === "session" && povLabel ? (
+          <p className="max-w-48 truncate text-center text-sm text-pink-muted sm:max-w-none">
+            {povLabel}
+          </p>
+        ) : null}
       </div>
       {overlay}
     </>
@@ -264,14 +284,41 @@ function CameraTriggerButton({
   onClick,
   "aria-label": ariaLabel,
   size = "md",
+  appearance = "default",
 }: {
   disabled?: boolean;
   onClick: () => void;
   "aria-label": string;
   size?: "md" | "lg";
+  appearance?: "default" | "session";
 }) {
   const dimensions = size === "lg" ? "h-20 w-20" : "h-18 w-18";
-  const iconSize = size === "lg" ? 36 : 34;
+  const iconSize =
+    appearance === "session" ? 36 : size === "lg" ? 36 : 34;
+
+  if (appearance === "session") {
+    return (
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onClick}
+        aria-label={ariaLabel}
+        className={cn(
+          "inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full border border-lavender-deep/35 bg-white",
+          "transition-transform hover:scale-[1.03] active:scale-[0.97]",
+          "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100",
+          "h-20 w-20 sm:h-24 sm:w-24",
+        )}
+      >
+        <LuCamera
+          size={iconSize}
+          strokeWidth={1.75}
+          className="text-pink-accent"
+          aria-hidden
+        />
+      </button>
+    );
+  }
 
   return (
     <button
@@ -370,74 +417,98 @@ function CaptureOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-200 flex flex-col overflow-hidden bg-canvas text-ink"
+      className="fixed inset-0 z-200 flex items-stretch justify-center bg-black/55 p-0 md:items-center md:p-6 lg:p-10"
       role="dialog"
       aria-modal="true"
       aria-label="Capture memory"
     >
-      <CameraAmbientBackground />
-
-      <header
+      <div
         className={cn(
-          "relative z-10 flex shrink-0 flex-col items-center gap-1 px-4 pb-3",
-          "pt-[max(0.75rem,env(safe-area-inset-top))]",
+          "relative flex h-full w-full min-h-0 max-w-full flex-col overflow-hidden bg-canvas text-ink",
+          "md:max-h-[min(92dvh,840px)] md:max-w-2xl md:rounded-[1.75rem] md:border md:border-container-border md:bg-white md:shadow-soft",
+          "lg:max-w-3xl",
         )}
       >
-        <div className="flex w-full max-w-md items-center justify-between gap-4">
-          <AppBackButton onBack={onClose} backLabel="Close camera" />
-          <div className="h-9 w-9" aria-hidden />
-        </div>
-        <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
-          Capture memory
-        </p>
-        <p className="font-display text-3xl tabular-nums tracking-tight text-pink-highlight">
-          {photosTaken}/{maxPhotos}
-        </p>
-      </header>
+        <CameraAmbientBackground />
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-2">
-        <div className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-container-border bg-white shadow-soft">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 h-full w-full bg-ink object-cover"
-          />
-          <div
-            className="pointer-events-none absolute inset-0 bg-linear-to-b from-pink/10 via-transparent to-lavender/15"
-            aria-hidden
-          />
-          {flash && <FlashOverlay />}
-          {isOpening && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-lavender/50 backdrop-blur-[2px]">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
-              <p className="text-sm font-medium text-pink-accent">
-                Opening camera…
+        <header
+          className={cn(
+            "relative z-10 shrink-0 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]",
+            "md:px-6 md:pb-4 md:pt-6",
+          )}
+        >
+          <div className="relative flex w-full items-center justify-between gap-3">
+            <AppBackButton onBack={onClose} backLabel="Close camera" />
+            <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-0.5 px-14 text-center md:static md:translate-y-0 md:flex-1 md:px-4">
+              <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+                Capture memory
+              </p>
+              <p className="font-display text-2xl tabular-nums tracking-tight text-pink-highlight sm:text-3xl">
+                {photosTaken}/{maxPhotos}
               </p>
             </div>
-          )}
-        </div>
-      </div>
+            <div className="h-9 w-9 shrink-0" aria-hidden />
+          </div>
+        </header>
 
-      <footer
-        className={cn(
-          "relative z-10 flex shrink-0 flex-col items-center gap-3",
-          "border-t border-container-border/60 bg-white/95 px-4 pt-5 backdrop-blur-sm",
-          "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
-        )}
-      >
-        {error && (
-          <p className="max-w-sm rounded-2xl bg-pink/10 px-4 py-2 text-center text-sm text-pink-accent">
-            {error}
+        <div
+          className={cn(
+            "relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-2",
+            "md:flex-none md:px-6 md:pb-4",
+          )}
+        >
+          <div
+            className={cn(
+              "relative min-h-[min(42dvh,22rem)] flex-1 overflow-hidden rounded-3xl border border-container-border bg-ink shadow-soft",
+              "md:aspect-4/3 md:h-auto md:min-h-0 md:max-h-[min(52vh,32rem)] md:w-full md:flex-none",
+            )}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 bg-linear-to-b from-pink/10 via-transparent to-lavender/15"
+              aria-hidden
+            />
+            {flash && <FlashOverlay />}
+            {isOpening && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-lavender/50 backdrop-blur-[2px]">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
+                <p className="text-sm font-medium text-pink-accent">
+                  Opening camera…
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <footer
+          className={cn(
+            "relative z-10 flex shrink-0 flex-col items-center gap-3",
+            "border-t border-container-border/60 bg-white/95 px-4 pt-4 backdrop-blur-sm",
+            "pb-[max(1rem,env(safe-area-inset-bottom))]",
+            "md:px-6 md:pb-6 md:pt-5",
+          )}
+        >
+          {error && (
+            <p className="max-w-sm rounded-2xl bg-pink/10 px-4 py-2 text-center text-sm text-pink-accent">
+              {error}
+            </p>
+          )}
+          <p className="hidden text-center text-xs text-muted md:block">
+            Press Esc to close · Click the shutter to capture
           </p>
-        )}
-        <ShutterButton
-          disabled={shutterDisabled}
-          isCapturing={isCapturing}
-          onClick={onCapture}
-        />
-      </footer>
+          <ShutterButton
+            disabled={shutterDisabled}
+            isCapturing={isCapturing}
+            onClick={onCapture}
+          />
+        </footer>
+      </div>
     </div>
   );
 }

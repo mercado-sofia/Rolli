@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { cn } from "@/lib/utils";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import {
   finishGuessing,
@@ -188,7 +189,7 @@ export function GuessingExperience({
         children: (
           <Button
             href={`/h/${hangoutSlug}/gallery`}
-            className={APP_PRIMARY_BUTTON_CLASS}
+            className={cn(APP_PRIMARY_BUTTON_CLASS, "hidden md:inline-flex")}
           >
             View memory gallery
           </Button>
@@ -306,6 +307,13 @@ export function GuessingExperience({
             </Card>
           ))}
         </div>
+
+        <Button
+          href={`/h/${hangoutSlug}/gallery`}
+          className={cn(APP_PRIMARY_BUTTON_CLASS, "md:hidden")}
+        >
+          View memory gallery
+        </Button>
       </div>
     );
   }

@@ -20,11 +20,11 @@ export function BackHomeButton({
   className,
 }: BackHomeButtonProps) {
   const router = useRouter();
-  const resetSession = useSessionStore((state) => state.resetSession);
+  const leaveForHome = useSessionStore((state) => state.leaveForHome);
 
   function handleBackHome() {
-    resetSession();
-    router.push("/");
+    leaveForHome();
+    router.replace("/");
   }
 
   return (
@@ -53,7 +53,7 @@ export function LeaveRoomButton({
   isFilmKeeper = false,
 }: LeaveRoomButtonProps) {
   const router = useRouter();
-  const resetSession = useSessionStore((state) => state.resetSession);
+  const leaveForHome = useSessionStore((state) => state.leaveForHome);
 
   const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -84,8 +84,8 @@ export function LeaveRoomButton({
     }
 
     setOpen(false);
-    resetSession();
-    router.push("/");
+    leaveForHome();
+    router.replace("/");
   }
 
   return (

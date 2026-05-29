@@ -37,12 +37,7 @@ export default function GuessingPage() {
   const { displayHangout, isLoading } = useDisplayHangout(slug);
   const [footer, setFooter] = useState<SetupFlowFooterState>({});
 
-  useHangoutRouteGuard({
-    slug,
-    hangout: displayHangout,
-    isLoading,
-    allowGuessingWhenCompleted: true,
-  });
+  useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({
     slug,
     hangout: displayHangout,

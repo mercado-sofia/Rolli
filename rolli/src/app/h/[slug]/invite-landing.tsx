@@ -63,6 +63,7 @@ export function InviteLanding() {
   const sessionHangout = useSessionStore((state) => state.hangout);
   const sessionParticipant = useSessionStore((state) => state.participant);
   const setSession = useSessionStore((state) => state.setSession);
+  const leaveForHome = useSessionStore((state) => state.leaveForHome);
 
   const [hangout, setHangout] = useState<Hangout | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,6 +71,11 @@ export function InviteLanding() {
   const [rejoining, setRejoining] = useState(false);
   const [rejoinFailed, setRejoinFailed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleGoHome() {
+    leaveForHome();
+    router.replace("/");
+  }
 
   const hasMatchingSession =
     Boolean(sessionParticipant) &&
@@ -211,7 +217,8 @@ export function InviteLanding() {
           <SetupFlowHeader
             currentStep={setupFlowSteps.inviteJoin}
             totalSteps={SETUP_FLOW_TOTAL_STEPS}
-            backHref="/"
+            onBack={handleGoHome}
+            backLabel="Go home"
             title={hangout.title}
             sublabel="Invitation closed"
           />
@@ -227,12 +234,13 @@ export function InviteLanding() {
             <p className="text-center text-sm text-muted">
               This hangout has ended. New guests cannot join.
             </p>
-            <Link
-              href="/"
-              className="mt-6 block text-center text-sm text-muted underline underline-offset-4"
+            <button
+              type="button"
+              onClick={handleGoHome}
+              className="mt-6 w-full text-center text-sm text-muted underline underline-offset-4"
             >
               Go home
-            </Link>
+            </button>
           </div>
         </main>
 
@@ -249,7 +257,7 @@ export function InviteLanding() {
         <SetupFlowHeader
           currentStep={setupFlowSteps.inviteJoin}
           totalSteps={SETUP_FLOW_TOTAL_STEPS}
-          backHref="/"
+          onBack={handleGoHome}
           backLabel="Go home"
           title={hangout.title}
           sublabel={hangoutInProgress ? "Hangout in progress" : "You're invited"}

@@ -47,7 +47,7 @@ export function LandingPerfectFor() {
               className="group flex flex-col items-center rounded-3xl border border-lavender bg-white p-8 text-center transition-all duration-300 ease-out hover:-translate-y-2 hover:border-lavender-deep/40 hover:bg-white hover:shadow-glow md:p-10"
             >
               <GradientIconContainer size="lg" className="shadow-glow">
-                <LandingIcon icon={item.icon} size={28} className="text-pink-highlight" />
+                <LandingIcon icon={item.icon} size={28} className="text-ink" />
               </GradientIconContainer>
               <h3 className="font-display mt-5 text-xl text-ink transition-colors duration-300 group-hover:text-pink-accent">
                 {item.title}

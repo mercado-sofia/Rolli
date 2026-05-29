@@ -33,7 +33,7 @@ export function AbandonHangoutControl({
   onUiStateChange,
 }: AbandonHangoutControlProps) {
   const router = useRouter();
-  const resetSession = useSessionStore((state) => state.resetSession);
+  const leaveForHome = useSessionStore((state) => state.leaveForHome);
 
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<AbandonModalPhase>("confirm");
@@ -79,7 +79,7 @@ export function AbandonHangoutControl({
   function handleGoHome() {
     onUiStateChange?.("leaving");
     setOpen(false);
-    resetSession();
+    leaveForHome();
     router.replace("/");
   }
 
