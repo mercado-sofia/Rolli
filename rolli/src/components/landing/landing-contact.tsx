@@ -25,7 +25,7 @@ export function LandingContact() {
           href={mailtoHref}
           className="mt-8 inline-flex max-w-full items-center gap-2.5 break-all rounded-full border border-pink/50 bg-white px-6 py-3 text-sm font-medium text-ink shadow-soft transition-colors hover:border-pink-highlight/50 hover:text-pink-accent"
         >
-          <Mail className="h-4 w-4 shrink-0 text-pink-highlight" aria-hidden />
+          <Mail className="h-4 w-4 shrink-0 text-ink" aria-hidden />
           {email}
         </a>
       </div>
