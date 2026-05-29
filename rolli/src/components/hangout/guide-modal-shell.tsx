@@ -33,7 +33,7 @@ export function GuideModalCloseButton({ onClose }: { onClose: () => void }) {
       }}
       className={cn(
         "absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full",
-        "border border-ink bg-white text-ink",
+        "border border-black/8 bg-white text-ink",
         "outline-none transition-colors hover:bg-black/5 active:scale-95",
       )}
       aria-label="Close"

@@ -166,8 +166,6 @@ export default function SessionPage() {
     );
   }
 
-  const povLabel = `${participant.nickname.toLowerCase()}'s pov`;
-
   const guideMenuButton = (
     <button
       type="button"
@@ -185,7 +183,11 @@ export default function SessionPage() {
   return (
     <SetupFlowShell>
       <AutoOpenSessionGuide slug={slug} hangoutId={displayHangout.id} />
-      <RolliGuideModal open={rolliGuideOpen} onClose={() => setRolliGuideOpen(false)} />
+      <RolliGuideModal
+        open={rolliGuideOpen}
+        nickname={participant.nickname}
+        onClose={() => setRolliGuideOpen(false)}
+      />
 
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
@@ -225,11 +227,12 @@ export default function SessionPage() {
                 <CameraCapture
                   hangoutId={displayHangout.id}
                   sessionToken={participant.sessionToken}
+                  participant={participant}
                   photosTaken={photosTaken}
                   maxPhotos={maxPhotos}
                   onCaptured={setParticipant}
                   appearance="session"
-                  povLabel={povLabel}
+                  povLabel="your pov"
                 />
               </div>
             </div>

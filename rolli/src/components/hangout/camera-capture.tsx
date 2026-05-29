@@ -12,6 +12,10 @@ import { createPortal } from "react-dom";
 import { LuCamera } from "react-icons/lu";
 
 import { AppBackButton } from "@/components/ui/app-back-button";
+import {
+  CAMERA_VIDEO_CONSTRAINTS,
+  encodeVideoFrameToJpeg,
+} from "@/lib/hangout/camera-frame";
 import { captureMemory } from "@/lib/hangout/photos";
 import { cn } from "@/lib/utils";
 import type { Participant } from "@/types/participant";
@@ -19,10 +23,11 @@ import type { Participant } from "@/types/participant";
 type CameraCaptureProps = {
   hangoutId: string;
   sessionToken: string;
+  participant?: Participant;
   photosTaken: number;
   maxPhotos: number;
   onCaptured: (participant: Participant) => void;
-  /** Session page: circular trigger + label below (e.g. "iya's pov"). */
+  /** Session page: circular trigger + label below (e.g. "your pov"). */
   appearance?: "default" | "session";
   povLabel?: string;
 };
@@ -50,6 +55,7 @@ function getServerMountSnapshot() {
 export function CameraCapture({
   hangoutId,
   sessionToken,
+  participant,
   photosTaken,
   maxPhotos,
   onCaptured,
@@ -58,24 +64,35 @@ export function CameraCapture({
 }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const warmStreamPromiseRef = useRef<Promise<MediaStream> | null>(null);
   const flashTimeoutRef = useRef<number | null>(null);
+  const serverPhotosTakenRef = useRef(photosTaken);
+  const pendingUploadsRef = useRef(0);
+  const uploadQueueRef = useRef(Promise.resolve());
 
   const [phase, setPhase] = useState<CameraPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
+  const [pendingUploads, setPendingUploads] = useState(0);
   const mounted = useSyncExternalStore(
     subscribeToClientMount,
     getClientMountSnapshot,
     getServerMountSnapshot,
   );
 
+  const isSessionMode = appearance === "session";
   const photosRemaining = maxPhotos - photosTaken;
   const isDisabled = photosRemaining <= 0 || phase === "capturing";
   const isOverlayOpen = phase !== "idle";
 
+  useEffect(() => {
+    serverPhotosTakenRef.current = photosTaken;
+  }, [photosTaken]);
+
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
+    warmStreamPromiseRef.current = null;
 
     if (videoRef.current) {
       videoRef.current.srcObject = null;
@@ -87,6 +104,65 @@ export function CameraCapture({
     setPhase("idle");
     setError(null);
   }, [stopCamera]);
+
+  const triggerFlash = useCallback(() => {
+    setFlash(true);
+    if (flashTimeoutRef.current) {
+      window.clearTimeout(flashTimeoutRef.current);
+    }
+    flashTimeoutRef.current = window.setTimeout(() => {
+      setFlash(false);
+      flashTimeoutRef.current = null;
+    }, 180);
+  }, []);
+
+  const ensureStream = useCallback(async (): Promise<MediaStream> => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      throw new Error("Camera is not supported on this device.");
+    }
+
+    if (streamRef.current) {
+      return streamRef.current;
+    }
+
+    if (!warmStreamPromiseRef.current) {
+      warmStreamPromiseRef.current = navigator.mediaDevices
+        .getUserMedia({
+          video: CAMERA_VIDEO_CONSTRAINTS,
+          audio: false,
+        })
+        .then((stream) => {
+          streamRef.current = stream;
+          return stream;
+        })
+        .catch((streamError) => {
+          streamRef.current = null;
+          throw streamError;
+        })
+        .finally(() => {
+          warmStreamPromiseRef.current = null;
+        });
+    }
+
+    return warmStreamPromiseRef.current;
+  }, []);
+
+  const warmCamera = useCallback(() => {
+    if (photosRemaining <= 0) return;
+    void ensureStream().catch(() => {
+      // Permission or hardware errors surface when the overlay opens.
+    });
+  }, [ensureStream, photosRemaining]);
+
+  const attachStreamToVideo = useCallback(async (stream: MediaStream) => {
+    const video = videoRef.current;
+    if (!video) {
+      throw new Error("Camera not ready");
+    }
+
+    video.srcObject = stream;
+    await video.play();
+  }, []);
 
   useEffect(() => {
     if (!isOverlayOpen) return;
@@ -111,79 +187,88 @@ export function CameraCapture({
   const openCamera = useCallback(async () => {
     if (photosRemaining <= 0) return;
 
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Camera is not supported on this device.");
-      return;
-    }
-
     setError(null);
     setPhase("opening");
 
     await waitForNextFrame();
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-        audio: false,
-      });
-
-      streamRef.current = stream;
-
-      const video = videoRef.current;
-      if (!video) {
-        throw new Error("Camera not ready");
-      }
-
-      video.srcObject = stream;
-      await video.play();
+      const stream = await ensureStream();
+      await attachStreamToVideo(stream);
       setPhase("ready");
     } catch {
       stopCamera();
       setPhase("idle");
       setError("Camera access denied. Allow camera permission and try again.");
     }
-  }, [photosRemaining, stopCamera]);
+  }, [attachStreamToVideo, ensureStream, photosRemaining, stopCamera]);
+
+  const applyOptimisticPhotosTaken = useCallback(() => {
+    if (!participant) return;
+
+    onCaptured({
+      ...participant,
+      photosTaken: serverPhotosTakenRef.current + pendingUploadsRef.current,
+    });
+  }, [onCaptured, participant]);
+
+  const enqueueUpload = useCallback(
+    (blob: Blob) => {
+      uploadQueueRef.current = uploadQueueRef.current
+        .then(async () => {
+          const { data, error: captureError } = await captureMemory({
+            hangoutId,
+            sessionToken,
+            file: blob,
+          });
+
+          if (captureError || !data) {
+            throw new Error(captureError ?? "Could not save photo");
+          }
+
+          pendingUploadsRef.current -= 1;
+          setPendingUploads(pendingUploadsRef.current);
+          onCaptured({
+            ...data.participant,
+            photosTaken:
+              data.participant.photosTaken + pendingUploadsRef.current,
+          });
+        })
+        .catch((uploadError) => {
+          pendingUploadsRef.current -= 1;
+          setPendingUploads(pendingUploadsRef.current);
+          applyOptimisticPhotosTaken();
+          setError(
+            uploadError instanceof Error
+              ? uploadError.message
+              : "Could not save photo",
+          );
+        });
+    },
+    [applyOptimisticPhotosTaken, hangoutId, onCaptured, sessionToken],
+  );
 
   const takePhoto = useCallback(async () => {
     const video = videoRef.current;
     if (!video || phase !== "ready") return;
 
+    if (photosTaken + pendingUploadsRef.current >= maxPhotos) return;
+
     setPhase("capturing");
     setError(null);
 
     try {
-      const width = video.videoWidth;
-      const height = video.videoHeight;
+      const blob = await encodeVideoFrameToJpeg(video);
 
-      if (!width || !height) {
-        throw new Error("Camera not ready");
+      if (isSessionMode) {
+        pendingUploadsRef.current += 1;
+        setPendingUploads(pendingUploadsRef.current);
+        applyOptimisticPhotosTaken();
+        triggerFlash();
+        setPhase("ready");
+        enqueueUpload(blob);
+        return;
       }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
-
-      const context = canvas.getContext("2d");
-      if (!context) {
-        throw new Error("Could not capture frame");
-      }
-
-      context.drawImage(video, 0, 0, width, height);
-
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (result) => {
-            if (result) resolve(result);
-            else reject(new Error("Could not encode photo"));
-          },
-          "image/jpeg",
-          0.92,
-        );
-      });
 
       const { data, error: captureError } = await captureMemory({
         hangoutId,
@@ -195,15 +280,7 @@ export function CameraCapture({
         throw new Error(captureError ?? "Could not save photo");
       }
 
-      setFlash(true);
-      if (flashTimeoutRef.current) {
-        window.clearTimeout(flashTimeoutRef.current);
-      }
-      flashTimeoutRef.current = window.setTimeout(() => {
-        setFlash(false);
-        flashTimeoutRef.current = null;
-      }, 180);
-
+      triggerFlash();
       onCaptured(data.participant);
       stopCamera();
       setPhase("idle");
@@ -215,7 +292,19 @@ export function CameraCapture({
           : "Could not capture memory",
       );
     }
-  }, [hangoutId, onCaptured, phase, sessionToken, stopCamera]);
+  }, [
+    applyOptimisticPhotosTaken,
+    enqueueUpload,
+    hangoutId,
+    isSessionMode,
+    maxPhotos,
+    onCaptured,
+    phase,
+    photosTaken,
+    sessionToken,
+    stopCamera,
+    triggerFlash,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -235,6 +324,7 @@ export function CameraCapture({
             flash={flash}
             isCapturing={phase === "capturing"}
             isOpening={phase === "opening"}
+            pendingUploads={pendingUploads}
             onClose={closeCamera}
             onCapture={() => void takePhoto()}
           />,
@@ -251,6 +341,7 @@ export function CameraCapture({
         <CameraTriggerButton
           disabled={isDisabled}
           onClick={() => void openCamera()}
+          onPointerDown={isSessionMode ? warmCamera : undefined}
           aria-label={
             photosRemaining <= 0 ? "No photos left" : "Capture memory"
           }
@@ -280,12 +371,14 @@ function CameraAmbientBackground() {
 function CameraTriggerButton({
   disabled,
   onClick,
+  onPointerDown,
   "aria-label": ariaLabel,
   size = "md",
   appearance = "default",
 }: {
   disabled?: boolean;
   onClick: () => void;
+  onPointerDown?: () => void;
   "aria-label": string;
   size?: "md" | "lg";
   appearance?: "default" | "session";
@@ -300,6 +393,7 @@ function CameraTriggerButton({
         type="button"
         disabled={disabled}
         onClick={onClick}
+        onPointerDown={onPointerDown}
         aria-label={ariaLabel}
         className={cn(
           "inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full border border-lavender-deep/35 bg-white",
@@ -323,6 +417,7 @@ function CameraTriggerButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
+      onPointerDown={onPointerDown}
       aria-label={ariaLabel}
       className={cn(
         "inline-flex shrink-0 rounded-full border border-lavender-deep/25 bg-gradient-pastel p-px shadow-soft",
@@ -362,7 +457,7 @@ function ShutterButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      aria-label={isCapturing ? "Saving photo" : "Take photo"}
+      aria-label={isCapturing ? "Capturing photo" : "Take photo"}
       className={cn(
         "relative flex h-20 w-20 items-center justify-center rounded-full",
         "border-2 border-lavender-deep/35 bg-white shadow-glow",
@@ -371,7 +466,7 @@ function ShutterButton({
         isCapturing && "animate-pulse",
       )}
     >
-      <span className="sr-only">{isCapturing ? "Saving…" : "Take photo"}</span>
+      <span className="sr-only">{isCapturing ? "Capturing…" : "Take photo"}</span>
       <span
         className={cn(
           "flex items-center justify-center rounded-full bg-gradient-pastel transition-all",
@@ -396,6 +491,7 @@ function CaptureOverlay({
   flash,
   isCapturing,
   isOpening,
+  pendingUploads,
   onClose,
   onCapture,
 }: {
@@ -404,6 +500,7 @@ function CaptureOverlay({
   flash: boolean;
   isCapturing: boolean;
   isOpening: boolean;
+  pendingUploads: number;
   onClose: () => void;
   onCapture: () => void;
 }) {
@@ -486,6 +583,11 @@ function CaptureOverlay({
           {error && (
             <p className="max-w-sm rounded-2xl bg-pink/10 px-4 py-2 text-center text-sm text-pink-accent">
               {error}
+            </p>
+          )}
+          {pendingUploads > 0 && !error && (
+            <p className="text-center text-xs text-muted">
+              Saving {pendingUploads === 1 ? "photo" : `${pendingUploads} photos`}…
             </p>
           )}
           <p className="hidden text-center text-xs text-muted md:block">

@@ -1,13 +1,7 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { LuImages } from "react-icons/lu";
 
 import { GuessingTargetNickname } from "@/components/hangout/guessing-target-nickname";
 import { PerspectivePhotosOverlay } from "@/components/hangout/perspective-photos-overlay";
@@ -414,23 +408,27 @@ export function GuessingExperience({
               return (
                 <li
                   key={target.participantId}
-                  className="flex items-start gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
+                  className="flex items-start gap-2.5 py-4 first:pt-0 last:pb-0 sm:gap-3"
                 >
-                  <div className="w-23 shrink-0 sm:w-28 md:w-32">
-                    <GuessingTargetNickname nickname={target.nickname} />
+                  <div className="flex min-w-0 flex-1 items-start gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => setGalleryTarget(target)}
                       className={cn(
-                        "mt-1.5 text-left text-xs font-medium underline underline-offset-2 transition-colors",
-                        "text-pink-highlight hover:text-pink-accent",
+                        "mt-0.5 shrink-0 rounded-md p-1 text-pink-highlight transition-colors",
+                        "hover:bg-pink/10 hover:text-pink-accent active:scale-95",
                       )}
+                      aria-label={`View photos from ${target.nickname}`}
                     >
-                      View photos
+                      <LuImages className="h-4.5 w-4.5 sm:h-5 sm:w-5" aria-hidden />
                     </button>
+                    <GuessingTargetNickname
+                      nickname={target.nickname}
+                      className="min-w-0 flex-1"
+                    />
                   </div>
                   <AppSelect
-                    className="min-w-0 flex-1 self-center"
+                    className="w-29 shrink-0 self-center sm:w-32"
                     value={selected}
                     placeholder="Guess"
                     disabled={isSaving}
