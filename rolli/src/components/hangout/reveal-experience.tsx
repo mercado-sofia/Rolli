@@ -238,13 +238,15 @@ export function RevealExperience({
 
   if (loading) {
     return (
-      <p className="text-center text-sm text-muted">Developing your memories…</p>
+      <p className="w-full text-center text-sm text-muted">
+        Developing your memories…
+      </p>
     );
   }
 
   if (loadError) {
     return (
-      <div className="space-y-4 text-center">
+      <div className="w-full space-y-4 text-center">
         <p className="text-sm text-pink">{loadError}</p>
         <Button type="button" variant="secondary" onClick={retryLoad}>
           Try again
@@ -255,7 +257,7 @@ export function RevealExperience({
 
   if (perspectives.length === 0 || totalPhotos === 0) {
     return (
-      <Card border="neutral" className="text-center">
+      <Card border="neutral" className="w-full text-center">
         <p className="text-sm text-muted">
           No memories were captured in this hangout.
         </p>
@@ -264,7 +266,7 @@ export function RevealExperience({
   }
 
   return (
-    <div className="space-y-3 pt-4 sm:pt-6">
+    <div className="flex w-full flex-col items-center justify-center">
       <AnimatePresence mode="wait">
         {current && (
           <motion.div
@@ -273,7 +275,7 @@ export function RevealExperience({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="space-y-6 sm:space-y-8"
+            className="flex w-full flex-col items-center gap-4 sm:gap-5"
           >
             <p className="truncate px-1 text-center text-sm leading-snug">
               <span className="font-medium text-ink">Anonymous</span>

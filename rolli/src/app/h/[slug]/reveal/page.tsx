@@ -13,9 +13,9 @@ import {
   SetupFlowFooter,
   SetupFlowShell,
   SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
-  SETUP_FLOW_MAIN_UPPER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
@@ -74,7 +74,7 @@ export default function RevealPage() {
             <div className="h-3 w-28 rounded-full bg-black/10" />
           </div>
         </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
           <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
             <MobileLoadingSpinner />
             <div className="hidden animate-pulse space-y-6 md:block">
@@ -103,8 +103,13 @@ export default function RevealPage() {
         />
       </header>
 
-      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
-        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-4")}>
+      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
+        <div
+          className={cn(
+            SETUP_FLOW_MAIN_INNER_CLASS,
+            "flex min-h-0 flex-1 flex-col justify-center gap-4",
+          )}
+        >
           <FilmKeeperPromotionBanner
             visible={showPromotion}
             onDismiss={dismissPromotion}
