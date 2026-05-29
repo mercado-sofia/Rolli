@@ -3,7 +3,6 @@
 import { GuideBulletList } from "@/components/hangout/guide-bullet-list";
 import { GuideModalShell } from "@/components/hangout/guide-modal-shell";
 import { SESSION_GUIDE_CONTENT } from "@/lib/hangout/guide-content";
-import { HANGOUT_PINK_GRADIENT_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 type SessionGuideModalProps = {
@@ -19,6 +18,7 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
       open={open}
       onClose={onClose}
       showHeaderClose={false}
+      centerTitle
       titleId="session-guide-title"
       title={content.title}
       footer={
@@ -27,7 +27,7 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
           onClick={onClose}
           className={cn(
             "flex h-12 w-full items-center justify-center rounded-2xl text-sm font-semibold",
-            HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
+            "border border-ink bg-ink text-white hover:bg-[#2a2a2a] active:scale-[0.98]",
           )}
         >
           {content.primaryLabel}
