@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { RevealAmbientAudio } from "@/components/hangout/reveal-ambient-audio";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   RevealExperience,
@@ -95,6 +96,7 @@ export default function RevealPage() {
 
   return (
     <SetupFlowShell>
+      <RevealAmbientAudio active />
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           showProgress={false}

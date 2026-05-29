@@ -107,10 +107,6 @@ export default function DevelopingPage() {
     );
   }
 
-  const footerHint = isFilmKeeper
-    ? "Start the reveal when memories are ready to share."
-    : "Waiting for the Film Keeper to start the reveal…";
-
   return (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
@@ -129,7 +125,11 @@ export default function DevelopingPage() {
               onDismiss={dismissPromotion}
             />
             <Card border="neutral" className="text-center">
-              <HangoutCardIcon icon={LuFilm} />
+              <HangoutCardIcon
+                icon={LuFilm}
+                borderTone="ink"
+                iconClassName="text-ink"
+              />
               <p className="font-display mt-4 text-2xl leading-snug">
                 Memories in the darkroom
               </p>
@@ -141,7 +141,13 @@ export default function DevelopingPage() {
         </div>
       </main>
 
-      <SetupFlowFooter hint={footerHint}>
+      <SetupFlowFooter
+        hint={
+          isFilmKeeper
+            ? undefined
+            : "Waiting for the Film Keeper to start the reveal…"
+        }
+      >
         {isFilmKeeper ? (
           <>
             {startError && (

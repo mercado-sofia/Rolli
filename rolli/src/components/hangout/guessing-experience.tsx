@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { PerspectivePhotosOverlay } from "@/components/hangout/perspective-photos-overlay";
 import { AppSelect } from "@/components/ui/app-select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,9 +15,11 @@ import {
   getGuessingState,
   submitVote,
 } from "@/lib/hangout/guessing";
+import { getRevealState, signRevealPhotoUrls } from "@/lib/hangout/reveal";
 import type { Hangout } from "@/types/hangout";
 import type { HangoutStatus } from "@/types/hangout";
-import type { GuessingResults, GuessingState } from "@/types/guessing";
+import type { GuessingResults, GuessingState, GuessingTarget } from "@/types/guessing";
+import type { RevealPerspective } from "@/types/reveal";
 
 export type SetupFlowFooterState = {
   hint?: string;
@@ -49,6 +52,10 @@ export function GuessingExperience({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [galleryTarget, setGalleryTarget] = useState<GuessingTarget | null>(null);
+  const [perspectivePhotos, setPerspectivePhotos] = useState<RevealPerspective[]>([]);
+  const [photosLoading, setPhotosLoading] = useState(false);
+  const [photosLoadError, setPhotosLoadError] = useState<string | null>(null);
 
   const isCompleted = hangoutStatus === "completed";
 
@@ -101,6 +108,53 @@ export function GuessingExperience({
       cancelled = true;
     };
   }, [hangoutId, isCompleted, reloadKey, sessionToken]);
+
+  useEffect(() => {
+    if (isCompleted || loading || !state) {
+      setPerspectivePhotos([]);
+      setPhotosLoadError(null);
+      setPhotosLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadPerspectivePhotos() {
+      setPhotosLoading(true);
+      setPhotosLoadError(null);
+
+      const { data, error } = await getRevealState(hangoutId, sessionToken);
+      if (cancelled) return;
+
+      if (error || !data) {
+        setPerspectivePhotos([]);
+        setPhotosLoadError(error ?? "Could not load photos");
+        setPhotosLoading(false);
+        return;
+      }
+
+      const signed = await signRevealPhotoUrls(data.perspectives);
+      if (cancelled) return;
+
+      setPerspectivePhotos(signed);
+      setPhotosLoading(false);
+    }
+
+    void loadPerspectivePhotos();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hangoutId, isCompleted, loading, reloadKey, sessionToken, state]);
+
+  const galleryPhotos = useMemo(() => {
+    if (!galleryTarget) return [];
+    return (
+      perspectivePhotos.find(
+        (perspective) => perspective.participantId === galleryTarget.participantId,
+      )?.photos ?? []
+    );
+  }, [galleryTarget, perspectivePhotos]);
 
   useEffect(() => {
     if (isCompleted || hangoutStatus !== "guessing") return;
@@ -270,7 +324,7 @@ export function GuessingExperience({
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pt-5 sm:pt-8">
         <Card border="neutral" className="text-center">
           <p className="text-sm text-muted">Your score</p>
           <p className="font-display mt-1 text-4xl">
@@ -313,45 +367,64 @@ export function GuessingExperience({
   }
 
   return (
-    <div className="min-w-0 space-y-6">
-      {submitError && (
-        <p className="text-center text-sm text-pink">{submitError}</p>
-      )}
+    <>
+      <div className="min-w-0 space-y-6 pt-5 sm:pt-8">
+        {submitError && (
+          <p className="text-center text-sm text-pink">{submitError}</p>
+        )}
 
-      <Card border="neutral" className="p-4 sm:p-5">
-        <ul className="divide-y divide-container-border/70">
-          {state.targets.map((target) => {
-            const selected = votesByTarget.get(target.participantId) ?? "";
-            const isSaving = savingTargetId === target.participantId;
+        <Card border="neutral" className="p-4 sm:p-5">
+          <ul className="divide-y divide-container-border/70">
+            {state.targets.map((target) => {
+              const selected = votesByTarget.get(target.participantId) ?? "";
+              const isSaving = savingTargetId === target.participantId;
+              const photoCount =
+                perspectivePhotos.find(
+                  (perspective) => perspective.participantId === target.participantId,
+                )?.photos.length ?? 0;
 
-            const selectOptions = state.realNameOptions.map((name) => ({
-              value: name,
-              label: name,
-              disabled: usedNames.has(name) && selected !== name,
-            }));
+              const selectOptions = state.realNameOptions.map((name) => ({
+                value: name,
+                label: name,
+                disabled: usedNames.has(name) && selected !== name,
+              }));
 
-            return (
-              <li
-                key={target.participantId}
-                className="flex flex-row items-center gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
-              >
-                <p className="w-24 shrink-0 truncate font-medium text-sm leading-snug text-ink sm:w-28 sm:text-base md:w-32">
-                  {target.nickname}
-                </p>
-                <AppSelect
-                  className="min-w-0 flex-1"
-                  value={selected}
-                  placeholder="Match to a real name"
-                  disabled={isSaving}
-                  aria-label={`Real name for ${target.nickname}`}
-                  options={selectOptions}
-                  onChange={(name) => void handleGuess(target.participantId, name)}
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </Card>
+              return (
+                <li
+                  key={target.participantId}
+                  className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-5"
+                >
+                  <div className="w-full shrink-0 sm:w-28 md:w-32">
+                    <p className="truncate font-medium text-sm leading-snug text-ink sm:text-base">
+                      {target.nickname}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={photosLoading && photoCount === 0}
+                      onClick={() => setGalleryTarget(target)}
+                      className={cn(
+                        "mt-1.5 text-left text-xs font-medium underline underline-offset-2 transition-colors",
+                        "text-pink-highlight hover:text-pink-accent",
+                        "disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50",
+                      )}
+                    >
+                      {photosLoading ? "Loading photos…" : "View photos"}
+                    </button>
+                  </div>
+                  <AppSelect
+                    className="min-w-0 flex-1"
+                    value={selected}
+                    placeholder="Match to a real name"
+                    disabled={isSaving}
+                    aria-label={`Real name for ${target.nickname}`}
+                    options={selectOptions}
+                    onChange={(name) => void handleGuess(target.participantId, name)}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
 
       {state.targets.length === 0 && (
         <Card border="neutral" className="text-center text-sm text-muted">
@@ -366,6 +439,16 @@ export function GuessingExperience({
           </p>
         </Card>
       )}
-    </div>
+      </div>
+
+      <PerspectivePhotosOverlay
+        open={galleryTarget !== null}
+        onClose={() => setGalleryTarget(null)}
+        nickname={galleryTarget?.nickname ?? ""}
+        photos={galleryPhotos}
+        loading={photosLoading}
+        loadError={photosLoadError}
+      />
+    </>
   );
 }

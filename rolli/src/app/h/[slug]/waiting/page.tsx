@@ -15,6 +15,7 @@ import {
   HangoutInvitationClosedContent,
 } from "@/components/hangout/hangout-invitation-closed";
 import { GuestWaitingRoomBack } from "@/components/hangout/guest-waiting-room-back";
+import { WaitingRoomNickname } from "@/components/hangout/waiting-room-nickname";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -213,12 +214,7 @@ export default function WaitingRoomPage() {
 
               <Card border="neutral">
                 <dl className="space-y-3 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <dt className="shrink-0 text-muted">Your nickname</dt>
-                    <dd className="max-w-[60%] text-right font-medium wrap-break-word text-ink">
-                      {participant!.nickname}
-                    </dd>
-                  </div>
+                  <WaitingRoomNickname nickname={participant!.nickname} />
                   {isFilmKeeper && (
                     <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
                       You are the{" "}

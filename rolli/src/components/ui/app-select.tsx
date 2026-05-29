@@ -106,10 +106,10 @@ export function AppSelect({
           "text-left text-base transition-[border-color,box-shadow,background-color] duration-200",
           "outline-none focus-visible:border-pink-highlight/40 focus-visible:bg-white focus-visible:ring-4 focus-visible:ring-pink-highlight/10",
           disabled
-            ? "cursor-not-allowed border-black/6 bg-[#F5F5F5] text-muted"
+            ? "cursor-not-allowed border-black/8 bg-white text-muted opacity-60"
             : open
               ? "border-pink-highlight/40 bg-white ring-4 ring-pink-highlight/10"
-              : "border-black/8 bg-[#FAFAFA] hover:bg-white",
+              : "border-container-border bg-white hover:border-pink-highlight/35",
         )}
       >
         <span
