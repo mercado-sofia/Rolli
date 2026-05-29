@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ import { FormSubmittingBridge } from "@/components/ui/form-submitting-bridge";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { joinHangout } from "@/lib/hangout/hangouts";
 import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
+import { hangoutParticipantPath } from "@/lib/hangout/routes";
 import { useSessionStore } from "@/store/session-store";
 
 const baseJoinSchema = z.object({
@@ -30,17 +31,30 @@ type JoinHangoutFormProps = {
   slug?: string;
   hangoutTitle?: string;
   showInviteLinkField?: boolean;
+  /** When pasting a link, step 1 = link only, step 2 = identity only. */
+  step?: 1 | 2;
   formId?: string;
   onSubmittingChange?: (isSubmitting: boolean) => void;
 };
 
-export function JoinHangoutForm({
-  slug: slugFromUrl,
-  hangoutTitle,
-  showInviteLinkField = false,
-  formId = "join-hangout-form",
-  onSubmittingChange,
-}: JoinHangoutFormProps) {
+export type JoinHangoutFormHandle = {
+  validateLinkStep: () => Promise<boolean>;
+};
+
+export const JoinHangoutForm = forwardRef<
+  JoinHangoutFormHandle,
+  JoinHangoutFormProps
+>(function JoinHangoutForm(
+  {
+    slug: slugFromUrl,
+    hangoutTitle,
+    showInviteLinkField = false,
+    step = 1,
+    formId = "join-hangout-form",
+    onSubmittingChange,
+  },
+  ref,
+) {
   const router = useRouter();
   const setSession = useSessionStore((state) => state.setSession);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -55,7 +69,9 @@ export function JoinHangoutForm({
   const {
     register,
     handleSubmit,
+    trigger,
     setError,
+    getValues,
     formState: { errors },
   } = useForm<JoinFormValues>({
     resolver: zodResolver(schema),
@@ -65,6 +81,24 @@ export function JoinHangoutForm({
       realName: "",
     },
   });
+
+  useImperativeHandle(ref, () => ({
+    async validateLinkStep() {
+      const isValid = await trigger("inviteLink");
+      if (!isValid) return false;
+
+      const slug = slugFromUrl ?? extractSlugFromInviteLink(getValues("inviteLink") ?? "");
+      if (!slug) {
+        setError("inviteLink", { message: "Invalid invitation link" });
+        return false;
+      }
+
+      return true;
+    },
+  }));
+
+  const showLinkStep = showInviteLinkField && step === 1;
+  const showIdentityStep = !showInviteLinkField || step === 2;
 
   async function onSubmit(values: JoinFormValues) {
     setSubmitError(null);
@@ -96,7 +130,7 @@ export function JoinHangoutForm({
     }
 
     setSession(data.hangout, data.participant);
-    router.push(`/h/${slug}/waiting`);
+    router.push(hangoutParticipantPath(slug, data.hangout.status));
   }
 
   return (
@@ -112,7 +146,7 @@ export function JoinHangoutForm({
           </FormCallout>
         )}
 
-        {showInviteLinkField && (
+        {showLinkStep && (
           <Field
             id="inviteLink"
             label="Invitation link"
@@ -123,20 +157,24 @@ export function JoinHangoutForm({
           />
         )}
 
-        <Field
-          id="nickname"
-          label="Anonymous nickname"
-          placeholder="Enter nickname here"
-          error={errors.nickname?.message}
-          {...register("nickname")}
-        />
-        <Field
-          id="realName"
-          label="Real name (hidden)"
-          placeholder="Enter real name here"
-          error={errors.realName?.message}
-          {...register("realName")}
-        />
+        {showIdentityStep && (
+          <>
+            <Field
+              id="nickname"
+              label="Anonymous nickname"
+              placeholder="Enter nickname here"
+              error={errors.nickname?.message}
+              {...register("nickname")}
+            />
+            <Field
+              id="realName"
+              label="Real name (hidden)"
+              placeholder="Enter real name here"
+              error={errors.realName?.message}
+              {...register("realName")}
+            />
+          </>
+        )}
 
         {submitError && (
           <p className="rounded-2xl bg-pink/10 px-4 py-3 text-center text-[13px] text-pink-accent">
@@ -146,4 +184,4 @@ export function JoinHangoutForm({
       </form>
     </SetupFormCard>
   );
-}
+});

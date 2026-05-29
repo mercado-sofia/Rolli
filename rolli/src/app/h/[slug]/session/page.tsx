@@ -6,7 +6,16 @@ import { useState } from "react";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
-import { AppScrollShell } from "@/components/layout/app-scroll-shell";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+} from "@/components/layout/setup-flow-shell";
+import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
@@ -15,6 +24,7 @@ import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { endHangout } from "@/lib/hangout/hangouts";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 export default function SessionPage() {
@@ -70,73 +80,89 @@ export default function SessionPage() {
     displayHangout.status !== "active"
   ) {
     return (
-      <AppScrollShell>
-        <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
-        </div>
-        <div className="hidden w-full animate-pulse space-y-6 md:block">
-          <div className="space-y-2">
-            <div className="h-4 w-28 rounded-full bg-black/10" />
-            <div className="h-9 w-56 rounded-lg bg-black/10 md:h-10 md:w-72" />
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
+            <div className="h-9 w-9 rounded-full bg-black/10" />
+            <div className="h-10 w-52 rounded-lg bg-black/10" />
+            <div className="h-3 w-28 rounded-full bg-black/10" />
           </div>
-          <div className="h-16 w-full rounded-3xl border border-container-border bg-white" />
-          <div className="h-28 w-full rounded-3xl border border-container-border bg-white" />
-          <div className="h-64 w-full rounded-3xl border border-container-border bg-white" />
-          <div className="h-12 w-full rounded-full bg-black/10" />
-          <div className="h-12 w-full rounded-full bg-black/10" />
-        </div>
-      </AppScrollShell>
+        </header>
+        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+            <MobileLoadingSpinner />
+            <div className="hidden animate-pulse space-y-6 md:block">
+              <div className="h-16 w-full rounded-3xl border border-container-border bg-white" />
+              <div className="h-28 w-full rounded-3xl border border-container-border bg-white" />
+              <div className="h-64 w-full rounded-3xl border border-container-border bg-white" />
+            </div>
+          </div>
+        </main>
+        <SetupFlowFooter className="hidden md:block" hint="Loading session…">
+          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
+        </SetupFlowFooter>
+      </SetupFlowShell>
     );
   }
 
+  const footerHint = participant.isFilmKeeper
+    ? "End the hangout when everyone is done capturing memories."
+    : "Capture your perspective — the Film Keeper will end the hangout when ready.";
+
   return (
-    <AppScrollShell>
-      <div>
-        <p className="text-sm font-medium text-muted">Active hangout</p>
-        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink md:text-3xl">
-          {displayHangout.title}
-        </h1>
-      </div>
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+        <SetupFlowHeader
+          showProgress={false}
+          title={displayHangout.title}
+          sublabel="Active hangout"
+        />
+      </header>
 
-      <ElapsedTimer
-        startedAt={displayHangout.startedAt}
-        autoEndHours={HANGOUT_LIMITS.autoEndHours}
-      />
+      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-6")}>
+          <ElapsedTimer
+            startedAt={displayHangout.startedAt}
+            autoEndHours={HANGOUT_LIMITS.autoEndHours}
+          />
 
-      <Card>
-        <p className="text-sm text-muted">Photos remaining</p>
-        <p className="mt-2 text-3xl font-semibold text-ink">{photosRemaining}</p>
-      </Card>
+          <Card>
+            <p className="text-sm text-muted">Photos remaining</p>
+            <p className="mt-2 text-3xl font-semibold text-ink">{photosRemaining}</p>
+          </Card>
 
-      <CameraCapture
-        hangoutId={displayHangout.id}
-        sessionToken={participant.sessionToken}
-        photosRemaining={photosRemaining}
-        onCaptured={setParticipant}
-      />
+          <CameraCapture
+            hangoutId={displayHangout.id}
+            sessionToken={participant.sessionToken}
+            photosRemaining={photosRemaining}
+            onCaptured={setParticipant}
+          />
+        </div>
+      </main>
 
-      {participant.isFilmKeeper && (
-        <>
-          {endError && (
-            <p className="text-center text-sm text-pink">{endError}</p>
-          )}
-          <Button
-            variant="secondary"
-            type="button"
-            disabled={ending}
-            className={APP_PRIMARY_BUTTON_CLASS}
-            onClick={() => void handleDevelopMemories()}
-          >
-            {ending ? "Ending…" : "End hangout"}
-          </Button>
-        </>
-      )}
-
-      <LeaveRoomButton
-        hangoutId={displayHangout.id}
-        sessionToken={participant.sessionToken}
-        className={APP_PRIMARY_BUTTON_CLASS}
-      />
-    </AppScrollShell>
+      <SetupFlowFooter hint={footerHint}>
+        {participant.isFilmKeeper && (
+          <>
+            {endError && (
+              <p className="text-center text-sm text-pink">{endError}</p>
+            )}
+            <Button
+              variant="secondary"
+              type="button"
+              disabled={ending}
+              className={APP_PRIMARY_BUTTON_CLASS}
+              onClick={() => void handleDevelopMemories()}
+            >
+              {ending ? "Ending…" : "End hangout"}
+            </Button>
+          </>
+        )}
+        <LeaveRoomButton
+          hangoutId={displayHangout.id}
+          sessionToken={participant.sessionToken}
+          className={APP_PRIMARY_BUTTON_CLASS}
+        />
+      </SetupFlowFooter>
+    </SetupFlowShell>
   );
 }

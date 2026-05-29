@@ -1,13 +1,29 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useState } from "react";
 
-import { GuessingExperience } from "@/components/hangout/guessing-experience";
-import { AppScrollShell } from "@/components/layout/app-scroll-shell";
+import { BackHomeButton } from "@/components/hangout/back-home-button";
+import {
+  GuessingExperience,
+  type SetupFlowFooterState,
+} from "@/components/hangout/guessing-experience";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+} from "@/components/layout/setup-flow-shell";
+import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 export default function GuessingPage() {
@@ -16,6 +32,7 @@ export default function GuessingPage() {
 
   const setHangout = useSessionStore((state) => state.setHangout);
   const { displayHangout, isLoading } = useDisplayHangout(slug);
+  const [footer, setFooter] = useState<SetupFlowFooterState>({});
 
   useHangoutRouteGuard({
     slug,
@@ -33,6 +50,8 @@ export default function GuessingPage() {
     displayHangout?.status === "guessing" ||
     displayHangout?.status === "completed";
 
+  const isCompleted = displayHangout?.status === "completed";
+
   async function handleHangoutCompleted() {
     const { data } = await fetchHangoutBySlug(slug);
     if (data) {
@@ -42,37 +61,60 @@ export default function GuessingPage() {
 
   if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
     return (
-      <AppScrollShell>
-        <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
-        </div>
-        <div className="hidden w-full animate-pulse space-y-6 md:block">
-          <div className="space-y-2 text-center">
-            <div className="mx-auto h-4 w-28 rounded-full bg-black/10" />
-            <div className="mx-auto h-9 w-56 rounded-lg bg-black/10 md:h-10 md:w-72" />
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
+            <div className="h-9 w-9 rounded-full bg-black/10" />
+            <div className="h-10 w-52 rounded-lg bg-black/10" />
+            <div className="h-3 w-28 rounded-full bg-black/10" />
           </div>
-          <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-          <div className="space-y-4">
-            <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
-            <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
+        </header>
+        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+            <MobileLoadingSpinner />
+            <div className="hidden animate-pulse space-y-6 md:block">
+              <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
+              <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
+            </div>
           </div>
-          <div className="h-12 w-full rounded-full bg-black/10" />
-        </div>
-      </AppScrollShell>
+        </main>
+        <SetupFlowFooter className="hidden md:block" hint="Loading…">
+          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
+        </SetupFlowFooter>
+      </SetupFlowShell>
     );
   }
 
   return (
-    <AppScrollShell>
-      <GuessingExperience
-        hangoutId={displayHangout.id}
-        hangoutSlug={slug}
-        sessionToken={participant.sessionToken}
-        hangoutTitle={displayHangout.title}
-        hangoutStatus={displayHangout.status}
-        isFilmKeeper={participant.isFilmKeeper}
-        onHangoutCompleted={() => void handleHangoutCompleted()}
-      />
-    </AppScrollShell>
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+        <SetupFlowHeader
+          showProgress={false}
+          title={displayHangout.title}
+          sublabel={isCompleted ? "Results" : "Guessing phase"}
+        />
+      </header>
+
+      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <GuessingExperience
+            hangoutId={displayHangout.id}
+            hangoutSlug={slug}
+            sessionToken={participant.sessionToken}
+            hangoutStatus={displayHangout.status}
+            isFilmKeeper={participant.isFilmKeeper}
+            onHangoutCompleted={() => void handleHangoutCompleted()}
+            onFooterChange={setFooter}
+          />
+        </div>
+      </main>
+
+      <SetupFlowFooter hint={footer.hint}>
+        {footer.children}
+        {isCompleted && (
+          <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+        )}
+      </SetupFlowFooter>
+    </SetupFlowShell>
   );
 }

@@ -24,6 +24,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
+import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
@@ -113,16 +114,14 @@ export default function WaitingRoomPage() {
         </header>
         <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
           <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
-            </div>
+            <MobileLoadingSpinner />
             <div className="hidden animate-pulse space-y-6 md:block">
               <div className="h-40 w-full rounded-3xl border border-container-border bg-white" />
               <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
             </div>
           </div>
         </main>
-        <SetupFlowFooter hint="Loading waiting room…">
+        <SetupFlowFooter className="hidden md:block" hint="Loading waiting room…">
           <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
         </SetupFlowFooter>
       </SetupFlowShell>

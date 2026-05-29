@@ -47,16 +47,17 @@ export function SetupFlowShell({ children, className }: SetupFlowShellProps) {
 type SetupFlowFooterProps = {
   hint?: string;
   children?: ReactNode;
+  className?: string;
 };
 
 /** Optional bottom bar (hint + actions) — same look as before, no slot API on the shell. */
-export function SetupFlowFooter({ hint, children }: SetupFlowFooterProps) {
+export function SetupFlowFooter({ hint, children, className }: SetupFlowFooterProps) {
   if (!hint && !children) {
     return null;
   }
 
   return (
-    <footer className={SETUP_FLOW_FOOTER_CLASS}>
+    <footer className={cn(SETUP_FLOW_FOOTER_CLASS, className)}>
       <div className={SETUP_FLOW_FOOTER_INNER_CLASS}>
         {hint ? <p className={SETUP_FLOW_FOOTER_HINT_CLASS}>{hint}</p> : null}
         {children ? (

@@ -1,11 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import {
   finishReveal,
   getRevealState,
@@ -14,20 +15,25 @@ import {
 import type { Hangout } from "@/types/hangout";
 import type { RevealPerspective } from "@/types/reveal";
 
+export type SetupFlowFooterState = {
+  hint?: string;
+  children?: ReactNode;
+};
+
 type RevealExperienceProps = {
   hangoutId: string;
   sessionToken: string;
-  hangoutTitle: string;
   isFilmKeeper: boolean;
   onFinishReveal: (hangout: Hangout) => void;
+  onFooterChange?: (footer: SetupFlowFooterState) => void;
 };
 
 export function RevealExperience({
   hangoutId,
   sessionToken,
-  hangoutTitle,
   isFilmKeeper,
   onFinishReveal,
+  onFooterChange,
 }: RevealExperienceProps) {
   const [perspectives, setPerspectives] = useState<RevealPerspective[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -99,13 +105,13 @@ export function RevealExperience({
     0,
   );
 
-  function goToNextPerspective() {
+  const goToNextPerspective = useCallback(() => {
     if (!isLastPerspective) {
       setCurrentIndex((index) => index + 1);
     }
-  }
+  }, [isLastPerspective]);
 
-  async function handleFinishReveal() {
+  const handleFinishReveal = useCallback(async () => {
     setFinishing(true);
     setFinishError(null);
 
@@ -119,7 +125,96 @@ export function RevealExperience({
     }
 
     onFinishReveal(data);
-  }
+  }, [hangoutId, onFinishReveal, sessionToken]);
+
+  useEffect(() => {
+    if (!onFooterChange || loading || loadError) {
+      onFooterChange?.({});
+      return;
+    }
+
+    if (perspectives.length === 0 || totalPhotos === 0) {
+      if (!isFilmKeeper) {
+        onFooterChange({});
+        return;
+      }
+
+      onFooterChange({
+        hint: "No memories were captured — you can still continue to guessing.",
+        children: (
+          <>
+            {finishError && (
+              <p className="text-center text-sm text-pink">{finishError}</p>
+            )}
+            <Button
+              type="button"
+              className={APP_PRIMARY_BUTTON_CLASS}
+              disabled={finishing}
+              onClick={() => void handleFinishReveal()}
+            >
+              {finishing ? "Continuing…" : "Continue to guessing"}
+            </Button>
+          </>
+        ),
+      });
+      return;
+    }
+
+    if (!isLastPerspective) {
+      onFooterChange({
+        hint: `Perspective ${currentIndex + 1} of ${perspectives.length} — swipe through each anonymous view.`,
+        children: (
+          <Button
+            type="button"
+            className={APP_PRIMARY_BUTTON_CLASS}
+            onClick={goToNextPerspective}
+          >
+            Next perspective
+          </Button>
+        ),
+      });
+      return;
+    }
+
+    if (isFilmKeeper) {
+      onFooterChange({
+        hint: "Everyone has seen all perspectives — open the guessing round.",
+        children: (
+          <>
+            {finishError && (
+              <p className="text-center text-sm text-pink">{finishError}</p>
+            )}
+            <Button
+              type="button"
+              className={APP_PRIMARY_BUTTON_CLASS}
+              disabled={finishing}
+              onClick={() => void handleFinishReveal()}
+            >
+              {finishing ? "Continuing…" : "Continue to guessing"}
+            </Button>
+          </>
+        ),
+      });
+      return;
+    }
+
+    onFooterChange({
+      hint: "Waiting for the Film Keeper to open the guessing phase…",
+    });
+  }, [
+    currentIndex,
+    finishError,
+    finishing,
+    isFilmKeeper,
+    isLastPerspective,
+    loadError,
+    loading,
+    onFooterChange,
+    perspectives.length,
+    totalPhotos,
+    handleFinishReveal,
+    goToNextPerspective,
+  ]);
 
   if (loading) {
     return (
@@ -140,36 +235,21 @@ export function RevealExperience({
 
   if (perspectives.length === 0 || totalPhotos === 0) {
     return (
-      <Card className="text-center">
+      <Card border="neutral" className="text-center">
         <p className="text-sm text-muted">
           No memories were captured in this hangout.
         </p>
-        {isFilmKeeper && (
-          <Button
-            type="button"
-            className="mt-4"
-            disabled={finishing}
-            onClick={() => void handleFinishReveal()}
-          >
-            {finishing ? "Continuing…" : "Continue to guessing"}
-          </Button>
-        )}
-        {finishError && (
-          <p className="mt-3 text-sm text-pink">{finishError}</p>
-        )}
       </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted">Reveal</p>
-        <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
-        <p className="mt-2 text-sm text-muted">
+      <Card border="neutral" className="text-center">
+        <p className="text-xs font-medium uppercase tracking-overline text-pink-muted">
           Perspective {currentIndex + 1} of {perspectives.length}
         </p>
-      </div>
+      </Card>
 
       <AnimatePresence mode="wait">
         {current && (
@@ -218,31 +298,6 @@ export function RevealExperience({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {!isLastPerspective ? (
-        <Button type="button" onClick={goToNextPerspective}>
-          Next perspective
-        </Button>
-      ) : isFilmKeeper ? (
-        <>
-          {finishError && (
-            <p className="text-center text-sm text-pink">{finishError}</p>
-          )}
-          <Button
-            type="button"
-            disabled={finishing}
-            onClick={() => void handleFinishReveal()}
-          >
-            {finishing ? "Continuing…" : "Continue to guessing"}
-          </Button>
-        </>
-      ) : (
-        <Card className="text-center">
-          <p className="text-sm text-muted">
-            Waiting for the Film Keeper to open the guessing phase…
-          </p>
-        </Card>
-      )}
     </div>
   );
 }

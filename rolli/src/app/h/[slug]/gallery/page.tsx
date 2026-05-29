@@ -3,11 +3,23 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
-import { AppScrollShell } from "@/components/layout/app-scroll-shell";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+} from "@/components/layout/setup-flow-shell";
+import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { cn } from "@/lib/utils";
 
 export default function GalleryPage() {
   const params = useParams<{ slug: string }>();
@@ -30,41 +42,62 @@ export default function GalleryPage() {
     displayHangout.status !== "completed"
   ) {
     return (
-      <AppScrollShell>
-        <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
-        </div>
-        <div className="hidden w-full animate-pulse space-y-6 md:block">
-          <div className="space-y-2 text-center">
-            <div className="mx-auto h-4 w-24 rounded-full bg-black/10" />
-            <div className="mx-auto h-9 w-56 rounded-lg bg-black/10 md:h-10 md:w-72" />
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
+            <div className="h-9 w-9 rounded-full bg-black/10" />
+            <div className="h-10 w-52 rounded-lg bg-black/10" />
+            <div className="h-3 w-28 rounded-full bg-black/10" />
           </div>
-          <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
-            <div className="aspect-3/4 rounded-2xl bg-black/10" />
-            <div className="aspect-3/4 rounded-2xl bg-black/10" />
-            <div className="aspect-3/4 rounded-2xl bg-black/10" />
+        </header>
+        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+            <MobileLoadingSpinner />
+            <div className="hidden animate-pulse space-y-6 md:block">
+              <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+                <div className="aspect-3/4 rounded-2xl bg-black/10" />
+                <div className="aspect-3/4 rounded-2xl bg-black/10" />
+              </div>
+            </div>
           </div>
-          <div className="mx-auto h-4 w-36 rounded-full bg-black/10" />
-        </div>
-      </AppScrollShell>
+        </main>
+        <SetupFlowFooter className="hidden md:block" hint="Loading gallery…">
+          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
+        </SetupFlowFooter>
+      </SetupFlowShell>
     );
   }
 
   return (
-    <AppScrollShell>
-      <GalleryExperience
-        hangoutId={displayHangout.id}
-        sessionToken={participant.sessionToken}
-        hangoutTitle={displayHangout.title}
-      />
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+        <SetupFlowHeader
+          showProgress={false}
+          title={displayHangout.title}
+          sublabel="Memory gallery"
+        />
+      </header>
 
-      <Link
-        href={`/h/${slug}/guessing`}
-        className="inline-flex min-h-11 items-center justify-center text-center text-sm text-muted underline underline-offset-4"
-      >
-        Back to results
-      </Link>
-    </AppScrollShell>
+      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <GalleryExperience
+            hangoutId={displayHangout.id}
+            sessionToken={participant.sessionToken}
+            hangoutTitle={displayHangout.title}
+          />
+        </div>
+      </main>
+
+      <SetupFlowFooter hint="Save your favorite memories or head back home.">
+        <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+        <Link
+          href={`/h/${slug}/guessing`}
+          className="inline-flex min-h-11 items-center justify-center text-center text-sm text-muted underline underline-offset-4"
+        >
+          Back to results
+        </Link>
+      </SetupFlowFooter>
+    </SetupFlowShell>
   );
 }

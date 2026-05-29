@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PHOTO_GRID_CLASS } from "@/lib/app-page-layout";
@@ -174,15 +173,13 @@ export function GalleryExperience({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted">Gallery</p>
-        <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
-        <p className="mt-2 text-sm text-muted">
+      <Card border="neutral" className="text-center">
+        <p className="text-sm text-muted">
           {totalPhotos} {totalPhotos === 1 ? "memory" : "memories"} from{" "}
           {perspectives.length}{" "}
           {perspectives.length === 1 ? "perspective" : "perspectives"}
         </p>
-      </div>
+      </Card>
 
       <div className="flex flex-wrap gap-2">
         <Button
@@ -206,7 +203,7 @@ export function GalleryExperience({
         ))}
       </div>
 
-      <Card className="space-y-3">
+      <Card border="neutral" className="space-y-3">
         <p className="text-sm font-medium text-ink">Download</p>
         {downloadError && (
           <p className="text-sm text-pink">{downloadError}</p>
@@ -253,7 +250,7 @@ export function GalleryExperience({
       </Card>
 
       {visiblePhotos.length === 0 ? (
-        <Card className="text-center text-sm text-muted">
+        <Card border="neutral" className="text-center text-sm text-muted">
           No photos in this view.
         </Card>
       ) : (
@@ -303,8 +300,6 @@ export function GalleryExperience({
           ))}
         </div>
       )}
-
-      <BackHomeButton />
     </div>
   );
 }

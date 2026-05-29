@@ -1,8 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
@@ -15,24 +14,29 @@ import {
 import type { HangoutStatus } from "@/types/hangout";
 import type { GuessingResults, GuessingState } from "@/types/guessing";
 
+export type SetupFlowFooterState = {
+  hint?: string;
+  children?: ReactNode;
+};
+
 type GuessingExperienceProps = {
   hangoutId: string;
   hangoutSlug: string;
   sessionToken: string;
-  hangoutTitle: string;
   hangoutStatus: HangoutStatus;
   isFilmKeeper: boolean;
   onHangoutCompleted: () => void;
+  onFooterChange?: (footer: SetupFlowFooterState) => void;
 };
 
 export function GuessingExperience({
   hangoutId,
   hangoutSlug,
   sessionToken,
-  hangoutTitle,
   hangoutStatus,
   isFilmKeeper,
   onHangoutCompleted,
+  onFooterChange,
 }: GuessingExperienceProps) {
   const [state, setState] = useState<GuessingState | null>(null);
   const [results, setResults] = useState<GuessingResults | null>(null);
@@ -108,6 +112,24 @@ export function GuessingExperience({
     return new Set(votesByTarget.values());
   }, [votesByTarget]);
 
+  const allVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
+
+  const handleFinishGuessing = useCallback(async () => {
+    setFinishing(true);
+    setFinishError(null);
+
+    const { error } = await finishGuessing(hangoutId, sessionToken);
+
+    setFinishing(false);
+
+    if (error) {
+      setFinishError(error);
+      return;
+    }
+
+    onHangoutCompleted();
+  }, [hangoutId, onHangoutCompleted, sessionToken]);
+
   async function handleGuess(
     targetParticipantId: string,
     guessedRealName: string,
@@ -132,21 +154,78 @@ export function GuessingExperience({
     setState(data);
   }
 
-  async function handleFinishGuessing() {
-    setFinishing(true);
-    setFinishError(null);
-
-    const { error } = await finishGuessing(hangoutId, sessionToken);
-
-    setFinishing(false);
-
-    if (error) {
-      setFinishError(error);
+  useEffect(() => {
+    if (!onFooterChange || loading || loadError) {
+      onFooterChange?.({});
       return;
     }
 
-    onHangoutCompleted();
-  }
+    if (isCompleted && results) {
+      onFooterChange({
+        hint: "Browse every perspective in the memory gallery.",
+        children: (
+          <Button
+            href={`/h/${hangoutSlug}/gallery`}
+            className={APP_PRIMARY_BUTTON_CLASS}
+          >
+            View memory gallery
+          </Button>
+        ),
+      });
+      return;
+    }
+
+    if (!state) {
+      onFooterChange({});
+      return;
+    }
+
+    if (allVotesIn && isFilmKeeper) {
+      onFooterChange({
+        hint: "Everyone has submitted their guesses — reveal the results.",
+        children: (
+          <>
+            {finishError && (
+              <p className="text-center text-sm text-pink">{finishError}</p>
+            )}
+            <Button
+              type="button"
+              disabled={finishing}
+              className={APP_PRIMARY_BUTTON_CLASS}
+              onClick={() => void handleFinishGuessing()}
+            >
+              {finishing ? "Finishing…" : "Reveal results"}
+            </Button>
+          </>
+        ),
+      });
+      return;
+    }
+
+    if (allVotesIn && !isFilmKeeper) {
+      onFooterChange({
+        hint: "All guesses saved. Waiting for the Film Keeper to reveal results…",
+      });
+      return;
+    }
+
+    onFooterChange({
+      hint: "Match each nickname to a real name. Your guesses stay private.",
+    });
+  }, [
+    allVotesIn,
+    finishError,
+    finishing,
+    handleFinishGuessing,
+    hangoutSlug,
+    isCompleted,
+    isFilmKeeper,
+    loadError,
+    loading,
+    onFooterChange,
+    results,
+    state,
+  ]);
 
   if (loading) {
     return (
@@ -179,38 +258,32 @@ export function GuessingExperience({
 
     return (
       <div className="space-y-6">
-        <div className="text-center">
-          <p className="text-sm font-medium text-muted">Results</p>
-          <h2 className="font-display mt-1 text-2xl text-ink md:text-3xl">{hangoutTitle}</h2>
+        <Card border="neutral" className="text-center">
+          <p className="text-sm text-muted">Your score</p>
+          <p className="font-display mt-1 text-4xl">
+            {results.myScore.correct}/{results.myScore.total}
+          </p>
           <p className="mt-2 text-sm text-muted">
             You matched {results.myScore.correct} of {results.myScore.total}{" "}
             perspectives correctly.
           </p>
-        </div>
-
-        <Card className="text-center">
-          <p className="font-display text-4xl">
-            {results.myScore.correct}/{results.myScore.total}
-          </p>
-          <p className="mt-2 text-sm text-muted">Your score</p>
         </Card>
 
         <div className="space-y-3">
           {results.revealed.map((row) => (
-            <Card key={row.participantId}>
+            <Card key={row.participantId} border="neutral">
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-sm sm:justify-between sm:text-left">
-                <span className="font-medium wrap-break-word text-ink">{row.nickname}</span>
+                <span className="font-medium wrap-break-word text-ink">
+                  {row.nickname}
+                </span>
                 <span className="text-muted">was</span>
-                <span className="font-medium wrap-break-word text-ink">{row.realName}</span>
+                <span className="font-medium wrap-break-word text-ink">
+                  {row.realName}
+                </span>
               </div>
             </Card>
           ))}
         </div>
-
-        <Button href={`/h/${hangoutSlug}/gallery`} className={APP_PRIMARY_BUTTON_CLASS}>
-          View memory gallery
-        </Button>
-        <BackHomeButton />
       </div>
     );
   }
@@ -226,19 +299,9 @@ export function GuessingExperience({
     );
   }
 
-  const allVotesIn = state.votesSubmitted >= state.votesRequired;
-
   return (
     <div className="min-w-0 space-y-6">
-      <div className="text-center">
-        <p className="text-sm font-medium text-muted">Guessing phase</p>
-        <h2 className="font-display mt-1 text-2xl text-ink md:text-3xl">{hangoutTitle}</h2>
-        <p className="mt-2 text-sm text-muted md:text-base">
-          Match each nickname to a real name. Your guesses stay private.
-        </p>
-      </div>
-
-      <Card className="text-center">
+      <Card border="neutral" className="text-center">
         <p className="text-sm text-muted">Progress</p>
         <p className="mt-1 text-2xl font-semibold text-ink">
           {state.votesSubmitted} / {state.votesRequired}
@@ -255,9 +318,11 @@ export function GuessingExperience({
           const isSaving = savingTargetId === target.participantId;
 
           return (
-            <Card key={target.participantId}>
+            <Card key={target.participantId} border="neutral">
               <p className="text-sm font-medium text-ink">{target.nickname}</p>
-              <p className="mt-1 text-xs text-muted">Who is behind this nickname?</p>
+              <p className="mt-1 text-xs text-muted">
+                Who is behind this nickname?
+              </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {state.realNameOptions.map((name) => {
                   const takenByOther =
@@ -270,7 +335,9 @@ export function GuessingExperience({
                       variant={selected === name ? "primary" : "secondary"}
                       className="min-h-12 w-auto! shrink-0 px-4"
                       disabled={isSaving || takenByOther}
-                      onClick={() => void handleGuess(target.participantId, name)}
+                      onClick={() =>
+                        void handleGuess(target.participantId, name)
+                      }
                     >
                       {name}
                     </Button>
@@ -279,7 +346,8 @@ export function GuessingExperience({
               </div>
               {selected && (
                 <p className="mt-2 text-xs text-muted">
-                  Your guess: <span className="font-medium text-ink">{selected}</span>
+                  Your guess:{" "}
+                  <span className="font-medium text-ink">{selected}</span>
                 </p>
               )}
             </Card>
@@ -288,29 +356,13 @@ export function GuessingExperience({
       </div>
 
       {state.targets.length === 0 && (
-        <Card className="text-center text-sm text-muted">
+        <Card border="neutral" className="text-center text-sm text-muted">
           No other participants to guess — you&apos;re solo in this hangout.
         </Card>
       )}
 
-      {allVotesIn && isFilmKeeper && (
-        <>
-          {finishError && (
-            <p className="text-center text-sm text-pink">{finishError}</p>
-          )}
-          <Button
-            type="button"
-            disabled={finishing}
-            className={APP_PRIMARY_BUTTON_CLASS}
-            onClick={() => void handleFinishGuessing()}
-          >
-            {finishing ? "Finishing…" : "Reveal results"}
-          </Button>
-        </>
-      )}
-
       {allVotesIn && !isFilmKeeper && (
-        <Card className="text-center">
+        <Card border="neutral" className="text-center md:hidden">
           <p className="text-sm text-muted">
             All guesses saved. Waiting for the Film Keeper to reveal results…
           </p>

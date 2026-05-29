@@ -2,17 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { TbDoorExit } from "react-icons/tb";
 
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { leaveHangout } from "@/lib/hangout/hangouts";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
 type BackHomeButtonProps = {
   label?: string;
+  className?: string;
 };
 
-export function BackHomeButton({ label = "Back to home" }: BackHomeButtonProps) {
+export function BackHomeButton({
+  label = "Back to home",
+  className,
+}: BackHomeButtonProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
 
@@ -22,7 +28,12 @@ export function BackHomeButton({ label = "Back to home" }: BackHomeButtonProps) 
   }
 
   return (
-    <Button type="button" variant="secondary" onClick={handleBackHome}>
+    <Button
+      type="button"
+      variant="secondary"
+      className={cn(className)}
+      onClick={handleBackHome}
+    >
       {label}
     </Button>
   );
@@ -42,10 +53,22 @@ export function LeaveRoomButton({
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
 
+  const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function handleLeave() {
+  function handleOpen() {
+    setError(null);
+    setOpen(true);
+  }
+
+  function handleCancel() {
+    if (leaving) return;
+    setOpen(false);
+    setError(null);
+  }
+
+  async function handleConfirm() {
     setLeaving(true);
     setError(null);
 
@@ -58,22 +81,45 @@ export function LeaveRoomButton({
       return;
     }
 
+    setOpen(false);
     resetSession();
     router.push("/");
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      {error && <p className="text-center text-sm text-pink">{error}</p>}
+    <>
       <Button
         type="button"
         variant="secondary"
         disabled={leaving}
         className={cn(className)}
-        onClick={() => void handleLeave()}
+        onClick={handleOpen}
       >
-        {leaving ? "Leaving…" : "Leave room"}
+        Leave room
       </Button>
-    </div>
+
+      <ConfirmDialog
+        open={open}
+        icon={
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
+            <TbDoorExit size={36} className="text-pink-accent" aria-hidden />
+          </span>
+        }
+        title="Leave the room?"
+        description={
+          <>
+            You&apos;ll be removed from this hangout. You can rejoin with your
+            invite link if the room is still open.
+          </>
+        }
+        confirmLabel="Yes, leave room"
+        cancelLabel="Stay in room"
+        loading={leaving}
+        error={error}
+        dismissible={!leaving}
+        onConfirm={() => void handleConfirm()}
+        onCancel={handleCancel}
+      />
+    </>
   );
 }

@@ -6,6 +6,7 @@ export const setupFlowSteps = {
   createTitle: 2,
   createIdentity: 3,
   createLinkReady: 3,
-  join: 2,
+  joinLink: 2,
+  joinIdentity: 3,
   inviteJoin: 2,
 } as const;

@@ -29,10 +29,11 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 14 | `migrations/014_leave_rejoin_and_join_rules.sql` |
 | 15 | `migrations/015_enable_hangout_realtime.sql` |
 | 16 | `migrations/016_hardening_misc.sql` |
+| 17 | `migrations/017_abandon_hangout.sql` |
+| 18 | `migrations/018_abandon_hangout_rpc.sql` |
+| 19 | `migrations/019_allow_join_after_start.sql` |
 
-See **[MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md)** for verification SQL, Realtime setup, and optional pg_cron / slot cleanup jobs.
-
-**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`).
+**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join or rejoin while a session is in progress).
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -69,20 +70,47 @@ Migration `004_storage.sql` creates a private bucket `hangout-photos`. Migration
 Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `started_at` is more than 24 hours ago (same as Film Keeper tapping **Develop Memories** → status `developing`).
 
 - **On every poll:** `get_hangout_public` checks and auto-ends that hangout if expired (works with the app’s 2s sync).
-- **Realtime:** migration **015** publishes `hangouts` for instant status updates; polling remains as fallback.
-- **Optional background job:** enable the `pg_cron` extension, then schedule `auto_end_expired_hangouts()` every 15 minutes (SQL snippet at the bottom of `010_auto_end_hangout.sql`) so hangouts end even when nobody has the app open. See [MIGRATION_CHECKLIST.md](./MIGRATION_CHECKLIST.md) — do not enable cron without opting in.
+- **Realtime:** migration **015** adds `hangouts` to the `supabase_realtime` publication for instant status updates; polling remains as fallback.
+- **Optional background jobs:** enable the `pg_cron` extension in **Database → Extensions**, then schedule jobs in the SQL Editor. Do not enable cron unless you want background maintenance.
+  - Auto-end expired hangouts every 15 minutes — SQL at the bottom of `010_auto_end_hangout.sql`.
+  - Clean up expired photo upload slots — `cleanup_expired_photo_upload_slots()` from `016_hardening_misc.sql` (schedule as needed).
 
-## Leave / rejoin (014)
+## Abandon hangout (017–018)
+
+- Migration **017** adds hangout status `cancelled`.
+- **`abandon_hangout`** (018) — Film Keeper only; allowed while status is `waiting`. Sets status to `cancelled` and blocks new joins.
+
+## Leave / rejoin / join (014, 019)
 
 - **`leave_hangout`** — marks participant inactive; Film Keeper cannot leave while status is `waiting`.
-- **`rejoin_hangout`** — reactivates a participant who left, using the same `session_token`.
-- **`join_hangout`** — reactivates an inactive nickname row; blocks duplicate active nicknames and real names (case-insensitive).
+- **`rejoin_hangout`** — reactivates a participant who left, using the same `session_token`. After **019**, allowed for any status except `completed` and `cancelled` (subject to the 10-participant cap).
+- **`join_hangout`** — new guest or reactivation of an inactive nickname row; blocks duplicate active nicknames and real names (case-insensitive). After **019**, new guests can join while the hangout is `active`, `developing`, `revealing`, or `guessing` — not only in `waiting`.
 
 If a user clears browser storage without leaving, they cannot recover their session (MVP limitation).
 
+## Verify migrations (optional)
+
+Run in the SQL Editor after applying **001–019**:
+
+```sql
+-- Core RPCs should exist
+SELECT proname FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND proname IN (
+    'join_hangout', 'rejoin_hangout', 'leave_hangout',
+    'abandon_hangout', 'end_hangout', 'get_hangout_public'
+  )
+ORDER BY proname;
+
+-- Realtime publication includes hangouts (after 015)
+SELECT tablename FROM pg_publication_tables
+WHERE pubname = 'supabase_realtime' AND tablename = 'hangouts';
+```
+
 ## Schema overview
 
-- **hangouts** — room metadata, status, Film Keeper reference
+- **hangouts** — room metadata, status (`waiting` through `completed`, plus `cancelled`), Film Keeper reference
 - **participants** — anonymous nicknames, hidden real names, session tokens
 - **photos** — storage paths (files in `hangout-photos` bucket)
 - **votes** — private guessing phase answers
