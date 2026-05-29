@@ -156,14 +156,14 @@ export function RevealPhotoCarousel({
 
   return (
     <div
-      className="touch-manipulation select-none"
+      className="w-full min-w-0 shrink-0 touch-manipulation select-none"
       aria-roledescription="carousel"
       aria-label={`Photos from ${perspectiveLabel}`}
     >
-      <div className="relative mx-auto flex w-full max-w-76 justify-center px-5 sm:max-w-80 sm:px-6">
+      <div className="relative mx-auto w-full max-w-76 px-5 sm:max-w-80 sm:px-6">
         <div
           ref={deckRef}
-          className="relative aspect-3/4 w-full overflow-visible"
+          className="relative aspect-3/4 w-full min-h-48 overflow-visible"
         >
           {prevPhoto ? (
             <StackPeekCard

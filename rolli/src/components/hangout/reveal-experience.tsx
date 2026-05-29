@@ -275,7 +275,7 @@ export function RevealExperience({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex w-full flex-col items-center gap-4 sm:gap-5"
+            className="flex w-full flex-col items-stretch gap-4 sm:gap-5"
           >
             <p className="truncate px-1 text-center text-sm leading-snug">
               <span className="font-medium text-ink">Anonymous</span>
@@ -288,11 +288,13 @@ export function RevealExperience({
             </p>
 
             {current.photos.length > 0 ? (
-              <RevealPhotoCarousel
-                key={current.participantId}
-                photos={current.photos}
-                perspectiveLabel={current.nickname}
-              />
+              <div className="w-full min-w-0">
+                <RevealPhotoCarousel
+                  key={current.participantId}
+                  photos={current.photos}
+                  perspectiveLabel={current.nickname}
+                />
+              </div>
             ) : null}
 
             {current.photos.length === 0 && (
