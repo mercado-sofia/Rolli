@@ -26,6 +26,7 @@ import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
+import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -55,7 +56,12 @@ export default function GuessingPage() {
     hangout: displayHangout,
   });
 
-  async function handleHangoutCompleted() {
+  async function handleHangoutCompleted(freshHangout?: Hangout) {
+    if (freshHangout) {
+      setHangout(freshHangout);
+      return;
+    }
+
     const { data } = await fetchHangoutBySlug(slug);
     if (data) {
       setHangout(data);

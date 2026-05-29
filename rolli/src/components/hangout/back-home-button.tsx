@@ -102,9 +102,10 @@ export function LeaveRoomButton({
 
       <ConfirmDialog
         open={open}
+        accent="ink"
         icon={
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
-            <TbDoorExit size={36} className="text-pink-accent" aria-hidden />
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/8">
+            <TbDoorExit size={36} className="text-ink" aria-hidden />
           </span>
         }
         title="Leave the room?"

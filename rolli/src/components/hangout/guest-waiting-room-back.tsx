@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { TbDoorExit } from "react-icons/tb";
 
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -83,6 +84,12 @@ export function GuestWaitingRoomBack({
       />
       <ConfirmDialog
         open={confirmOpen}
+        accent="ink"
+        icon={
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/8">
+            <TbDoorExit size={36} className="text-ink" aria-hidden />
+          </span>
+        }
         title="Leave the waiting room?"
         description={
           <>

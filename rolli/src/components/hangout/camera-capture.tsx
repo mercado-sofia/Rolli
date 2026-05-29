@@ -311,7 +311,7 @@ function CameraTriggerButton({
         <LuCamera
           size={iconSize}
           strokeWidth={1.75}
-          className="text-pink-accent"
+          className="text-pink-highlight"
           aria-hidden
         />
       </button>
@@ -340,7 +340,7 @@ function CameraTriggerButton({
         <LuCamera
           size={iconSize}
           strokeWidth={1.75}
-          className="text-pink-accent"
+          className="text-pink-highlight"
           aria-hidden
         />
       </span>

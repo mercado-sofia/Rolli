@@ -26,10 +26,18 @@ const GUESSING_PATH_SUFFIX = "/guessing";
 const GALLERY_PATH_SUFFIX = "/gallery";
 const SHARE_PATH_SUFFIX = "/share";
 
-function isCompletedPhasePath(currentPath: string): boolean {
+export function normalizeHangoutPath(path: string): string {
+  if (path.length > 1 && path.endsWith("/")) {
+    return path.slice(0, -1);
+  }
+  return path;
+}
+
+function isCompletedPhasePath(slug: string, currentPath: string): boolean {
+  const path = normalizeHangoutPath(currentPath);
   return (
-    currentPath.endsWith(GUESSING_PATH_SUFFIX) ||
-    currentPath.endsWith(GALLERY_PATH_SUFFIX)
+    path === `/h/${slug}${GUESSING_PATH_SUFFIX}` ||
+    path === `/h/${slug}${GALLERY_PATH_SUFFIX}`
   );
 }
 
@@ -45,17 +53,18 @@ export function getHangoutRouteRedirect(
   currentPath: string,
   status: HangoutStatus,
 ): string | null {
+  const path = normalizeHangoutPath(currentPath);
   const canonical = hangoutParticipantPath(slug, status);
 
-  if (currentPath === canonical) {
+  if (path === canonical) {
     return null;
   }
 
-  if (status === "completed" && isCompletedPhasePath(currentPath)) {
+  if (status === "completed" && isCompletedPhasePath(slug, path)) {
     return null;
   }
 
-  if (status === "waiting" && currentPath.endsWith(SHARE_PATH_SUFFIX)) {
+  if (status === "waiting" && path.endsWith(SHARE_PATH_SUFFIX)) {
     return null;
   }
 

@@ -116,6 +116,7 @@ export function AbandonHangoutControl({
 
       <ConfirmDialog
         open={open}
+        accent="pink"
         icon={
           phase === "confirm" ? (
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">

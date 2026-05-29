@@ -20,6 +20,8 @@ type ConfirmDialogProps = {
   error?: string | null;
   showCancelButton?: boolean;
   dismissible?: boolean;
+  /** Confirm button and error tone — pink for destructive hangout actions (abandon). */
+  accent?: "pink" | "ink";
 };
 
 export function ConfirmDialog({
@@ -35,6 +37,7 @@ export function ConfirmDialog({
   error = null,
   showCancelButton = true,
   dismissible = true,
+  accent = "pink",
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -114,7 +117,14 @@ export function ConfirmDialog({
           </div>
 
           {error ? (
-            <p className="mt-4 text-center text-base text-pink sm:text-sm">{error}</p>
+            <p
+              className={cn(
+                "mt-4 text-center text-base sm:text-sm",
+                accent === "ink" ? "text-ink" : "text-pink",
+              )}
+            >
+              {error}
+            </p>
           ) : null}
         </div>
 
@@ -125,7 +135,10 @@ export function ConfirmDialog({
             onClick={onConfirm}
             className={cn(
               APP_PRIMARY_BUTTON_CLASS,
-              "touch-manipulation bg-pink-accent text-white hover:bg-pink-accent/90",
+              "touch-manipulation",
+              accent === "ink"
+                ? "border border-ink bg-ink text-white hover:bg-[#2a2a2a]"
+                : "bg-pink-accent text-white hover:bg-pink-accent/90",
             )}
           >
             {loading ? "Working…" : confirmLabel}

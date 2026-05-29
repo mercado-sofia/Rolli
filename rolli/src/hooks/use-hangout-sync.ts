@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
+import { mergeHangoutUpdate } from "@/lib/hangout/merge-hangout";
 import { createClient } from "@/lib/supabase/client";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import { useSessionStore } from "@/store/session-store";
@@ -35,8 +36,12 @@ export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) 
 
     function applyHangout(data: Hangout) {
       if (cancelled) return;
-      setLocalHangout(data);
-      setHangout(data);
+
+      const current = useSessionStore.getState().hangout;
+      const merged = mergeHangoutUpdate(current, data);
+
+      setLocalHangout(merged);
+      setHangout(merged);
       setLoadError(null);
       setIsLoading(false);
     }

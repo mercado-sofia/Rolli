@@ -1,6 +1,7 @@
 "use client";
 
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
+import { mergeHangoutUpdate } from "@/lib/hangout/merge-hangout";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -17,12 +18,7 @@ function mergeDisplayHangout(
     return syncedHangout;
   }
 
-  // Session store updates immediately after abandon; sync can lag behind.
-  if (hangoutStore.status === "cancelled" && syncedHangout.status === "waiting") {
-    return hangoutStore;
-  }
-
-  return syncedHangout;
+  return mergeHangoutUpdate(hangoutStore, syncedHangout);
 }
 
 /** Merges live sync with the persisted session hangout for hangout flow pages. */

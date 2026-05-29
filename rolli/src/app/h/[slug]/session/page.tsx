@@ -174,7 +174,7 @@ export default function SessionPage() {
         <SetupFlowHeader
           showProgress={false}
           title={displayHangout.title}
-          sublabel="Active hangout"
+          sublabel="auto-ends in a day"
           trailingAction={guideMenuButton}
         />
       </header>
@@ -199,10 +199,7 @@ export default function SessionPage() {
             )}
           >
             <div className="flex w-full max-w-md flex-col items-center gap-6">
-              <ElapsedTimer
-                startedAt={displayHangout.startedAt}
-                autoEndHours={HANGOUT_LIMITS.autoEndHours}
-              />
+              <ElapsedTimer startedAt={displayHangout.startedAt} />
 
               <div className="flex flex-col items-center gap-4 sm:gap-5">
                 <p className="text-sm tabular-nums text-pink-muted">

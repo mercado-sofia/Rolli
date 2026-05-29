@@ -13,6 +13,7 @@ import {
   getGuessingState,
   submitVote,
 } from "@/lib/hangout/guessing";
+import type { Hangout } from "@/types/hangout";
 import type { HangoutStatus } from "@/types/hangout";
 import type { GuessingResults, GuessingState } from "@/types/guessing";
 
@@ -27,7 +28,7 @@ type GuessingExperienceProps = {
   sessionToken: string;
   hangoutStatus: HangoutStatus;
   isFilmKeeper: boolean;
-  onHangoutCompleted: () => void;
+  onHangoutCompleted: (hangout?: Hangout) => void;
   onFooterChange?: (footer: SetupFlowFooterState) => void;
 };
 
@@ -141,7 +142,7 @@ export function GuessingExperience({
     setFinishing(true);
     setFinishError(null);
 
-    const { error } = await finishGuessing(hangoutId, sessionToken);
+    const { data, error } = await finishGuessing(hangoutId, sessionToken);
 
     setFinishing(false);
 
@@ -150,7 +151,7 @@ export function GuessingExperience({
       return;
     }
 
-    onHangoutCompleted();
+    onHangoutCompleted(data);
   }, [hangoutId, onHangoutCompleted, sessionToken]);
 
   async function handleGuess(
