@@ -21,6 +21,7 @@ import {
   getLateJoinHint,
   isHangoutInProgress,
   isHangoutJoinable,
+  isHangoutRejoinable,
 } from "@/lib/hangout/join-eligibility";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
 import { isHangoutSessionValid } from "@/lib/hangout/session-validity";
@@ -123,7 +124,7 @@ export function InviteLanding() {
 
     const canTryRejoin =
       Boolean(sessionParticipant?.sessionToken) &&
-      isHangoutJoinable(hangout.status) &&
+      isHangoutRejoinable(hangout.status) &&
       !rejoinFailed;
 
     if (canTryRejoin) return;
@@ -146,7 +147,7 @@ export function InviteLanding() {
   useEffect(() => {
     if (loading || !hangout || hasValidSession || rejoinFailed) return;
     if (!sessionHydrated || !sessionParticipant?.sessionToken) return;
-    if (!isHangoutJoinable(hangout.status)) return;
+    if (!isHangoutRejoinable(hangout.status)) return;
 
     let cancelled = false;
 

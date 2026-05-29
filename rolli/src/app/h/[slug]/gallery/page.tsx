@@ -80,7 +80,7 @@ export default function GalleryPage() {
             <MobileLoadingSpinner />
             <div className="hidden animate-pulse space-y-6 md:block">
               <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div className="aspect-square rounded-3xl bg-black/10" />
                 <div className="aspect-square rounded-3xl bg-black/10" />
                 <div className="aspect-square rounded-3xl bg-black/10" />

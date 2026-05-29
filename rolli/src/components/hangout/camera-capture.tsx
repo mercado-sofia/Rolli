@@ -40,6 +40,34 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
+/** Portal-mounted <video> may not be ref-attached after a single frame on mobile. */
+function waitForVideoElement(
+  videoRef: RefObject<HTMLVideoElement | null>,
+  maxFrames = 8,
+): Promise<HTMLVideoElement> {
+  return new Promise((resolve, reject) => {
+    let frames = 0;
+
+    function tryAttach() {
+      const video = videoRef.current;
+      if (video) {
+        resolve(video);
+        return;
+      }
+
+      frames += 1;
+      if (frames >= maxFrames) {
+        reject(new Error("Camera not ready"));
+        return;
+      }
+
+      requestAnimationFrame(tryAttach);
+    }
+
+    requestAnimationFrame(tryAttach);
+  });
+}
+
 function subscribeToClientMount() {
   return () => {};
 }
@@ -82,8 +110,11 @@ export function CameraCapture({
 
   const isSessionMode = appearance === "session";
   const photosRemaining = maxPhotos - photosTaken;
-  const isDisabled = photosRemaining <= 0 || phase === "capturing";
+  const isOpening = phase === "opening";
+  const isDisabled =
+    photosRemaining <= 0 || phase === "capturing" || isOpening;
   const isOverlayOpen = phase !== "idle";
+  const openInFlightRef = useRef(false);
 
   useEffect(() => {
     serverPhotosTakenRef.current = photosTaken;
@@ -147,19 +178,8 @@ export function CameraCapture({
     return warmStreamPromiseRef.current;
   }, []);
 
-  const warmCamera = useCallback(() => {
-    if (photosRemaining <= 0) return;
-    void ensureStream().catch(() => {
-      // Permission or hardware errors surface when the overlay opens.
-    });
-  }, [ensureStream, photosRemaining]);
-
   const attachStreamToVideo = useCallback(async (stream: MediaStream) => {
-    const video = videoRef.current;
-    if (!video) {
-      throw new Error("Camera not ready");
-    }
-
+    const video = await waitForVideoElement(videoRef);
     video.srcObject = stream;
     await video.play();
   }, []);
@@ -185,8 +205,9 @@ export function CameraCapture({
   }, [isOverlayOpen, closeCamera]);
 
   const openCamera = useCallback(async () => {
-    if (photosRemaining <= 0) return;
+    if (photosRemaining <= 0 || openInFlightRef.current) return;
 
+    openInFlightRef.current = true;
     setError(null);
     setPhase("opening");
 
@@ -196,10 +217,18 @@ export function CameraCapture({
       const stream = await ensureStream();
       await attachStreamToVideo(stream);
       setPhase("ready");
-    } catch {
+    } catch (openError) {
       stopCamera();
       setPhase("idle");
-      setError("Camera access denied. Allow camera permission and try again.");
+      const message =
+        openError instanceof Error ? openError.message : "";
+      setError(
+        message === "Camera not ready"
+          ? "Camera is still loading. Tap again."
+          : "Camera access denied. Allow camera permission and try again.",
+      );
+    } finally {
+      openInFlightRef.current = false;
     }
   }, [attachStreamToVideo, ensureStream, photosRemaining, stopCamera]);
 
@@ -341,7 +370,6 @@ export function CameraCapture({
         <CameraTriggerButton
           disabled={isDisabled}
           onClick={() => void openCamera()}
-          onPointerDown={isSessionMode ? warmCamera : undefined}
           aria-label={
             photosRemaining <= 0 ? "No photos left" : "Capture memory"
           }
@@ -371,14 +399,12 @@ function CameraAmbientBackground() {
 function CameraTriggerButton({
   disabled,
   onClick,
-  onPointerDown,
   "aria-label": ariaLabel,
   size = "md",
   appearance = "default",
 }: {
   disabled?: boolean;
   onClick: () => void;
-  onPointerDown?: () => void;
   "aria-label": string;
   size?: "md" | "lg";
   appearance?: "default" | "session";
@@ -393,7 +419,6 @@ function CameraTriggerButton({
         type="button"
         disabled={disabled}
         onClick={onClick}
-        onPointerDown={onPointerDown}
         aria-label={ariaLabel}
         className={cn(
           "inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full border border-lavender-deep/35 bg-white",
@@ -417,10 +442,9 @@ function CameraTriggerButton({
       type="button"
       disabled={disabled}
       onClick={onClick}
-      onPointerDown={onPointerDown}
       aria-label={ariaLabel}
       className={cn(
-        "inline-flex shrink-0 rounded-full border border-lavender-deep/25 bg-gradient-pastel p-px shadow-soft",
+        "inline-flex shrink-0 touch-manipulation rounded-full border border-lavender-deep/25 bg-gradient-pastel p-px shadow-soft",
         "transition-transform hover:scale-[1.03] active:scale-[0.97]",
         "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100",
         dimensions,

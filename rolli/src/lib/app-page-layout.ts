@@ -138,8 +138,7 @@ export const HANGOUT_PINK_GRADIENT_BUTTON_CLASS = cn(
 );
 
 /** Multi-column photo grids (gallery, etc.) */
-export const APP_PHOTO_GRID_CLASS =
-  "grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4";
+export const APP_PHOTO_GRID_CLASS = "grid grid-cols-2 gap-3 sm:gap-4";
 
 /** White (#FFF) app container with 1px #FFEDF5 border */
 export const APP_CONTAINER_SURFACE = "border border-container-border bg-white";
