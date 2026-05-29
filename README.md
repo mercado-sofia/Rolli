@@ -27,16 +27,20 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 | **Quick Guide** | Swipeable slides explaining how Rolli works |
 | **Create / Join** | Start a hangout or paste an invitation link |
 | **Waiting Room** | Anonymous hold — only participant count is visible |
+| **Share** | Copy or share the invitation link from the waiting room |
 | **Active Session** | Capture memories (max 10 per user) with no previews |
-| **Reveal** | Film development animation, perspective-by-perspective unlock |
-| **Guessing** | Private votes to match nicknames to real names |
-| **Gallery** | Final memory grid with download options |
+| **Developing & Reveal** | Single `/reveal` route: developing overlay with preload, then perspective-by-perspective unlock |
+| **Guessing** | Private votes to match nicknames to real names; hangout-wide vote progress |
+| **Gallery** | Final memory grid with participant labels and download options |
 
 ### Roles & rules (high level)
 
-- **Film Keeper** — the room creator; starts and ends the hangout
+- **Film Keeper** — the room creator; starts and ends the hangout, controls reveal
+- **Film Keeper transfer** — if the Keeper leaves, host duties pass to the next guest
+- **Abandon** — Film Keeper can cancel a hangout still in the waiting room
 - **Max 10 participants** per room
 - **2–10 participants** required to start (Film Keeper cannot start alone)
+- **Mid-session join** — guests can join or rejoin while capture or post-capture phases are in progress
 - **Auto-end** after 24 hours if no one ends the session manually
 
 ---
@@ -50,7 +54,7 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 | Forms & validation | [React Hook Form](https://react-hook-form.com) + [Zod](https://zod.dev) |
 | State | [Zustand](https://zustand.docs.pmnd.rs) |
 | Animation | [Framer Motion](https://www.framer.com/motion) |
-| Icons | [Lucide React](https://lucide.dev) |
+| Icons | [Lucide React](https://lucide.dev), [React Icons](https://react-icons.github.io/react-icons/) |
 | Backend | [Supabase](https://supabase.com) — PostgreSQL + Storage |
 
 ---
@@ -63,16 +67,20 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 
 - Mobile-responsive pastel UI shell
 - Landing page (how-it-works guide section), start, create, and join flows
-- Supabase schema, RPC functions, and storage bucket migrations
+- Supabase schema, RPC functions, and storage bucket migrations (**001–029**)
 - Create hangout (Film Keeper + invitation link), join, waiting room with live participant count
-- Film Keeper can start hangout (2–10 participants) via database RPC
+- Share invitation link page in the waiting room
+- Film Keeper can start hangout (2–10 participants) or abandon while waiting
+- Film Keeper transfer when the host leaves mid-hangout
+- Guests can join or rejoin during active and post-capture phases
 - Camera capture + upload to Supabase Storage
-- Developing screen and Film Keeper reveal controls
-- Reveal phase with perspective unlock flow
-- Guessing phase with private votes and score/results
-- Final gallery with per-photo and zip download actions
+- Developing overlay on `/reveal` with reveal photo preload for all guests
+- Client-side reveal countdown, then perspective-by-perspective unlock
+- Guessing phase with private votes, hangout-wide progress, and score/results
+- Gallery opens once every participant has submitted all guesses (any guest can advance)
+- Final gallery with participant labels, per-photo and zip download actions
 - Automatic end after 24h (poll-based, optional pg_cron background job)
-- Canonical route guard (wrong phase URLs redirect automatically)
+- Canonical route guard (wrong phase URLs redirect automatically; `/developing` → `/reveal`)
 - Supabase Realtime on `hangouts` with poll fallback
 - Leave room + rejoin via invite (migration **014**)
 - Signed URL refresh on tab focus; download retries
@@ -85,7 +93,7 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 
 ### Session recovery (MVP)
 
-If browser storage is cleared **without** using **Leave room**, the old `session_token` is lost and the user cannot call `rejoin_hangout`. They may join again with the same nickname only if their participant row was left inactive. See [rolli/supabase/MIGRATION_CHECKLIST.md](rolli/supabase/MIGRATION_CHECKLIST.md).
+If browser storage is cleared **without** using **Leave room**, the old `session_token` is lost and the user cannot call `rejoin_hangout`. They may join again with the same nickname only if their participant row was left inactive. See [rolli/supabase/README.md](rolli/supabase/README.md) (Leave / rejoin / join).
 
 ---
 
@@ -99,7 +107,7 @@ If browser storage is cleared **without** using **Leave room**, the old `session
 ### Supabase setup
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Run SQL migrations **001–016** in order (see [`rolli/supabase/README.md`](rolli/supabase/README.md) and [`rolli/supabase/MIGRATION_CHECKLIST.md`](rolli/supabase/MIGRATION_CHECKLIST.md)).
+2. Run SQL migrations **001–029** in order (see [`rolli/supabase/README.md`](rolli/supabase/README.md)).
 3. Copy `rolli/.env.local.example` → `rolli/.env.local` and set:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -138,7 +146,9 @@ npm run lint    # ESLint
 3. **Paste Invitation Link** on the join screen with a different nickname
 4. Both users land in the waiting room; Film Keeper can start when 2+ people are in
 5. Capture photos in session, then Film Keeper taps **Develop Memories**
-6. Continue through reveal, guessing, and final gallery
+6. On `/reveal`, guests see the developing overlay while photos preload; Film Keeper starts the cinematic reveal
+7. Everyone guesses who took each shot; the gallery opens once all votes are in
+8. Browse and download memories from the final gallery
 
 ---
 
@@ -147,16 +157,18 @@ npm run lint    # ESLint
 ```text
 Rolli/
 ├── README.md                          # You are here
-├── Rolli — Project Documentation.txt  # Full product spec
 └── rolli/                             # Next.js application + Supabase
+    ├── README.md                      # App quick start
     ├── supabase/
     │   ├── README.md                  # Migration setup guide
-    │   └── migrations/                # SQL to run in Supabase
+    │   └── migrations/                # SQL to run in Supabase (001–029)
     ├── src/
     │   ├── app/                       # Routes (App Router)
     │   ├── components/                # UI, layout, feature components
+    │   ├── hooks/                     # Hangout sync, route guards, reveal preload
     │   ├── lib/
-    │   │   ├── services/              # Supabase hangout API
+    │   │   ├── hangout/               # Domain helpers (routes, reveal, guessing)
+    │   │   ├── services/              # Supabase RPC wrappers
     │   │   └── supabase/              # Browser client & row mappers
     │   ├── store/                     # Zustand session (participant token)
     │   └── types/                     # Shared TypeScript types

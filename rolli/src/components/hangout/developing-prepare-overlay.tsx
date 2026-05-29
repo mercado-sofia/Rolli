@@ -226,7 +226,7 @@ export function DevelopingPrepareOverlay({
       ) : null}
 
       <div
-        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-canvas/92 px-1 backdrop-blur-[2px]"
+        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background px-1"
         aria-hidden={false}
         role="dialog"
         aria-label="Preparing reveal"

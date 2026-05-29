@@ -33,8 +33,17 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 18 | `migrations/018_abandon_hangout_rpc.sql` |
 | 19 | `migrations/019_allow_join_after_start.sql` |
 | 20 | `migrations/020_transfer_film_keeper_on_leave.sql` |
+| 21 | `migrations/021_reveal_countdown.sql` |
+| 22 | `migrations/022_reveal_preload_during_countdown.sql` |
+| 23 | `migrations/023_reveal_preload_storage_read.sql` |
+| 24 | `migrations/024_nickname_min_length.sql` |
+| 25 | `migrations/025_remove_reveal_countdown.sql` |
+| 26 | `migrations/026_reveal_preload_during_developing.sql` |
+| 27 | `migrations/027_gallery_participant_details.sql` |
+| 28 | `migrations/028_gallery_open_for_all_participants.sql` |
+| 29 | `migrations/029_guessing_global_vote_progress.sql` |
 
-**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join or rejoin while a session is in progress), **020** (`transfer_film_keeper`, `leave_hangout` keeper handoff, keeper RPCs use `film_keeper_id`).
+**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join or rejoin while a session is in progress), **020** (`transfer_film_keeper`, `leave_hangout` keeper handoff, keeper RPCs use `film_keeper_id`), **021–023** (synced reveal countdown + preload — superseded by **025–026**), **024** (2-character nicknames), **025** (removes server countdown; countdown is client-side only), **026** (`signal_reveal_pending`, `reveal_pending_at`, preload during developing), **027** (gallery payload includes participant identity), **028** (`maybe_complete_guessing_if_ready`, any participant may call `finish_guessing` once all votes are in), **029** (`get_guessing_state` exposes hangout-wide vote progress).
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -104,7 +113,7 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 ## Film Keeper transfer (020)
 
 - **`transfer_film_keeper`** — when the current Film Keeper leaves and other active participants remain, host duties pass to the next active guest (`joined_at` ASC).
-- Keeper-gated RPCs (`start_hangout`, `end_hangout`, `start_reveal`, `finish_reveal`, `finish_guessing`, `abandon_hangout`) authorize via `participants.id = hangouts.film_keeper_id`.
+- Keeper-gated RPCs (`start_hangout`, `end_hangout`, `start_reveal`, `finish_reveal`, `abandon_hangout`) authorize via `participants.id = hangouts.film_keeper_id`.
 - Solo Film Keeper in `waiting` still cannot leave (use **Abandon**). Solo active session can leave with no successor until someone rejoins or 24h auto-end.
 
 ## Leave / rejoin / join (014, 019, 020)
@@ -115,9 +124,21 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 
 If a user clears browser storage without leaving, they cannot recover their session (MVP limitation).
 
+## Reveal flow (025–026)
+
+- **Developing and revealing** both live on the app route `/h/[slug]/reveal`. The old `/developing` route redirects there.
+- Migration **025** removes the server-synced countdown (`reveal_countdown_at`, `begin_reveal_countdown`). The 3-second countdown before photos appear runs **client-side only**.
+- Migration **026** adds **`signal_reveal_pending`** and `reveal_pending_at` so guests can preload reveal photos while status is still `developing`. The Film Keeper taps **Start reveal** → clients preload → **`start_reveal`** moves the hangout to `revealing`.
+
+## Guessing & gallery completion (027–029)
+
+- Migration **027** — `get_gallery` includes participant nicknames and real names (only after status is `completed`).
+- Migration **028** — **`maybe_complete_guessing_if_ready`** auto-completes the hangout when every expected vote is submitted. **`finish_guessing`** is available to **any active participant** (not Film Keeper only) once all votes are in; the gallery opens after completion.
+- Migration **029** — **`get_guessing_state`** returns hangout-wide `total_votes_required`, `total_votes_submitted`, and `all_participants_voted` so the UI does not advance early when only one player has finished.
+
 ## Verify migrations (optional)
 
-Run in the SQL Editor after applying **001–020**:
+Run in the SQL Editor after applying **001–029**:
 
 ```sql
 -- Core RPCs should exist
@@ -127,7 +148,8 @@ WHERE n.nspname = 'public'
   AND proname IN (
     'join_hangout', 'rejoin_hangout', 'leave_hangout',
     'abandon_hangout', 'end_hangout', 'get_hangout_public',
-    'transfer_film_keeper'
+    'transfer_film_keeper', 'signal_reveal_pending',
+    'maybe_complete_guessing_if_ready', 'get_guessing_state'
   )
 ORDER BY proname;
 
@@ -138,7 +160,7 @@ WHERE pubname = 'supabase_realtime' AND tablename = 'hangouts';
 
 ## Schema overview
 
-- **hangouts** — room metadata, status (`waiting` through `completed`, plus `cancelled`), Film Keeper reference
+- **hangouts** — room metadata, status (`waiting` through `completed`, plus `cancelled`), Film Keeper reference, optional `reveal_pending_at`
 - **participants** — anonymous nicknames, hidden real names, session tokens
 - **photos** — storage paths (files in `hangout-photos` bucket)
 - **votes** — private guessing phase answers

@@ -14,6 +14,9 @@ export type GuessingState = {
   myVotes: GuessingVote[];
   votesRequired: number;
   votesSubmitted: number;
+  totalVotesRequired: number;
+  totalVotesSubmitted: number;
+  allParticipantsVoted: boolean;
 };
 
 export type GuessingReveal = {

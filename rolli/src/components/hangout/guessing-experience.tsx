@@ -100,7 +100,10 @@ export function GuessingExperience({
       }
 
       setResults(null);
-      setState(data);
+      setState(data.state);
+      if (data.hangout?.status === "completed") {
+        onHangoutCompleted(data.hangout);
+      }
       setLoading(false);
     }
 
@@ -109,7 +112,7 @@ export function GuessingExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, isCompleted, reloadKey, sessionToken]);
+  }, [hangoutId, isCompleted, onHangoutCompleted, reloadKey, sessionToken]);
 
   useEffect(() => {
     perspectivePhotosLoadedRef.current = false;
@@ -183,7 +186,10 @@ export function GuessingExperience({
     async function poll() {
       const { data, error } = await getGuessingState(hangoutId, sessionToken);
       if (cancelled || error || !data) return;
-      setState(data);
+      setState(data.state);
+      if (data.hangout?.status === "completed") {
+        onHangoutCompleted(data.hangout);
+      }
     }
 
     const intervalId = window.setInterval(() => {
@@ -194,7 +200,10 @@ export function GuessingExperience({
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [hangoutId, hangoutStatus, isCompleted, sessionToken]);
+  }, [hangoutId, hangoutStatus, isCompleted, onHangoutCompleted, sessionToken]);
+
+  const myVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
+  const allParticipantsVoted = state?.allParticipantsVoted ?? false;
 
   const votesByTarget = useMemo(() => {
     const map = new Map<string, string>();
@@ -207,8 +216,6 @@ export function GuessingExperience({
   const usedNames = useMemo(() => {
     return new Set(votesByTarget.values());
   }, [votesByTarget]);
-
-  const allVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
 
   const completingRef = useRef(false);
 
@@ -237,13 +244,19 @@ export function GuessingExperience({
   }, [hangoutId, onHangoutCompleted, sessionToken]);
 
   useEffect(() => {
-    if (isCompleted || !allVotesIn || loading || !state || completingRef.current) {
+    if (
+      isCompleted ||
+      !allParticipantsVoted ||
+      loading ||
+      !state ||
+      completingRef.current
+    ) {
       return;
     }
 
     completingRef.current = true;
     void handleFinishGuessing();
-  }, [allVotesIn, handleFinishGuessing, isCompleted, loading, state]);
+  }, [allParticipantsVoted, handleFinishGuessing, isCompleted, loading, state]);
 
   async function handleGuess(
     targetParticipantId: string,
@@ -266,7 +279,10 @@ export function GuessingExperience({
       return;
     }
 
-    setState(data);
+    setState(data.state);
+    if (data.hangout?.status === "completed") {
+      onHangoutCompleted(data.hangout);
+    }
   }
 
   useEffect(() => {
@@ -304,12 +320,18 @@ export function GuessingExperience({
       return;
     }
 
-    if (allVotesIn) {
+    if (myVotesIn && !allParticipantsVoted) {
+      onFooterChange({
+        hint: "Your guesses are saved. Waiting for everyone else to finish…",
+      });
+      return;
+    }
+
+    if (allParticipantsVoted) {
       onFooterChange({
         hint: finishing
           ? "Finalizing results…"
-          : "All guesses saved — opening results and gallery…",
-        showGalleryButton: true,
+          : "Everyone has guessed — opening results…",
         children: finishError ? (
           <p className="text-center text-sm text-pink">{finishError}</p>
         ) : undefined,
@@ -321,12 +343,13 @@ export function GuessingExperience({
       hint: "Match each nickname to a real name. Your guesses stay private.",
     });
   }, [
-    allVotesIn,
+    allParticipantsVoted,
     finishError,
     finishing,
     isCompleted,
     loadError,
     loading,
+    myVotesIn,
     onFooterChange,
     results,
     state,
@@ -463,6 +486,14 @@ export function GuessingExperience({
       {state.targets.length === 0 && (
         <Card border="neutral" className="text-center text-sm text-muted">
           No other participants to guess — you&apos;re solo in this hangout.
+        </Card>
+      )}
+
+      {myVotesIn && !allParticipantsVoted && (
+        <Card border="neutral" className="text-center md:hidden">
+          <p className="text-sm text-muted">
+            Your guesses are saved. Waiting for everyone else to finish…
+          </p>
         </Card>
       )}
 

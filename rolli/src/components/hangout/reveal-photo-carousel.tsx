@@ -3,6 +3,7 @@
 import {
   animate,
   motion,
+  type MotionValue,
   type PanInfo,
   useMotionValue,
   useReducedMotion,
@@ -10,6 +11,7 @@ import {
 } from "framer-motion";
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -24,22 +26,47 @@ type RevealPhotoCarouselProps = {
   perspectiveLabel: string;
 };
 
-const SWIPE_DISTANCE_RATIO = 0.2;
-const SWIPE_VELOCITY_THRESHOLD = 220;
+const SWIPE_DISTANCE_RATIO = 0.18;
+const SWIPE_VELOCITY_THRESHOLD = 200;
 
 const SNAP_SPRING = {
   type: "spring" as const,
-  stiffness: 480,
-  damping: 38,
-  mass: 0.45,
+  stiffness: 520,
+  damping: 42,
+  mass: 0.42,
 };
 
 const EXIT_SPRING = {
   type: "spring" as const,
-  stiffness: 520,
-  damping: 40,
-  mass: 0.4,
+  stiffness: 560,
+  damping: 44,
+  mass: 0.38,
 };
+
+function useAdjacentCardMotion(
+  x: MotionValue<number>,
+  deckWidth: number,
+  direction: "next" | "prev",
+) {
+  const peekOffset = deckWidth > 0 ? deckWidth * 0.06 : 0;
+  const travel = deckWidth > 0 ? deckWidth : 1;
+  const isNext = direction === "next";
+
+  const inputRange = isNext ? [0, -travel] : [0, travel];
+  const xOutputRange = isNext ? [peekOffset, 0] : [-peekOffset, 0];
+  const rotateOutputRange = isNext ? [2.5, 0] : [-2.5, 0];
+
+  const slideX = useTransform(x, inputRange, xOutputRange);
+  const scale = useTransform(x, inputRange, [0.96, 1]);
+  const rotate = useTransform(x, inputRange, rotateOutputRange);
+  const opacity = useTransform(
+    x,
+    isNext ? [0, -travel * 0.35, -travel] : [0, travel * 0.35, travel],
+    [0.78, 0.9, 1],
+  );
+
+  return { slideX, scale, rotate, opacity };
+}
 
 export function RevealPhotoCarousel({
   photos,
@@ -50,7 +77,7 @@ export function RevealPhotoCarousel({
   const deckRef = useRef<HTMLDivElement>(null);
   const [deckWidth, setDeckWidth] = useState(0);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-160, 0, 160], [-3, 0, 3]);
+  const rotate = useTransform(x, [-160, 0, 160], [-4, 0, 4]);
   const prefersReducedMotion = useReducedMotion();
 
   useLayoutEffect(() => {
@@ -94,12 +121,12 @@ export function RevealPhotoCarousel({
       }
 
       const width = deckWidth || deckRef.current?.offsetWidth || 300;
-      const exitX = direction === "next" ? -(width + 40) : width + 40;
+      const exitX = direction === "next" ? -width : width;
       const currentX = x.get();
       const alreadyPastExit =
         direction === "next"
-          ? currentX <= exitX * 0.65
-          : currentX >= exitX * 0.65;
+          ? currentX <= exitX * 0.55
+          : currentX >= exitX * 0.55;
 
       if (!alreadyPastExit) {
         await animate(x, exitX, {
@@ -156,15 +183,27 @@ export function RevealPhotoCarousel({
     [advance, deckWidth, index, isAnimating, photos.length, snapBack, x],
   );
 
-  if (photos.length === 0) return null;
-
-  const dragEnabled =
-    photos.length > 1 && !prefersReducedMotion && !isAnimating;
   const currentPhoto = photos[index];
   const prevPhoto = index > 0 ? photos[index - 1] : null;
   const nextPhoto =
     index < photos.length - 1 ? photos[index + 1] : null;
-  const dragLimit = Math.max(deckWidth * 0.5, 140);
+
+  const nextMotion = useAdjacentCardMotion(x, deckWidth, "next");
+  const prevMotion = useAdjacentCardMotion(x, deckWidth, "prev");
+
+  useEffect(() => {
+    for (const photo of [photos[index + 1], photos[index - 1]]) {
+      if (!photo?.signedUrl) continue;
+      const img = new Image();
+      img.src = photo.signedUrl;
+    }
+  }, [index, photos]);
+
+  if (photos.length === 0) return null;
+
+  const dragEnabled =
+    photos.length > 1 && !prefersReducedMotion && !isAnimating;
+  const dragLimit = Math.max(deckWidth * 0.94, 160);
 
   return (
     <div
@@ -178,31 +217,39 @@ export function RevealPhotoCarousel({
           className="relative aspect-3/4 w-full min-h-48 overflow-visible"
         >
           {prevPhoto ? (
-            <StackPeekCard
+            <AdjacentSlideCard
+              key={prevPhoto.id}
               photo={prevPhoto}
               perspectiveLabel={perspectiveLabel}
-              side="left"
+              slideX={prevMotion.slideX}
+              scale={prevMotion.scale}
+              rotate={prevMotion.rotate}
+              opacity={prevMotion.opacity}
             />
           ) : null}
 
           {nextPhoto ? (
-            <StackPeekCard
+            <AdjacentSlideCard
+              key={nextPhoto.id}
               photo={nextPhoto}
               perspectiveLabel={perspectiveLabel}
-              side="right"
+              slideX={nextMotion.slideX}
+              scale={nextMotion.scale}
+              rotate={nextMotion.rotate}
+              opacity={nextMotion.opacity}
             />
           ) : null}
 
           <motion.div
             key={currentPhoto.id}
             className={cn(
-              "absolute inset-0 z-10 touch-none",
+              "absolute inset-0 z-10 touch-none will-change-transform",
               dragEnabled && "cursor-grab active:cursor-grabbing",
             )}
             style={{ x, rotate, touchAction: dragEnabled ? "none" : "auto" }}
             drag={dragEnabled ? "x" : false}
             dragConstraints={{ left: -dragLimit, right: dragLimit }}
-            dragElastic={0.28}
+            dragElastic={0.12}
             dragMomentum={false}
             onDragEnd={dragEnabled ? handleDragEnd : undefined}
           >
@@ -241,33 +288,34 @@ export function RevealPhotoCarousel({
   );
 }
 
-function StackPeekCard({
+function AdjacentSlideCard({
   photo,
   perspectiveLabel,
-  side,
+  slideX,
+  scale,
+  rotate,
+  opacity,
 }: {
   photo: RevealPhoto;
   perspectiveLabel: string;
-  side: "left" | "right";
+  slideX: MotionValue<number>;
+  scale: MotionValue<number>;
+  rotate: MotionValue<number>;
+  opacity: MotionValue<number>;
 }) {
-  const isLeft = side === "left";
-
   return (
-    <div
-      className={cn(
-        "pointer-events-none absolute inset-0 z-0 scale-[0.97] opacity-80",
-        isLeft
-          ? "translate-x-[-6%] rotate-[-2.5deg]"
-          : "translate-x-[6%] rotate-[2.5deg]",
-      )}
+    <motion.div
+      className="pointer-events-none absolute inset-0 z-5 will-change-transform"
+      style={{ x: slideX, scale, rotate, opacity }}
       aria-hidden
     >
       <RevealPhotoCard
         photo={photo}
         perspectiveLabel={perspectiveLabel}
-        className="shadow-[0_12px_32px_rgba(26,26,26,0.06)]"
+        preload
+        className="shadow-[0_12px_32px_rgba(26,26,26,0.08)]"
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -275,13 +323,17 @@ function RevealPhotoCard({
   photo,
   perspectiveLabel,
   priority = false,
+  preload = false,
   className,
 }: {
   photo: RevealPhoto;
   perspectiveLabel: string;
   priority?: boolean;
+  preload?: boolean;
   className?: string;
 }) {
+  const shouldEagerLoad = priority || preload;
+
   return (
     <div
       className={cn(
@@ -297,8 +349,8 @@ function RevealPhotoCard({
           className="h-full w-full object-cover select-none pointer-events-none"
           draggable={false}
           decoding="async"
-          fetchPriority={priority ? "high" : "auto"}
-          loading={priority ? "eager" : "lazy"}
+          fetchPriority={shouldEagerLoad ? "high" : "auto"}
+          loading={shouldEagerLoad ? "eager" : "lazy"}
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center text-xs text-muted">

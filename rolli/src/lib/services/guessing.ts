@@ -10,6 +10,7 @@ import type {
 } from "@/types/guessing";
 
 type GuessingStateJson = {
+  hangout?: HangoutRowJson;
   targets: { participant_id: string; nickname: string }[];
   real_name_options: string[];
   my_votes: {
@@ -18,6 +19,9 @@ type GuessingStateJson = {
   }[];
   votes_required: number;
   votes_submitted: number;
+  total_votes_required?: number;
+  total_votes_submitted?: number;
+  all_participants_voted?: boolean;
 };
 
 type GuessingResultsJson = {
@@ -32,23 +36,39 @@ type GuessingResultsJson = {
   };
 };
 
-function mapGuessingState(payload: GuessingStateJson): GuessingState {
+export type GuessingStateResponse = {
+  state: GuessingState;
+  hangout?: Hangout;
+};
+
+function mapGuessingState(payload: GuessingStateJson): GuessingStateResponse {
+  const totalVotesRequired = payload.total_votes_required ?? 0;
+  const totalVotesSubmitted = payload.total_votes_submitted ?? 0;
+
   return {
-    targets: (payload.targets ?? []).map(
-      (target): GuessingTarget => ({
-        participantId: target.participant_id,
-        nickname: target.nickname,
-      }),
-    ),
-    realNameOptions: payload.real_name_options ?? [],
-    myVotes: (payload.my_votes ?? []).map(
-      (vote): GuessingVote => ({
-        targetParticipantId: vote.target_participant_id,
-        guessedRealName: vote.guessed_real_name,
-      }),
-    ),
-    votesRequired: payload.votes_required ?? 0,
-    votesSubmitted: payload.votes_submitted ?? 0,
+    hangout: payload.hangout ? mapHangout(payload.hangout) : undefined,
+    state: {
+      targets: (payload.targets ?? []).map(
+        (target): GuessingTarget => ({
+          participantId: target.participant_id,
+          nickname: target.nickname,
+        }),
+      ),
+      realNameOptions: payload.real_name_options ?? [],
+      myVotes: (payload.my_votes ?? []).map(
+        (vote): GuessingVote => ({
+          targetParticipantId: vote.target_participant_id,
+          guessedRealName: vote.guessed_real_name,
+        }),
+      ),
+      votesRequired: payload.votes_required ?? 0,
+      votesSubmitted: payload.votes_submitted ?? 0,
+      totalVotesRequired,
+      totalVotesSubmitted,
+      allParticipantsVoted:
+        payload.all_participants_voted ??
+        totalVotesSubmitted >= totalVotesRequired,
+    },
   };
 }
 
@@ -69,7 +89,7 @@ function mapGuessingResults(payload: GuessingResultsJson): GuessingResults {
 export async function getGuessingState(
   hangoutId: string,
   sessionToken: string,
-): Promise<{ data?: GuessingState; error?: string }> {
+): Promise<{ data?: GuessingStateResponse; error?: string }> {
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc("get_guessing_state", {
@@ -89,7 +109,7 @@ export async function submitVote(
   sessionToken: string,
   targetParticipantId: string,
   guessedRealName: string,
-): Promise<{ data?: GuessingState; error?: string }> {
+): Promise<{ data?: GuessingStateResponse; error?: string }> {
   const supabase = createClient();
 
   const { data, error } = await supabase.rpc("submit_vote", {
