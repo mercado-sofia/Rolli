@@ -17,4 +17,6 @@ export type Hangout = {
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
+  /** Server timestamp when the synced reveal countdown started (developing only). */
+  revealCountdownAt: string | null;
 };

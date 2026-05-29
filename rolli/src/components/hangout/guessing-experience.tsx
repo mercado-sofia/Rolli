@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { PerspectivePhotosOverlay } from "@/components/hangout/perspective-photos-overlay";
 import { AppSelect } from "@/components/ui/app-select";
@@ -56,6 +63,7 @@ export function GuessingExperience({
   const [perspectivePhotos, setPerspectivePhotos] = useState<RevealPerspective[]>([]);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [photosLoadError, setPhotosLoadError] = useState<string | null>(null);
+  const perspectivePhotosLoadedRef = useRef(false);
 
   const isCompleted = hangoutStatus === "completed";
 
@@ -110,10 +118,18 @@ export function GuessingExperience({
   }, [hangoutId, isCompleted, reloadKey, sessionToken]);
 
   useEffect(() => {
-    if (isCompleted || loading || !state) {
-      setPerspectivePhotos([]);
-      setPhotosLoadError(null);
-      setPhotosLoading(false);
+    perspectivePhotosLoadedRef.current = false;
+    setPerspectivePhotos([]);
+    setPhotosLoadError(null);
+    setPhotosLoading(false);
+  }, [hangoutId, reloadKey]);
+
+  useEffect(() => {
+    if (!galleryTarget || isCompleted || loading || !state) {
+      return;
+    }
+
+    if (perspectivePhotosLoadedRef.current) {
       return;
     }
 
@@ -136,6 +152,7 @@ export function GuessingExperience({
       const signed = await signRevealPhotoUrls(data.perspectives);
       if (cancelled) return;
 
+      perspectivePhotosLoadedRef.current = true;
       setPerspectivePhotos(signed);
       setPhotosLoading(false);
     }
@@ -145,7 +162,14 @@ export function GuessingExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, isCompleted, loading, reloadKey, sessionToken, state]);
+  }, [
+    galleryTarget,
+    hangoutId,
+    isCompleted,
+    loading,
+    sessionToken,
+    state,
+  ]);
 
   const galleryPhotos = useMemo(() => {
     if (!galleryTarget) return [];
@@ -378,10 +402,6 @@ export function GuessingExperience({
             {state.targets.map((target) => {
               const selected = votesByTarget.get(target.participantId) ?? "";
               const isSaving = savingTargetId === target.participantId;
-              const photoCount =
-                perspectivePhotos.find(
-                  (perspective) => perspective.participantId === target.participantId,
-                )?.photos.length ?? 0;
 
               const selectOptions = state.realNameOptions.map((name) => ({
                 value: name,
@@ -392,27 +412,25 @@ export function GuessingExperience({
               return (
                 <li
                   key={target.participantId}
-                  className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-start sm:gap-5"
+                  className="flex items-center gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
                 >
-                  <div className="w-full shrink-0 sm:w-28 md:w-32">
+                  <div className="w-23 shrink-0 sm:w-28 md:w-32">
                     <p className="truncate font-medium text-sm leading-snug text-ink sm:text-base">
                       {target.nickname}
                     </p>
                     <button
                       type="button"
-                      disabled={photosLoading && photoCount === 0}
                       onClick={() => setGalleryTarget(target)}
                       className={cn(
                         "mt-1.5 text-left text-xs font-medium underline underline-offset-2 transition-colors",
                         "text-pink-highlight hover:text-pink-accent",
-                        "disabled:cursor-not-allowed disabled:no-underline disabled:opacity-50",
                       )}
                     >
-                      {photosLoading ? "Loading photos…" : "View photos"}
+                      View photos
                     </button>
                   </div>
                   <AppSelect
-                    className="min-w-0 flex-1"
+                    className="min-w-0 flex-1 self-center"
                     value={selected}
                     placeholder="Match to a real name"
                     disabled={isSaving}
@@ -446,7 +464,7 @@ export function GuessingExperience({
         onClose={() => setGalleryTarget(null)}
         nickname={galleryTarget?.nickname ?? ""}
         photos={galleryPhotos}
-        loading={photosLoading}
+        loading={galleryTarget !== null && photosLoading}
         loadError={photosLoadError}
       />
     </>
