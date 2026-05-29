@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { TfiMenuAlt } from "react-icons/tfi";
 
 import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
@@ -38,6 +38,27 @@ import {
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
+function AutoOpenSessionGuide({
+  slug,
+  hangoutId,
+}: {
+  slug: string;
+  hangoutId: string;
+}) {
+  const [open, setOpen] = useState(() => {
+    const fromStart = consumeSessionGuidePending(slug);
+    const firstVisit = !hasSeenSessionGuide(hangoutId);
+    return fromStart || firstVisit;
+  });
+
+  const close = useCallback(() => {
+    markSessionGuideSeen(hangoutId);
+    setOpen(false);
+  }, [hangoutId]);
+
+  return <SessionGuideModal open={open} onClose={close} />;
+}
+
 const SESSION_END_BUTTON_CLASS = cn(
   APP_PRIMARY_BUTTON_CLASS,
   "touch-manipulation border border-lavender-deep/35 bg-gradient-pastel text-white hover:bg-gradient-pastel active:scale-[0.98]",
@@ -53,7 +74,6 @@ export default function SessionPage() {
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
-  const [sessionGuideOpen, setSessionGuideOpen] = useState(false);
   const [rolliGuideOpen, setRolliGuideOpen] = useState(false);
 
   const { displayHangout, isLoading } = useDisplayHangout(slug);
@@ -72,24 +92,6 @@ export default function SessionPage() {
     participant,
     hangout: displayHangout,
   });
-
-  const closeSessionGuide = useCallback(() => {
-    if (displayHangout) {
-      markSessionGuideSeen(displayHangout.id);
-    }
-    setSessionGuideOpen(false);
-  }, [displayHangout]);
-
-  useEffect(() => {
-    if (!displayHangout || !hasValidSession) return;
-
-    const fromStart = consumeSessionGuidePending(slug);
-    const firstVisit = !hasSeenSessionGuide(displayHangout.id);
-
-    if (fromStart || firstVisit) {
-      setSessionGuideOpen(true);
-    }
-  }, [displayHangout, hasValidSession, slug]);
 
   async function handleDevelopMemories() {
     if (!participant || !displayHangout) return;
@@ -163,7 +165,7 @@ export default function SessionPage() {
 
   return (
     <SetupFlowShell>
-      <SessionGuideModal open={sessionGuideOpen} onClose={closeSessionGuide} />
+      <AutoOpenSessionGuide slug={slug} hangoutId={displayHangout.id} />
       <RolliGuideModal open={rolliGuideOpen} onClose={() => setRolliGuideOpen(false)} />
 
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
@@ -194,7 +196,7 @@ export default function SessionPage() {
               SETUP_FLOW_MAIN_CENTER_CLASS,
             )}
           >
-            <div className="flex w-full max-w-md flex-col items-center gap-10 sm:gap-12">
+            <div className="flex w-full max-w-md flex-col items-center gap-16 sm:gap-16">
               <ElapsedTimer startedAt={displayHangout.startedAt} />
 
               <div className="flex flex-col items-center gap-4 sm:gap-5">

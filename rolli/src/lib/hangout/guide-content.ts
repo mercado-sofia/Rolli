@@ -19,14 +19,14 @@ export const ROLLI_SESSION_GUIDE_CONTENT = {
     {
       title: "Capturing memories",
       bullets: [
-        "Each guest shoots from their own anonymous perspective.",
+        "Each participant shoots from their own anonymous perspective.",
         "Photos upload while the hangout is active (10 max per person).",
       ],
     },
     {
       title: "Film Keeper",
       bullets: [
-        "One host ends the hangout when the group is ready.",
+        "The Film Keeper hosts the hangout and can end it for everyone.",
         "If the Keeper leaves, host duties pass to the next guest.",
       ],
     },
