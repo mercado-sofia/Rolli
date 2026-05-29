@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { TfiMenuAlt } from "react-icons/tfi";
+import { TbPhoto } from "react-icons/tb";
 
 import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
@@ -22,6 +23,7 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
@@ -78,6 +80,7 @@ export default function SessionPage() {
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
+  const [endConfirmOpen, setEndConfirmOpen] = useState(false);
   const [rolliGuideOpen, setRolliGuideOpen] = useState(false);
 
   const { displayHangout, isLoading } = useDisplayHangout(slug);
@@ -97,6 +100,17 @@ export default function SessionPage() {
     hangout: displayHangout,
   });
 
+  function handleOpenEndConfirm() {
+    setEndError(null);
+    setEndConfirmOpen(true);
+  }
+
+  function handleCancelEndConfirm() {
+    if (ending) return;
+    setEndConfirmOpen(false);
+    setEndError(null);
+  }
+
   async function handleDevelopMemories() {
     if (!participant || !displayHangout) return;
 
@@ -115,6 +129,7 @@ export default function SessionPage() {
       return;
     }
 
+    setEndConfirmOpen(false);
     setHangout(data);
     router.replace(`/h/${slug}/developing`);
   }
@@ -225,16 +240,13 @@ export default function SessionPage() {
       <SetupFlowFooter>
         {isFilmKeeper && (
           <>
-            {endError && (
-              <p className="text-center text-sm text-pink-accent">{endError}</p>
-            )}
             <Button
               type="button"
               disabled={ending}
               className={SESSION_END_BUTTON_CLASS}
-              onClick={() => void handleDevelopMemories()}
+              onClick={handleOpenEndConfirm}
             >
-              {ending ? "Ending…" : "End hangout"}
+              End hangout
             </Button>
           </>
         )}
@@ -262,6 +274,30 @@ export default function SessionPage() {
           />
         )}
       </SetupFlowFooter>
+
+      <ConfirmDialog
+        open={endConfirmOpen}
+        accent="ink"
+        icon={
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/8">
+            <TbPhoto size={36} className="text-ink" aria-hidden />
+          </span>
+        }
+        title="End the hangout?"
+        description={
+          <>
+            Everyone will stop capturing photos and move to the darkroom while
+            memories develop. This can&apos;t be undone.
+          </>
+        }
+        confirmLabel="Yes, end hangout"
+        cancelLabel="Keep capturing"
+        loading={ending}
+        error={endError}
+        dismissible={!ending}
+        onConfirm={() => void handleDevelopMemories()}
+        onCancel={handleCancelEndConfirm}
+      />
     </SetupFlowShell>
   );
 }

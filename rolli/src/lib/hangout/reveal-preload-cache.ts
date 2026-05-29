@@ -25,3 +25,14 @@ export function clearRevealPreload(hangoutId: string): void {
 export function hasRevealPreload(hangoutId: string): boolean {
   return cache.has(hangoutId);
 }
+
+export function isRevealPreloadUsable(
+  entry: RevealPreloadEntry | null | undefined,
+): entry is RevealPreloadEntry {
+  if (!entry) return false;
+
+  const photos = entry.perspectives.flatMap((perspective) => perspective.photos);
+  if (photos.length === 0) return true;
+
+  return photos.every((photo) => Boolean(photo.signedUrl));
+}

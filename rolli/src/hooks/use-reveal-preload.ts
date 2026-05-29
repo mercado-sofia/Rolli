@@ -4,10 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import {
-  hasRevealPreload,
   preloadRevealAmbientAudio,
   preloadRevealState,
 } from "@/lib/hangout/reveal-preload";
+import {
+  getRevealPreload,
+  isRevealPreloadUsable,
+} from "@/lib/hangout/reveal-preload-cache";
 
 type UseRevealPreloadOptions = {
   slug: string;
@@ -35,13 +38,15 @@ export function useRevealPreload({
     router.prefetch(`/h/${slug}/reveal`);
     preloadRevealAmbientAudio();
 
-    if (hasRevealPreload(preloadHangoutId)) return;
+    if (isRevealPreloadUsable(getRevealPreload(preloadHangoutId))) return;
 
     let cancelled = false;
     let timeoutId: number | undefined;
 
     async function attemptPreload() {
-      if (cancelled || hasRevealPreload(preloadHangoutId)) return;
+      if (cancelled || isRevealPreloadUsable(getRevealPreload(preloadHangoutId))) {
+        return;
+      }
 
       const ready = await preloadRevealState(preloadHangoutId, preloadSessionToken);
       if (cancelled || ready) return;

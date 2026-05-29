@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { clearRevealPreload, getRevealPreload } from "@/lib/hangout/reveal-preload-cache";
+import {
+  clearRevealPreload,
+  getRevealPreload,
+  isRevealPreloadUsable,
+} from "@/lib/hangout/reveal-preload-cache";
 import {
   finishReveal,
   getRevealState,
@@ -38,14 +42,17 @@ export function RevealExperience({
   onFooterChange,
 }: RevealExperienceProps) {
   const preloaded = getRevealPreload(hangoutId);
+  const usablePreload = isRevealPreloadUsable(preloaded) ? preloaded : null;
   const [perspectives, setPerspectives] = useState<RevealPerspective[]>(
-    preloaded?.perspectives ?? [],
+    usablePreload?.perspectives ?? [],
   );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(!preloaded);
+  const [loading, setLoading] = useState(!usablePreload);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [signedAt, setSignedAt] = useState<number | null>(preloaded?.signedAt ?? null);
+  const [signedAt, setSignedAt] = useState<number | null>(
+    usablePreload?.signedAt ?? null,
+  );
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
@@ -75,7 +82,9 @@ export function RevealExperience({
       const cached = getRevealPreload(hangoutId);
       if (cached) {
         clearRevealPreload(hangoutId);
-        return;
+        if (isRevealPreloadUsable(cached)) {
+          return;
+        }
       }
     }
 

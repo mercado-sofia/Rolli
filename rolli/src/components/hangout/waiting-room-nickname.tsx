@@ -12,7 +12,7 @@ export function WaitingRoomNickname({ nickname }: WaitingRoomNicknameProps) {
   const [visible, setVisible] = useState(false);
 
   return (
-    <div className="flex justify-between gap-4">
+    <div className="flex items-center justify-between gap-4">
       <dt className="shrink-0 text-muted">Your nickname</dt>
       <dd className="max-w-[60%] text-right">
         {visible ? (
