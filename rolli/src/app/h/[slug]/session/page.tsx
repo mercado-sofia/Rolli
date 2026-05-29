@@ -194,7 +194,7 @@ export default function SessionPage() {
               SETUP_FLOW_MAIN_CENTER_CLASS,
             )}
           >
-            <div className="flex w-full max-w-md flex-col items-center gap-6">
+            <div className="flex w-full max-w-md flex-col items-center gap-10 sm:gap-12">
               <ElapsedTimer startedAt={displayHangout.startedAt} />
 
               <div className="flex flex-col items-center gap-4 sm:gap-5">
@@ -216,13 +216,7 @@ export default function SessionPage() {
         </div>
       </main>
 
-      <SetupFlowFooter
-        hint={
-          isFilmKeeper
-            ? undefined
-            : "Capture your perspective — the Film Keeper will end the hangout when ready."
-        }
-      >
+      <SetupFlowFooter>
         {isFilmKeeper && (
           <>
             {endError && (

@@ -19,7 +19,7 @@ export function RolliGuideModal({ open, onClose }: RolliGuideModalProps) {
       titleId="rolli-guide-title"
       title={content.title}
       centerTitle
-      bodyClassName="px-8 sm:px-10"
+      bodyClassName="px-8 pb-8 sm:px-10 sm:pb-9"
       panelClassName="w-[min(100%,26rem)]"
     >
       <div className="space-y-5">

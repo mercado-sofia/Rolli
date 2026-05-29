@@ -18,6 +18,8 @@ type GuideModalShellProps = {
   bodyClassName?: string;
   /** Center title in the panel; close button floats over the corner. */
   centerTitle?: boolean;
+  /** Top-right × control — off when footer has a dismiss CTA (e.g. session start guide). */
+  showHeaderClose?: boolean;
 };
 
 export function GuideModalCloseButton({ onClose }: { onClose: () => void }) {
@@ -51,6 +53,7 @@ export function GuideModalShell({
   panelClassName,
   bodyClassName,
   centerTitle = false,
+  showHeaderClose = true,
 }: GuideModalShellProps) {
   const { dialogRef, requestClose, handleDialogClose, handleCancel } =
     useGuideDialog(open, onClose);
@@ -95,7 +98,9 @@ export function GuideModalShell({
           )}
           onClick={handlePanelClick}
         >
-          <GuideModalCloseButton onClose={requestClose} />
+          {showHeaderClose ? (
+            <GuideModalCloseButton onClose={requestClose} />
+          ) : null}
 
           <div
             className={cn(
@@ -107,7 +112,8 @@ export function GuideModalShell({
               id={titleId}
               className={cn(
                 "font-display text-xl leading-snug text-ink",
-                centerTitle ? "text-center" : "pr-10",
+                centerTitle && "text-center",
+                showHeaderClose && !centerTitle && "pr-10",
               )}
             >
               {title}

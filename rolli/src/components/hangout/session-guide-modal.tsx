@@ -17,6 +17,7 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
     <GuideModalShell
       open={open}
       onClose={onClose}
+      showHeaderClose={false}
       titleId="session-guide-title"
       title={content.title}
       footer={
@@ -25,8 +26,8 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
           onClick={onClose}
           className={cn(
             "flex h-12 w-full items-center justify-center rounded-2xl",
-            "bg-gradient-pastel text-sm font-semibold text-white",
-            "transition-all hover:brightness-[1.03] active:scale-[0.99]",
+            "bg-pink-accent text-sm font-semibold text-white",
+            "transition-all hover:bg-pink-accent/90 active:scale-[0.99]",
           )}
         >
           {content.primaryLabel}

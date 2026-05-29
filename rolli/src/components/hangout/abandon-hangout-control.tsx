@@ -96,16 +96,17 @@ export function AbandonHangoutControl({
             triggerVariant === "pill"
               ? [
                   "touch-manipulation",
-                  "flex w-full min-w-0 items-center justify-center rounded-full border border-pink-accent bg-white px-2",
-                  "text-sm font-medium text-pink-accent no-underline",
-                  "transition-colors hover:border-pink-deep hover:text-pink-deep active:bg-pink/5",
+                  "inline-flex w-full min-w-0 items-center justify-center rounded-full",
+                  "border border-pink-accent bg-white px-6 text-sm font-medium text-pink-accent no-underline",
+                  "outline-none transition-all duration-300 hover:-translate-y-1 active:translate-y-0",
+                  "hover:border-pink-deep hover:bg-pink/5 hover:text-pink-deep active:scale-[0.98]",
                 ]
               : [
                   "touch-manipulation",
-                  "flex min-h-12 w-full items-center justify-center rounded-full px-4",
+                  "inline-flex min-h-12 w-full items-center justify-center rounded-full px-4",
                   "text-sm font-medium text-muted underline underline-offset-4",
-                  "transition-colors active:bg-black/5 hover:text-pink-accent",
-                  "sm:inline-flex sm:min-h-11 sm:w-auto sm:rounded-none sm:px-0 sm:active:bg-transparent",
+                  "outline-none transition-all duration-300 hover:-translate-y-1 hover:text-pink-accent active:translate-y-0 active:scale-[0.98]",
+                  "sm:inline-flex sm:min-h-11 sm:w-auto sm:rounded-none sm:px-0 sm:hover:translate-y-0 sm:active:scale-100",
                 ],
             className,
           )}

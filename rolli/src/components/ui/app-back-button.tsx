@@ -19,12 +19,14 @@ export function AppBackButton({
   className,
 }: AppBackButtonProps) {
   const buttonClass = cn(
-    "flex h-9 w-9 items-center justify-center rounded-full bg-[#F8F8F8] outline-none transition-colors hover:bg-[#F0F0F0] active:scale-95 focus:outline-none focus-visible:outline-none",
+    "flex h-9 w-9 items-center justify-center rounded-full border border-black/8 bg-white",
+    "text-ink outline-none transition-colors hover:bg-[#fafafa] active:scale-95",
+    "focus:outline-none focus-visible:outline-none",
     className,
   );
 
   const icon = (
-    <IoChevronBackOutline size={22} className="text-black" aria-hidden />
+    <IoChevronBackOutline size={22} className="text-ink" aria-hidden />
   );
 
   if (backHref) {
