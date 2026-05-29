@@ -137,21 +137,6 @@ export default function DevelopingPage() {
                 Every anonymous perspective is being prepared for the big reveal.
               </p>
             </Card>
-
-            <Card border="neutral">
-              <dl className="space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="shrink-0 text-muted">Your nickname</dt>
-                  <dd className="text-right font-medium text-ink">
-                    {participant.nickname}
-                  </dd>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <dt className="text-muted">Status</dt>
-                  <dd className="font-medium capitalize text-ink">developing</dd>
-                </div>
-              </dl>
-            </Card>
           </div>
         </div>
       </main>

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 
+import { RevealPhotoCarousel } from "@/components/hangout/reveal-photo-carousel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
@@ -22,6 +23,7 @@ export type SetupFlowFooterState = {
 
 type RevealExperienceProps = {
   hangoutId: string;
+  hangoutTitle: string;
   sessionToken: string;
   isFilmKeeper: boolean;
   onFinishReveal: (hangout: Hangout) => void;
@@ -30,6 +32,7 @@ type RevealExperienceProps = {
 
 export function RevealExperience({
   hangoutId,
+  hangoutTitle,
   sessionToken,
   isFilmKeeper,
   onFinishReveal,
@@ -162,7 +165,7 @@ export function RevealExperience({
 
     if (!isLastPerspective) {
       onFooterChange({
-        hint: "Swipe through each anonymous perspective.",
+        hint: "Swipe through photos, then continue to the next perspective.",
         children: (
           <Button
             type="button"
@@ -198,9 +201,7 @@ export function RevealExperience({
       return;
     }
 
-    onFooterChange({
-      hint: "Waiting for the Film Keeper to open the guessing phase…",
-    });
+    onFooterChange({});
   }, [
     currentIndex,
     finishError,
@@ -244,7 +245,7 @@ export function RevealExperience({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <AnimatePresence mode="wait">
         {current && (
           <motion.div
@@ -253,36 +254,26 @@ export function RevealExperience({
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: -12, filter: "blur(6px)" }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="space-y-4"
+            className="space-y-2"
           >
-            <Card className="text-center">
-              <p className="text-xs uppercase tracking-widest text-muted">
-                Anonymous perspective
-              </p>
-              <p className="font-display mt-2 text-3xl">{current.nickname}</p>
-            </Card>
+            <p className="truncate px-1 text-center text-sm leading-snug">
+              <span className="font-medium text-ink">{hangoutTitle}</span>
+              <span className="mx-1.5 text-muted" aria-hidden>
+                ·
+              </span>
+              <span className="font-display text-lg text-pink-highlight">
+                {current.nickname}
+              </span>
+              <span className="sr-only"> — anonymous perspective</span>
+            </p>
 
-            <div className="grid grid-cols-2 gap-3 md:gap-4">
-              {current.photos.map((photo) => (
-                <div
-                  key={photo.id}
-                  className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[#F8F8F8]"
-                >
-                  {photo.signedUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={photo.signedUrl}
-                      alt={`Memory from ${current.nickname}`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-muted">
-                      Unavailable
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+            {current.photos.length > 0 ? (
+              <RevealPhotoCarousel
+                key={current.participantId}
+                photos={current.photos}
+                perspectiveLabel={current.nickname}
+              />
+            ) : null}
 
             {current.photos.length === 0 && (
               <p className="text-center text-sm text-muted">

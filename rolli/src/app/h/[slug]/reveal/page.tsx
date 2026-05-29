@@ -96,11 +96,7 @@ export default function RevealPage() {
   return (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-        <SetupFlowHeader
-          showProgress={false}
-          title={displayHangout.title}
-          sublabel="Reveal"
-        />
+        <SetupFlowHeader showProgress={false} title="Reveal" sublabel="Anonymous perspectives" />
       </header>
 
       <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
@@ -111,6 +107,7 @@ export default function RevealPage() {
           />
           <RevealExperience
             hangoutId={displayHangout.id}
+            hangoutTitle={displayHangout.title}
             sessionToken={participant.sessionToken}
             isFilmKeeper={isFilmKeeper}
             onFinishReveal={handleFinishReveal}
