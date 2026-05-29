@@ -2,7 +2,7 @@ import { REVEAL_AMBIENT_MUSIC_SRC } from "@/lib/hangout/reveal-music";
 
 export const REVEAL_MUSIC_VOLUME = 0.55;
 /** Skip the intro — playback begins here on each fresh start. */
-export const REVEAL_MUSIC_START_SECONDS = 2;
+export const REVEAL_MUSIC_START_SECONDS = 1;
 
 let audio: HTMLAudioElement | null = null;
 

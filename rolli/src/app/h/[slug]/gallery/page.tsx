@@ -36,14 +36,12 @@ export default function GalleryPage() {
     isLoading,
   });
 
-  const isCompleted = displayHangout?.status === "completed";
   const showLoadingShell =
     !sessionHydrated ||
     isLoading ||
     !hasValidSession ||
     !participant ||
-    !displayHangout ||
-    !isCompleted;
+    !displayHangout;
 
   if (showLoadingShell) {
     return (
@@ -68,13 +66,10 @@ export default function GalleryPage() {
           </div>
         </main>
         <SetupFlowFooter
-          className="hidden md:block"
           hint={
             loadError
               ? loadError
-              : !isCompleted && displayHangout
-                ? "Taking you back to results…"
-                : "Loading gallery…"
+              : "Loading gallery…"
           }
         >
           <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />

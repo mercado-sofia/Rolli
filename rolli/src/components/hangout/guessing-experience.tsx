@@ -26,6 +26,8 @@ import type { RevealPerspective } from "@/types/reveal";
 export type SetupFlowFooterState = {
   hint?: string;
   children?: ReactNode;
+  /** True only when the server returned results (hangout is really completed). */
+  showGalleryButton?: boolean;
 };
 
 type GuessingExperienceProps = {
@@ -260,6 +262,15 @@ export function GuessingExperience({
     if (isCompleted && results) {
       onFooterChange({
         hint: "Browse every perspective in the memory gallery.",
+        showGalleryButton: true,
+      });
+      return;
+    }
+
+    if (isCompleted && loadError) {
+      onFooterChange({
+        hint:
+          "Results are not ready yet. The Film Keeper must tap Reveal results, then refresh this page.",
       });
       return;
     }

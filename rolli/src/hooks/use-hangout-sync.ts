@@ -28,6 +28,15 @@ export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) 
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!enabled || !slug || sessionHangout?.slug !== slug) return;
+
+    setLocalHangout((previous) => {
+      if (!previous) return sessionHangout;
+      return mergeHangoutUpdate(sessionHangout, previous);
+    });
+  }, [enabled, sessionHangout, slug]);
+
+  useEffect(() => {
     if (!enabled || !slug) return;
 
     let cancelled = false;

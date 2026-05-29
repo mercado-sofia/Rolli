@@ -125,13 +125,15 @@ export default function GuessingPage() {
       </main>
 
       <SetupFlowFooter hint={footer.hint}>
-        {isCompleted ? (
+        {footer.showGalleryButton ? (
           <>
             <Button href={hangoutGalleryPath(slug)} className={APP_PRIMARY_BUTTON_CLASS}>
               View memory gallery
             </Button>
             <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
           </>
+        ) : isCompleted ? (
+          <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
         ) : (
           footer.children
         )}

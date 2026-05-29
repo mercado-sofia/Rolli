@@ -8,7 +8,13 @@ import {
   useReducedMotion,
   useTransform,
 } from "framer-motion";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { flushSync } from "react-dom";
 
 import { cn } from "@/lib/utils";
 import type { RevealPhoto } from "@/types/reveal";
@@ -18,21 +24,21 @@ type RevealPhotoCarouselProps = {
   perspectiveLabel: string;
 };
 
-const SWIPE_DISTANCE_RATIO = 0.18;
-const SWIPE_VELOCITY_THRESHOLD = 180;
+const SWIPE_DISTANCE_RATIO = 0.2;
+const SWIPE_VELOCITY_THRESHOLD = 220;
 
 const SNAP_SPRING = {
   type: "spring" as const,
-  stiffness: 420,
-  damping: 36,
-  mass: 0.55,
+  stiffness: 480,
+  damping: 38,
+  mass: 0.45,
 };
 
 const EXIT_SPRING = {
   type: "spring" as const,
-  stiffness: 380,
-  damping: 34,
-  mass: 0.5,
+  stiffness: 520,
+  damping: 40,
+  mass: 0.4,
 };
 
 export function RevealPhotoCarousel({
@@ -44,7 +50,7 @@ export function RevealPhotoCarousel({
   const deckRef = useRef<HTMLDivElement>(null);
   const [deckWidth, setDeckWidth] = useState(0);
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-160, 0, 160], [-3.5, 0, 3.5]);
+  const rotate = useTransform(x, [-160, 0, 160], [-3, 0, 3]);
   const prefersReducedMotion = useReducedMotion();
 
   useLayoutEffect(() => {
@@ -59,6 +65,18 @@ export function RevealPhotoCarousel({
     return () => observer.disconnect();
   }, []);
 
+  const commitIndex = useCallback(
+    (direction: "next" | "prev") => {
+      flushSync(() => {
+        setIndex((current) =>
+          direction === "next" ? current + 1 : current - 1,
+        );
+      });
+      x.set(0);
+    },
+    [x],
+  );
+
   const advance = useCallback(
     async (direction: "next" | "prev", releaseVelocity = 0) => {
       if (isAnimating) return;
@@ -70,38 +88,30 @@ export function RevealPhotoCarousel({
       setIsAnimating(true);
 
       if (prefersReducedMotion) {
-        setIndex((current) =>
-          direction === "next" ? current + 1 : current - 1,
-        );
-        x.set(0);
+        commitIndex(direction);
         setIsAnimating(false);
         return;
       }
 
       const width = deckWidth || deckRef.current?.offsetWidth || 300;
-      const exitX =
+      const exitX = direction === "next" ? -(width + 40) : width + 40;
+      const currentX = x.get();
+      const alreadyPastExit =
         direction === "next"
-          ? -(width + 48)
-          : width + 48;
-      const velocityBoost = Math.min(Math.abs(releaseVelocity) * 0.08, 120);
-      const targetExit =
-        exitX + (direction === "next" ? -velocityBoost : velocityBoost);
+          ? currentX <= exitX * 0.65
+          : currentX >= exitX * 0.65;
 
-      await animate(x, targetExit, {
-        ...EXIT_SPRING,
-        velocity: releaseVelocity,
-      });
+      if (!alreadyPastExit) {
+        await animate(x, exitX, {
+          ...EXIT_SPRING,
+          velocity: releaseVelocity,
+        });
+      }
 
-      const enterFrom = direction === "next" ? width * 0.12 : -width * 0.12;
-      x.set(enterFrom);
-      setIndex((current) =>
-        direction === "next" ? current + 1 : current - 1,
-      );
-
-      await animate(x, 0, SNAP_SPRING);
+      commitIndex(direction);
       setIsAnimating(false);
     },
-    [deckWidth, index, isAnimating, photos.length, prefersReducedMotion, x],
+    [commitIndex, deckWidth, index, isAnimating, photos.length, prefersReducedMotion, x],
   );
 
   const snapBack = useCallback(() => {
@@ -121,13 +131,14 @@ export function RevealPhotoCarousel({
 
       const width = deckWidth || deckRef.current?.offsetWidth || 300;
       const offsetThreshold = width * SWIPE_DISTANCE_RATIO;
-      const { offset, velocity } = info;
+      const dragX = x.get();
+      const { velocity } = info;
 
       const swipedNext =
-        offset.x <= -offsetThreshold ||
+        dragX <= -offsetThreshold ||
         velocity.x <= -SWIPE_VELOCITY_THRESHOLD;
       const swipedPrev =
-        offset.x >= offsetThreshold ||
+        dragX >= offsetThreshold ||
         velocity.x >= SWIPE_VELOCITY_THRESHOLD;
 
       if (swipedNext && index < photos.length - 1) {
@@ -142,17 +153,18 @@ export function RevealPhotoCarousel({
 
       snapBack();
     },
-    [advance, deckWidth, index, isAnimating, photos.length, snapBack],
+    [advance, deckWidth, index, isAnimating, photos.length, snapBack, x],
   );
 
   if (photos.length === 0) return null;
 
-  const dragEnabled = photos.length > 1 && !prefersReducedMotion && !isAnimating;
+  const dragEnabled =
+    photos.length > 1 && !prefersReducedMotion && !isAnimating;
   const currentPhoto = photos[index];
   const prevPhoto = index > 0 ? photos[index - 1] : null;
   const nextPhoto =
     index < photos.length - 1 ? photos[index + 1] : null;
-  const dragLimit = Math.max(deckWidth * 0.45, 120);
+  const dragLimit = Math.max(deckWidth * 0.5, 140);
 
   return (
     <div
@@ -182,6 +194,7 @@ export function RevealPhotoCarousel({
           ) : null}
 
           <motion.div
+            key={currentPhoto.id}
             className={cn(
               "absolute inset-0 z-10 touch-none",
               dragEnabled && "cursor-grab active:cursor-grabbing",
@@ -189,9 +202,8 @@ export function RevealPhotoCarousel({
             style={{ x, rotate, touchAction: dragEnabled ? "none" : "auto" }}
             drag={dragEnabled ? "x" : false}
             dragConstraints={{ left: -dragLimit, right: dragLimit }}
-            dragElastic={0.35}
+            dragElastic={0.28}
             dragMomentum={false}
-            dragTransition={{ bounceStiffness: 600, bounceDamping: 28 }}
             onDragEnd={dragEnabled ? handleDragEnd : undefined}
           >
             <RevealPhotoCard
