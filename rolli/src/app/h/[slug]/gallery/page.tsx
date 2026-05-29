@@ -18,6 +18,7 @@ import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { useSessionHydrated } from "@/hooks/use-session-hydrated";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +26,8 @@ export default function GalleryPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
 
-  const { displayHangout, isLoading } = useDisplayHangout(slug);
+  const sessionHydrated = useSessionHydrated();
+  const { displayHangout, isLoading, loadError } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({
@@ -34,13 +36,16 @@ export default function GalleryPage() {
     isLoading,
   });
 
-  if (
+  const isCompleted = displayHangout?.status === "completed";
+  const showLoadingShell =
+    !sessionHydrated ||
     isLoading ||
     !hasValidSession ||
     !participant ||
     !displayHangout ||
-    displayHangout.status !== "completed"
-  ) {
+    !isCompleted;
+
+  if (showLoadingShell) {
     return (
       <SetupFlowShell>
         <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
@@ -62,7 +67,16 @@ export default function GalleryPage() {
             </div>
           </div>
         </main>
-        <SetupFlowFooter className="hidden md:block" hint="Loading gallery…">
+        <SetupFlowFooter
+          className="hidden md:block"
+          hint={
+            loadError
+              ? loadError
+              : !isCompleted && displayHangout
+                ? "Taking you back to results…"
+                : "Loading gallery…"
+          }
+        >
           <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
         </SetupFlowFooter>
       </SetupFlowShell>

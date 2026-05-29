@@ -33,7 +33,8 @@ export function normalizeHangoutPath(path: string): string {
   return path;
 }
 
-function isCompletedPhasePath(slug: string, currentPath: string): boolean {
+/** Results + memory gallery routes allowed while hangout status is `completed`. */
+export function isCompletedPhasePath(slug: string, currentPath: string): boolean {
   const path = normalizeHangoutPath(currentPath);
   return (
     path === `/h/${slug}${GUESSING_PATH_SUFFIX}` ||

@@ -118,7 +118,7 @@ export default function GuessingPage() {
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
             isFilmKeeper={isFilmKeeper}
-            onHangoutCompleted={() => void handleHangoutCompleted()}
+            onHangoutCompleted={(hangout) => void handleHangoutCompleted(hangout)}
             onFooterChange={setFooter}
           />
         </div>

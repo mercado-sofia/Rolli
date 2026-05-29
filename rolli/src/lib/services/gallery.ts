@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { signPhotoPerspectives } from "@/lib/hangout/signed-photo-urls";
 import { mapPerspectives } from "@/lib/services/map-perspectives";
-import { parseRpcError } from "@/lib/services/rpc-error";
+import { parseGalleryRpcError } from "@/lib/services/rpc-error";
 import type { RevealPerspective } from "@/types/reveal";
 
 type GalleryPerspectiveJson = {
@@ -26,7 +26,7 @@ export async function getGallery(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseGalleryRpcError(error) };
   }
 
   const payload = data as { perspectives: GalleryPerspectiveJson[] };
