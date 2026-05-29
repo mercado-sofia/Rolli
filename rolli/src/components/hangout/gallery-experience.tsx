@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { APP_PHOTO_GRID_CLASS } from "@/lib/app-page-layout";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
 import { getGallery, signGalleryPhotoUrls } from "@/lib/hangout/gallery";
@@ -260,7 +261,7 @@ export function GalleryExperience({
           {filteredPerspectives.map((perspective) => (
             <div key={perspective.participantId} className="space-y-3">
               <p className="font-medium text-ink">{perspective.nickname}</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className={APP_PHOTO_GRID_CLASS}>
                 {perspective.photos.map((photo, index) => (
                   <div
                     key={photo.id}

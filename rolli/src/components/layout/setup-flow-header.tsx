@@ -34,8 +34,13 @@ export function SetupFlowHeader({
 
   return (
     <header className={className}>
-      <div className="relative flex items-start justify-center">
-        <div className="absolute left-0 top-0">
+      <div
+        className={cn(
+          "relative flex items-start justify-center",
+          "md:grid md:grid-cols-[2.5rem_1fr_2.5rem] md:items-center",
+        )}
+      >
+        <div className="absolute left-0 top-0 md:static md:justify-self-start">
           {backHref || onBack ? (
             <AppBackButton backHref={backHref} onBack={onBack} backLabel={backLabel} />
           ) : (
@@ -44,12 +49,12 @@ export function SetupFlowHeader({
         </div>
 
         {showProgress ? (
-          <div className="flex flex-col items-center gap-2.5 px-12">
+          <div className="flex flex-col items-center gap-2.5 px-12 md:px-0 md:justify-self-center">
             <p className="text-xs font-medium tabular-nums text-muted">
               {currentStep} / {totalSteps}
             </p>
             <div
-              className="relative h-1.5 w-28 overflow-hidden rounded-full bg-black/10 sm:w-32"
+              className="relative h-1.5 w-28 overflow-hidden rounded-full bg-black/10 sm:w-32 md:w-48 lg:w-56"
               role="progressbar"
               aria-valuenow={currentStep}
               aria-valuemin={1}
@@ -62,24 +67,26 @@ export function SetupFlowHeader({
               />
             </div>
           </div>
-        ) : null}
+        ) : (
+          <div className="hidden md:block" aria-hidden />
+        )}
       </div>
 
       <div
         className={cn(
           "text-center",
-          showProgress ? "mt-12 sm:mt-14" : "mt-8 sm:mt-10",
+          showProgress ? "mt-12 sm:mt-14 md:mt-8 md:text-left" : "mt-8 sm:mt-10 md:mt-6 md:text-left",
         )}
       >
         <h1
           className={cn(
-            "font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight",
+            "font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight md:text-[2.5rem] lg:text-[2.75rem]",
             titleTone === "ink" ? "text-ink" : "text-pink-highlight",
           )}
         >
           {title}
         </h1>
-        <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+        <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted md:text-xs">
           {sublabel}
         </p>
       </div>

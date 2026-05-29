@@ -188,7 +188,7 @@ export function RevealExperience({
               <p className="font-display mt-2 text-3xl">{current.nickname}</p>
             </Card>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               {current.photos.map((photo) => (
                 <div
                   key={photo.id}

@@ -1,9 +1,23 @@
 import { type ReactNode } from "react";
 
-import { AppPageContent } from "@/components/layout/app-page-content";
 import { MobileShell } from "@/components/layout/mobile-shell";
-import { APP_PAGE_STACK_GAP } from "@/lib/app-page-layout";
+import { APP_CONTENT_MARGIN_X, APP_PAGE_STACK_GAP } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
+
+type AppPageContentProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+function AppPageContent({ children, className }: AppPageContentProps) {
+  return (
+    <div
+      className={cn("flex w-full min-w-0 flex-col", APP_CONTENT_MARGIN_X, className)}
+    >
+      {children}
+    </div>
+  );
+}
 
 type AppScrollShellProps = {
   children: ReactNode;

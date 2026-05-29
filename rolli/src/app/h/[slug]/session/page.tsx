@@ -77,7 +77,7 @@ export default function SessionPage() {
     <AppScrollShell>
       <div>
         <p className="text-sm font-medium text-muted">Active hangout</p>
-        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink">
+        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink md:text-3xl">
           {displayHangout.title}
         </h1>
       </div>

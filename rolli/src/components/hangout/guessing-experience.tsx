@@ -181,7 +181,7 @@ export function GuessingExperience({
       <div className="space-y-6">
         <div className="text-center">
           <p className="text-sm font-medium text-muted">Results</p>
-          <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
+          <h2 className="font-display mt-1 text-2xl text-ink md:text-3xl">{hangoutTitle}</h2>
           <p className="mt-2 text-sm text-muted">
             You matched {results.myScore.correct} of {results.myScore.total}{" "}
             perspectives correctly.
@@ -232,8 +232,8 @@ export function GuessingExperience({
     <div className="min-w-0 space-y-6">
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Guessing phase</p>
-        <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
-        <p className="mt-2 text-sm text-muted">
+        <h2 className="font-display mt-1 text-2xl text-ink md:text-3xl">{hangoutTitle}</h2>
+        <p className="mt-2 text-sm text-muted md:text-base">
           Match each nickname to a real name. Your guesses stay private.
         </p>
       </div>

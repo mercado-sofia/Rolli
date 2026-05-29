@@ -5,7 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { InviteLinkCard } from "@/components/hangout/invite-link-card";
 import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
-import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+} from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
@@ -13,6 +20,7 @@ import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { buildInviteUrl } from "@/lib/hangout/invite";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { cn } from "@/lib/utils";
 
 export default function HangoutSharePage() {
   const params = useParams<{ slug: string }>();
@@ -40,9 +48,8 @@ export default function HangoutSharePage() {
   const waitingPath = `/h/${slug}/waiting`;
 
   return (
-    <SetupFlowShell
-      hint="Copy the link and send it to friends before you start."
-      header={
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_CLASS}>
         <SetupFlowHeader
           currentStep={setupFlowSteps.createLinkReady}
           totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -51,8 +58,23 @@ export default function HangoutSharePage() {
           title="Ready to roll!"
           sublabel="Share with your friends"
         />
-      }
-      footer={
+      </header>
+
+      <main
+        className={cn(
+          SETUP_FLOW_MAIN_CLASS,
+          SETUP_FLOW_MAIN_CENTER_CLASS,
+        )}
+      >
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <InviteLinkCard
+            inviteUrl={buildInviteUrl(slug)}
+            hangoutTitle={displayHangout.title}
+          />
+        </div>
+      </main>
+
+      <SetupFlowFooter hint="Copy the link and send it to friends before you start.">
         <Button
           type="button"
           onClick={() => router.push(waitingPath)}
@@ -60,12 +82,7 @@ export default function HangoutSharePage() {
         >
           Back to waiting room
         </Button>
-      }
-    >
-      <InviteLinkCard
-        inviteUrl={buildInviteUrl(slug)}
-        hangoutTitle={displayHangout.title}
-      />
+      </SetupFlowFooter>
     </SetupFlowShell>
   );
 }

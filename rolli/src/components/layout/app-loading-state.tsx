@@ -1,4 +1,4 @@
-import { AppScrollShell } from "@/components/layout/app-scroll-shell";
+﻿import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 
 type AppLoadingStateProps = {
   message?: string;
@@ -7,7 +7,7 @@ type AppLoadingStateProps = {
 export function AppLoadingState({ message = "Loading…" }: AppLoadingStateProps) {
   return (
     <AppScrollShell centered>
-      <p className="text-center text-base text-muted">{message}</p>
+      <p className="text-center text-base text-muted md:text-lg">{message}</p>
     </AppScrollShell>
   );
 }

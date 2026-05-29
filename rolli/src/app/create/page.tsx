@@ -8,13 +8,21 @@ import { z } from "zod";
 
 import { InviteLinkCard } from "@/components/hangout/invite-link-card";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
-import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+} from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { createHangoutWithKeeper } from "@/lib/hangout/hangouts";
 import { buildInviteUrl } from "@/lib/hangout/invite";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-page-layout";
+import { cn } from "@/lib/utils";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { useSessionStore } from "@/store/session-store";
 
@@ -89,9 +97,8 @@ export default function CreatePage() {
 
   if (created) {
     return (
-      <SetupFlowShell
-        hint="Share the link with friends, then enter when you're ready."
-        header={
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_CLASS}>
           <SetupFlowHeader
             currentStep={setupFlowSteps.createLinkReady}
             totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -103,8 +110,29 @@ export default function CreatePage() {
             title="Ready to roll!"
             sublabel="Share with your friends"
           />
-        }
-        footer={
+        </header>
+
+        <main
+          className={cn(
+            SETUP_FLOW_MAIN_CLASS,
+            SETUP_FLOW_MAIN_CENTER_CLASS,
+          )}
+        >
+          <div
+            className={cn(
+              SETUP_FLOW_MAIN_INNER_CLASS,
+              "w-full",
+              APP_SETUP_FORM_MAX_WIDTH,
+            )}
+          >
+            <InviteLinkCard
+              inviteUrl={created.inviteUrl}
+              hangoutTitle={created.title}
+            />
+          </div>
+        </main>
+
+        <SetupFlowFooter hint="Share the link with friends, then enter when you're ready.">
           <Button
             type="button"
             onClick={enterWaitingRoom}
@@ -112,12 +140,7 @@ export default function CreatePage() {
           >
             Enter waiting room
           </Button>
-        }
-      >
-        <InviteLinkCard
-          inviteUrl={created.inviteUrl}
-          hangoutTitle={created.title}
-        />
+        </SetupFlowFooter>
       </SetupFlowShell>
     );
   }
@@ -126,13 +149,8 @@ export default function CreatePage() {
     step === 1 ? setupFlowSteps.createTitle : setupFlowSteps.createIdentity;
 
   return (
-    <SetupFlowShell
-      hint={
-        step === 1
-          ? "Something your friends will recognize works best."
-          : "Only your nickname shows until the hangout ends."
-      }
-      header={
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_CLASS}>
         <SetupFlowHeader
           currentStep={currentStep}
           totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -144,9 +162,71 @@ export default function CreatePage() {
             step === 1 ? "Name your hangout" : "Set your anonymous identity"
           }
         />
-      }
-      footer={
-        step === 1 ? (
+      </header>
+
+      <main
+        className={cn(
+          SETUP_FLOW_MAIN_CLASS,
+          SETUP_FLOW_MAIN_CENTER_CLASS,
+        )}
+      >
+        <div
+          className={cn(
+            SETUP_FLOW_MAIN_INNER_CLASS,
+            "flex w-full flex-col gap-6",
+            APP_SETUP_FORM_MAX_WIDTH,
+          )}
+        >
+          <SetupFormCard>
+            <form
+              id={CREATE_FORM_ID}
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-6"
+            >
+              {step === 1 ? (
+                <Field
+                  id="title"
+                  label="Hangout title"
+                  placeholder="2AM McDo Recovery"
+                  error={errors.title?.message}
+                  {...register("title")}
+                />
+              ) : (
+                <>
+                  <Field
+                    id="nickname"
+                    label="Anonymous nickname"
+                    placeholder="Enter nickname here"
+                    error={errors.nickname?.message}
+                    {...register("nickname")}
+                  />
+                  <Field
+                    id="realName"
+                    label="Real name (hidden)"
+                    placeholder="Enter real name here"
+                    error={errors.realName?.message}
+                    {...register("realName")}
+                  />
+                </>
+              )}
+              {submitError && (
+                <p className="rounded-2xl bg-pink/10 px-4 py-3 text-center text-[13px] text-pink-accent">
+                  {submitError}
+                </p>
+              )}
+            </form>
+          </SetupFormCard>
+        </div>
+      </main>
+
+      <SetupFlowFooter
+        hint={
+          step === 1
+            ? "Something your friends will recognize works best."
+            : "Only your nickname shows until the hangout ends."
+        }
+      >
+        {step === 1 ? (
           <Button
             type="button"
             onClick={handleProceedToIdentityStep}
@@ -164,50 +244,8 @@ export default function CreatePage() {
           >
             {isSubmitting ? "Creating…" : "Generate link"}
           </Button>
-        )
-      }
-    >
-      <div className="flex w-full flex-col gap-6">
-        <SetupFormCard>
-        <form
-          id={CREATE_FORM_ID}
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6"
-        >
-          {step === 1 ? (
-            <Field
-              id="title"
-              label="Hangout title"
-              placeholder="2AM McDo Recovery"
-              error={errors.title?.message}
-              {...register("title")}
-            />
-          ) : (
-            <>
-              <Field
-                id="nickname"
-                label="Anonymous nickname"
-                placeholder="Enter nickname here"
-                error={errors.nickname?.message}
-                {...register("nickname")}
-              />
-              <Field
-                id="realName"
-                label="Real name (hidden)"
-                placeholder="Enter real name here"
-                error={errors.realName?.message}
-                {...register("realName")}
-              />
-            </>
-          )}
-          {submitError && (
-            <p className="rounded-2xl bg-pink/10 px-4 py-3 text-center text-[13px] text-pink-accent">
-              {submitError}
-            </p>
-          )}
-        </form>
-      </SetupFormCard>
-      </div>
+        )}
+      </SetupFlowFooter>
     </SetupFlowShell>
   );
 }

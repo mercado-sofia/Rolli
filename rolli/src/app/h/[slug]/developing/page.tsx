@@ -71,7 +71,7 @@ export default function DevelopingPage() {
     <AppScrollShell>
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Hangout ended</p>
-        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink">
+        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink md:text-3xl">
           {displayHangout.title}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted">

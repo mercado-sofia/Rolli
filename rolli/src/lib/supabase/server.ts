@@ -19,7 +19,7 @@ export async function createServerSupabaseClient() {
         return cookieStore.getAll();
       },
       setAll() {
-        // Read-only usage (metadata / OG generation).
+        // Read-only usage (e.g. server-side metadata).
       },
     },
   });

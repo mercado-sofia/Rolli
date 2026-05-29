@@ -8,8 +8,15 @@ import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-cont
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
 import { AppLoadingState } from "@/components/layout/app-loading-state";
-import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+} from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
@@ -83,11 +90,8 @@ export default function WaitingRoomPage() {
   const hint = getWaitingHint(isFilmKeeper, canStart);
 
   return (
-    <SetupFlowShell
-      contentAlign="upper"
-      headerVariant="compact"
-      hint={hint}
-      header={
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           showProgress={false}
           title={displayHangout.title}
@@ -95,9 +99,59 @@ export default function WaitingRoomPage() {
           backHref={hangoutSharePath(slug)}
           backLabel="Back to invite link"
         />
-      }
-      footer={
-        isFilmKeeper ? (
+      </header>
+
+      <main
+        className={cn(
+          SETUP_FLOW_MAIN_CLASS,
+          SETUP_FLOW_MAIN_CENTER_CLASS,
+        )}
+      >
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start md:gap-6">
+            {loadError && (
+              <p className="text-center text-sm text-pink md:col-span-2">
+                {loadError}
+              </p>
+            )}
+
+            <Card border="neutral" className="text-center md:min-h-48">
+              <HangoutCardIcon icon={LuMoon} />
+              <p className="font-display mt-4 text-2xl leading-snug">
+                {participantCount}{" "}
+                {participantCount === 1
+                  ? "friend is in the room"
+                  : "friends are in the room"}
+              </p>
+            </Card>
+
+            <Card border="neutral">
+              <dl className="space-y-3 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="shrink-0 text-muted">Your nickname</dt>
+                  <dd className="max-w-[60%] text-right font-medium wrap-break-word text-ink">
+                    {participant.nickname}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">Participants</dt>
+                  <dd className="font-medium text-ink">
+                    {participantCount} / {HANGOUT_LIMITS.maxParticipants}
+                  </dd>
+                </div>
+                {isFilmKeeper && (
+                  <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
+                    You are the Film Keeper
+                  </div>
+                )}
+              </dl>
+            </Card>
+          </div>
+        </div>
+      </main>
+
+      <SetupFlowFooter hint={hint}>
+        {isFilmKeeper ? (
           <>
             {startError && (
               <p className="text-center text-sm text-pink">{startError}</p>
@@ -130,46 +184,8 @@ export default function WaitingRoomPage() {
             sessionToken={participant.sessionToken}
             className={APP_PRIMARY_BUTTON_CLASS}
           />
-        )
-      }
-    >
-      <div className="flex flex-col gap-6">
-        {loadError && (
-          <p className="text-center text-sm text-pink">{loadError}</p>
         )}
-
-        <Card border="neutral" className="text-center">
-          <HangoutCardIcon icon={LuMoon} />
-          <p className="font-display mt-4 text-2xl leading-snug">
-            {participantCount}{" "}
-            {participantCount === 1
-              ? "friend is in the room"
-              : "friends are in the room"}
-          </p>
-        </Card>
-
-        <Card border="neutral">
-          <dl className="space-y-3 text-sm">
-            <div className="flex justify-between gap-4">
-              <dt className="shrink-0 text-muted">Your nickname</dt>
-              <dd className="max-w-[60%] text-right font-medium wrap-break-word text-ink">
-                {participant.nickname}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-muted">Participants</dt>
-              <dd className="font-medium text-ink">
-                {participantCount} / {HANGOUT_LIMITS.maxParticipants}
-              </dd>
-            </div>
-            {isFilmKeeper && (
-              <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
-                You are the Film Keeper
-              </div>
-            )}
-          </dl>
-        </Card>
-      </div>
+      </SetupFlowFooter>
     </SetupFlowShell>
   );
 }

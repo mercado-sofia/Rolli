@@ -1,120 +1,69 @@
-import { type CSSProperties, type ReactNode } from "react";
+import { type ReactNode } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import {
-  APP_ACTION_PADDING_X,
-  APP_CONTENT_PADDING_X,
+  SETUP_FLOW_FOOTER_CLASS,
+  SETUP_FLOW_FOOTER_HINT_CLASS,
+  SETUP_FLOW_FOOTER_INNER_CLASS,
+  SETUP_FLOW_HEADER_CLASS,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_INNER_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+  SETUP_FLOW_SHELL_CLASS,
 } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
+export {
+  SETUP_FLOW_FOOTER_CLASS,
+  SETUP_FLOW_HEADER_CLASS,
+  SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+};
+
 type SetupFlowShellProps = {
-  header: ReactNode;
   children: ReactNode;
-  /** Short instructional line above the footer button */
-  hint?: string;
-  footer?: ReactNode;
-  /** Vertical placement of middle content in the area between header and footer */
-  contentAlign?: "center" | "raised" | "upper";
-  /** `compact` = back + title only (waiting room); `default` includes step progress */
-  headerVariant?: "default" | "compact";
   className?: string;
 };
 
-/** Top clearance: safe-area + shell padding + header block (see SetupFlowHeader) */
-const OVERLAY_TOP_DEFAULT =
-  "calc(max(1.5rem, env(safe-area-inset-top, 0px)) + 11.5rem)";
-const OVERLAY_TOP_COMPACT =
-  "calc(max(1.5rem, env(safe-area-inset-top, 0px)) + 8.5rem)";
-
-/** Bottom clearance: safe-area + hint/button stack */
-const OVERLAY_BOTTOM = "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 9.5rem)";
-const OVERLAY_BOTTOM_WITH_HINT =
-  "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 12rem)";
-
-export function SetupFlowShell({
-  header,
-  children,
-  hint,
-  footer,
-  contentAlign = "center",
-  headerVariant = "default",
-  className,
-}: SetupFlowShellProps) {
-  const overlayTop =
-    headerVariant === "compact" ? OVERLAY_TOP_COMPACT : OVERLAY_TOP_DEFAULT;
-  const overlayBottom = hint ? OVERLAY_BOTTOM_WITH_HINT : OVERLAY_BOTTOM;
-
-  const mainJustify =
-    contentAlign === "upper"
-      ? "justify-start"
-      : contentAlign === "raised"
-        ? "justify-center pb-[5dvh]"
-        : "justify-center";
-
+/** Full-height setup page canvas — place header, main, and footer as normal siblings. */
+export function SetupFlowShell({ children, className }: SetupFlowShellProps) {
   return (
     <MobileShell
       variant="app"
-      className={cn(
-        "relative flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden py-0!",
-        className,
-      )}
+      className={cn(SETUP_FLOW_SHELL_CLASS, className)}
     >
-      {/* Main scroll region — padded to clear absolute header/footer overlays */}
-      <main
-        className={cn(
-          "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain",
-          APP_CONTENT_PADDING_X,
-          mainJustify,
-        )}
-        style={
-          {
-            paddingTop: overlayTop,
-            paddingBottom: overlayBottom,
-          } as CSSProperties
-        }
-      >
-        <div className="w-full py-2">{children}</div>
-      </main>
-
-      {/* Top overlay — back, step indicator, title (out of document flow) */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-x-0 top-0 z-10",
-          APP_CONTENT_PADDING_X,
-        )}
-      >
-        <div className="pointer-events-auto pt-[max(1.5rem,env(safe-area-inset-top))] sm:pt-8">
-          {header}
-        </div>
-      </div>
-
-      {/* Bottom overlay — hint + actions (out of document flow) */}
-      {(hint || footer) && (
-        <div
-          className={cn(
-            "pointer-events-none absolute inset-x-0 bottom-0 z-10",
-            APP_ACTION_PADDING_X,
-          )}
-        >
-          <div className="pointer-events-auto flex flex-col items-center pb-[max(2rem,env(safe-area-inset-bottom))] sm:pb-10">
-            {hint ? (
-              <p className="w-full max-w-md px-2 text-center text-sm leading-relaxed text-muted">
-                {hint}
-              </p>
-            ) : null}
-            {footer ? (
-              <div
-                className={cn(
-                  "flex w-full max-w-md flex-col items-center gap-3",
-                  hint ? "mt-6 sm:mt-8" : null,
-                )}
-              >
-                {footer}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      )}
+      <div className={SETUP_FLOW_INNER_CLASS}>{children}</div>
     </MobileShell>
+  );
+}
+
+type SetupFlowFooterProps = {
+  hint?: string;
+  children?: ReactNode;
+};
+
+/** Optional bottom bar (hint + actions) — same look as before, no slot API on the shell. */
+export function SetupFlowFooter({ hint, children }: SetupFlowFooterProps) {
+  if (!hint && !children) {
+    return null;
+  }
+
+  return (
+    <footer className={SETUP_FLOW_FOOTER_CLASS}>
+      <div className={SETUP_FLOW_FOOTER_INNER_CLASS}>
+        {hint ? <p className={SETUP_FLOW_FOOTER_HINT_CLASS}>{hint}</p> : null}
+        {children ? (
+          <div className="flex w-full flex-col items-stretch gap-3">
+            {children}
+          </div>
+        ) : null}
+      </div>
+    </footer>
   );
 }

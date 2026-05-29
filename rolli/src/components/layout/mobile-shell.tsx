@@ -1,6 +1,13 @@
 import { type ReactNode } from "react";
 
-import { APP_SAFE_BOTTOM, APP_SHELL_PY } from "@/lib/app-page-layout";
+import {
+  APP_SAFE_BOTTOM,
+  APP_SHELL_DESKTOP_FRAME,
+  APP_SHELL_DESKTOP_INSET,
+  APP_SHELL_MAX_WIDTH,
+  APP_SHELL_PADDING_X,
+  APP_SHELL_PY,
+} from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 type MobileShellProps = {
@@ -27,8 +34,14 @@ export function MobileShell({
 }: MobileShellProps) {
   const isApp = variant === "app";
   const shellPadding = isApp
-    ? cn("px-4", APP_SHELL_PY, APP_SAFE_BOTTOM)
+    ? cn(APP_SHELL_PADDING_X, APP_SHELL_PY, APP_SAFE_BOTTOM)
     : "px-4 py-8 sm:px-5";
+  const contentMaxWidth = isApp ? APP_SHELL_MAX_WIDTH : "max-w-md";
+  const desktopPanel =
+    isApp && fillViewport
+      ? cn(APP_SHELL_DESKTOP_INSET, APP_SHELL_DESKTOP_FRAME)
+      : null;
+
   return (
     <div
       className={cn(
@@ -44,13 +57,18 @@ export function MobileShell({
           className="pointer-events-none absolute inset-0 overflow-hidden"
           aria-hidden
         >
-          <div className="absolute -left-24 top-0 h-64 w-64 rounded-full bg-pink/15 blur-3xl" />
-          <div className="absolute -right-20 top-1/4 h-72 w-72 rounded-full bg-pink-highlight/10 blur-3xl" />
+          <div className="absolute -left-24 top-0 h-64 w-64 rounded-full bg-pink/15 blur-3xl md:-left-32 md:h-96 md:w-96 md:blur-[4rem]" />
+          <div className="absolute -right-20 top-1/4 h-72 w-72 rounded-full bg-pink-highlight/10 blur-3xl md:-right-28 md:top-[18%] md:h-md md:w-md md:blur-[5rem]" />
+          {isApp ? (
+            <div className="absolute bottom-0 left-1/2 hidden h-80 w-80 -translate-x-1/2 translate-y-1/3 rounded-full bg-lavender/20 blur-3xl md:block" />
+          ) : null}
         </div>
       )}
       <div
         className={cn(
-          "relative mx-auto flex w-full max-w-md min-w-0 flex-col",
+          "relative mx-auto flex w-full min-w-0 flex-col",
+          contentMaxWidth,
+          desktopPanel,
           fillViewport
             ? cn(
                 "min-h-dvh supports-[height:100dvh]:min-h-dvh",

@@ -2,25 +2,38 @@ import type { Metadata } from "next";
 
 import { InviteLanding } from "@/app/h/[slug]/invite-landing";
 import { APP_NAME } from "@/lib/constants";
-import { getInvitePreviewCopy } from "@/lib/hangout/invite-preview";
-import {
-  getInviteOgImageUrl,
-  getInvitePageUrl,
-} from "@/lib/metadata/site";
+import { getInvitePageUrl } from "@/lib/metadata/site";
 import { fetchHangoutBySlugServer } from "@/lib/services/hangouts-server";
 
 type InvitePageProps = {
   params: Promise<{ slug: string }>;
 };
 
+function getInviteMetadataCopy(hangoutTitle?: string): {
+  title: string;
+  description: string;
+} {
+  if (hangoutTitle) {
+    return {
+      title: `You're invited · ${hangoutTitle}`,
+      description: `Join "${hangoutTitle}" on ${APP_NAME} — anonymous photos, a delayed reveal, then guess who took each memory.`,
+    };
+  }
+
+  return {
+    title: `Join a ${APP_NAME} hangout`,
+    description:
+      "A cozy anonymous disposable camera for friends. Capture memories now, reveal identities later.",
+  };
+}
+
 export async function generateMetadata({
   params,
 }: InvitePageProps): Promise<Metadata> {
   const { slug } = await params;
   const { data: hangout } = await fetchHangoutBySlugServer(slug);
-  const copy = getInvitePreviewCopy(hangout?.title);
+  const copy = getInviteMetadataCopy(hangout?.title);
   const pageUrl = getInvitePageUrl(slug);
-  const ogImageUrl = getInviteOgImageUrl(slug);
 
   return {
     title: copy.title,
@@ -35,22 +48,11 @@ export async function generateMetadata({
       siteName: APP_NAME,
       type: "website",
       locale: "en_US",
-      images: [
-        {
-          url: ogImageUrl,
-          secureUrl: ogImageUrl,
-          width: 1200,
-          height: 630,
-          type: "image/jpeg",
-          alt: copy.title,
-        },
-      ],
     },
     twitter: {
-      card: "summary_large_image",
+      card: "summary",
       title: copy.title,
       description: copy.description,
-      images: [ogImageUrl],
     },
   };
 }

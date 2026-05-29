@@ -6,7 +6,14 @@ import { useEffect, useState } from "react";
 
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
-import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
+import {
+  SetupFlowFooter,
+  SetupFlowShell,
+  SETUP_FLOW_HEADER_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_INNER_CLASS,
+} from "@/components/layout/setup-flow-shell";
 import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { Button } from "@/components/ui/button";
 import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
@@ -14,6 +21,7 @@ import { hangoutParticipantPath } from "@/lib/hangout/routes";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { useSessionStore } from "@/store/session-store";
+import { cn } from "@/lib/utils";
 import type { Hangout } from "@/types/hangout";
 
 const INVITE_JOIN_FORM_ID = "invite-join-form";
@@ -130,9 +138,8 @@ export function InviteLanding() {
 
   if (error || !hangout) {
     return (
-      <SetupFlowShell
-        hint="Double-check the link or ask your Film Keeper for a new one."
-        header={
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_CLASS}>
           <SetupFlowHeader
             currentStep={1}
             totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -140,11 +147,22 @@ export function InviteLanding() {
             title="Link not found"
             sublabel="Invitation"
           />
-        }
-      >
-        <p className="text-center text-sm text-muted">
-          {error ?? "This hangout does not exist or the link is incorrect."}
-        </p>
+        </header>
+
+        <main
+          className={cn(
+            SETUP_FLOW_MAIN_CLASS,
+            SETUP_FLOW_MAIN_CENTER_CLASS,
+          )}
+        >
+          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+            <p className="text-center text-sm text-muted">
+              {error ?? "This hangout does not exist or the link is incorrect."}
+            </p>
+          </div>
+        </main>
+
+        <SetupFlowFooter hint="Double-check the link or ask your Film Keeper for a new one." />
       </SetupFlowShell>
     );
   }
@@ -157,13 +175,8 @@ export function InviteLanding() {
     const isCancelled = hangout.status === "cancelled";
 
     return (
-      <SetupFlowShell
-        hint={
-          isCancelled
-            ? "The Film Keeper cancelled this hangout before it started."
-            : "This hangout already started or ended — new guests can't join."
-        }
-        header={
+      <SetupFlowShell>
+        <header className={SETUP_FLOW_HEADER_CLASS}>
           <SetupFlowHeader
             currentStep={setupFlowSteps.inviteJoin}
             totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -171,27 +184,43 @@ export function InviteLanding() {
             title={hangout.title}
             sublabel="Invitation closed"
           />
-        }
-      >
-        <p className="text-center text-sm text-muted">
-          {isCancelled
-            ? "This hangout was abandoned. New guests cannot join."
-            : "This hangout has already started or ended. New guests cannot join."}
-        </p>
-        <Link
-          href="/"
-          className="mt-6 block text-center text-sm text-muted underline underline-offset-4"
+        </header>
+
+        <main
+          className={cn(
+            SETUP_FLOW_MAIN_CLASS,
+            SETUP_FLOW_MAIN_CENTER_CLASS,
+          )}
         >
-          Go home
-        </Link>
+          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+            <p className="text-center text-sm text-muted">
+              {isCancelled
+                ? "This hangout was abandoned. New guests cannot join."
+                : "This hangout has already started or ended. New guests cannot join."}
+            </p>
+            <Link
+              href="/"
+              className="mt-6 block text-center text-sm text-muted underline underline-offset-4"
+            >
+              Go home
+            </Link>
+          </div>
+        </main>
+
+        <SetupFlowFooter
+          hint={
+            isCancelled
+              ? "The Film Keeper cancelled this hangout before it started."
+              : "This hangout already started or ended — new guests can't join."
+          }
+        />
       </SetupFlowShell>
     );
   }
 
   return (
-    <SetupFlowShell
-      hint="Join with a nickname — your real name stays secret until reveal."
-      header={
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_CLASS}>
         <SetupFlowHeader
           currentStep={setupFlowSteps.inviteJoin}
           totalSteps={SETUP_FLOW_TOTAL_STEPS}
@@ -200,8 +229,25 @@ export function InviteLanding() {
           title={hangout.title}
           sublabel="You're invited"
         />
-      }
-      footer={
+      </header>
+
+      <main
+        className={cn(
+          SETUP_FLOW_MAIN_CLASS,
+          SETUP_FLOW_MAIN_CENTER_CLASS,
+        )}
+      >
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <JoinHangoutForm
+            slug={slug}
+            hangoutTitle={hangout.title}
+            formId={INVITE_JOIN_FORM_ID}
+            onSubmittingChange={setIsSubmitting}
+          />
+        </div>
+      </main>
+
+      <SetupFlowFooter hint="Join with a nickname — your real name stays secret until reveal.">
         <Button
           type="submit"
           form={INVITE_JOIN_FORM_ID}
@@ -210,14 +256,7 @@ export function InviteLanding() {
         >
           {isSubmitting ? "Joining…" : "Join hangout"}
         </Button>
-      }
-    >
-      <JoinHangoutForm
-        slug={slug}
-        hangoutTitle={hangout.title}
-        formId={INVITE_JOIN_FORM_ID}
-        onSubmittingChange={setIsSubmitting}
-      />
+      </SetupFlowFooter>
     </SetupFlowShell>
   );
 }

@@ -23,7 +23,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "p-6",
+        "p-6 md:p-7",
         gradient
           ? "rounded-3xl border border-lavender-deep/25 bg-gradient-pastel text-white"
           : border === "neutral"

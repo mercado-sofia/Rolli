@@ -1,11 +1,10 @@
 "use client";
 
 import { Check, Copy } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
-import { buildShareInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
 import { cn } from "@/lib/utils";
 
 type InviteLinkCardProps = {
@@ -16,18 +15,9 @@ type InviteLinkCardProps = {
 export function InviteLinkCard({ inviteUrl, hangoutTitle }: InviteLinkCardProps) {
   const [copied, setCopied] = useState(false);
 
-  const shareUrl = useMemo(() => {
-    const slug = extractSlugFromInviteLink(inviteUrl);
-    try {
-      return buildShareInviteUrl(slug, new URL(inviteUrl).origin);
-    } catch {
-      return buildShareInviteUrl(slug);
-    }
-  }, [inviteUrl]);
-
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(shareUrl);
+      await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -51,7 +41,7 @@ export function InviteLinkCard({ inviteUrl, hangoutTitle }: InviteLinkCardProps)
           "font-mono text-[13px] leading-relaxed text-ink",
         )}
       >
-        {shareUrl}
+        {inviteUrl}
       </div>
 
       <Button
