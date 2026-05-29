@@ -1,4 +1,3 @@
-import { REVEAL_AMBIENT_MUSIC_SRC } from "@/lib/hangout/reveal-music";
 import {
   clearRevealPreload,
   getRevealPreload,
@@ -40,16 +39,9 @@ export function preloadRevealImages(urls: string[]): Promise<void> {
   ).then(() => undefined);
 }
 
-let ambientAudioPreload: HTMLAudioElement | null = null;
-
-export function preloadRevealAmbientAudio(): void {
-  if (typeof window === "undefined") return;
-  if (ambientAudioPreload) return;
-
-  ambientAudioPreload = new Audio(REVEAL_AMBIENT_MUSIC_SRC);
-  ambientAudioPreload.preload = "auto";
-  ambientAudioPreload.load();
-}
+export {
+  preloadRevealAmbientAudio,
+} from "@/lib/hangout/reveal-ambient-audio-controller";
 
 export async function preloadRevealState(
   hangoutId: string,

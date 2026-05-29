@@ -30,6 +30,7 @@ import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
 import { preloadRevealState } from "@/lib/hangout/reveal-preload";
 import { beginRevealCountdown, startReveal } from "@/lib/hangout/reveal";
+import { playRevealAmbientAudio } from "@/lib/hangout/reveal-ambient-audio-controller";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -117,6 +118,8 @@ export default function DevelopingPage() {
 
   async function handleBeginCountdown() {
     if (!participant || !displayHangout || countdownActive) return;
+
+    void playRevealAmbientAudio();
 
     setStarting(true);
     setStartError(null);
