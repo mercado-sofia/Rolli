@@ -19,7 +19,7 @@ export function AppBackButton({
   className,
 }: AppBackButtonProps) {
   const buttonClass = cn(
-    "flex h-9 w-9 items-center justify-center rounded-full bg-[#F8F8F8] transition-colors hover:bg-[#F0F0F0] active:scale-95",
+    "flex h-9 w-9 items-center justify-center rounded-full bg-[#F8F8F8] outline-none transition-colors hover:bg-[#F0F0F0] active:scale-95 focus:outline-none focus-visible:outline-none",
     className,
   );
 

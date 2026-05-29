@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 
+import { APP_CONTAINER_SURFACE } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 type SetupFormCardProps = {
@@ -12,7 +13,8 @@ export function SetupFormCard({ children, className }: SetupFormCardProps) {
   return (
     <div
       className={cn(
-        "px-5 py-7 sm:rounded-[1.75rem] sm:border sm:border-black/6 sm:bg-white sm:px-6 sm:py-8",
+        APP_CONTAINER_SURFACE,
+        "rounded-[1.75rem] px-5 py-7 sm:px-6 sm:py-8",
         className,
       )}
     >

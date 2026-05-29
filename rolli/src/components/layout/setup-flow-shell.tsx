@@ -1,4 +1,4 @@
-import { type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import {
@@ -13,16 +13,23 @@ type SetupFlowShellProps = {
   /** Short instructional line above the footer button */
   hint?: string;
   footer?: ReactNode;
-  /** `raised` nudges content slightly above vertical center; default is true center */
-  contentAlign?: "center" | "raised";
+  /** Vertical placement of middle content in the area between header and footer */
+  contentAlign?: "center" | "raised" | "upper";
+  /** `compact` = back + title only (waiting room); `default` includes step progress */
+  headerVariant?: "default" | "compact";
   className?: string;
 };
 
-/** Scroll-safe clearance for absolute header/footer overlays (see SetupFlowHeader). */
-const OVERLAY_TOP = "13.25rem";
-const OVERLAY_TOP_SM = "14.25rem";
-const OVERLAY_BOTTOM = "11.5rem";
-const OVERLAY_BOTTOM_SM = "12.5rem";
+/** Top clearance: safe-area + shell padding + header block (see SetupFlowHeader) */
+const OVERLAY_TOP_DEFAULT =
+  "calc(max(1.5rem, env(safe-area-inset-top, 0px)) + 11.5rem)";
+const OVERLAY_TOP_COMPACT =
+  "calc(max(1.5rem, env(safe-area-inset-top, 0px)) + 8.5rem)";
+
+/** Bottom clearance: safe-area + hint/button stack */
+const OVERLAY_BOTTOM = "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 9.5rem)";
+const OVERLAY_BOTTOM_WITH_HINT =
+  "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 13.5rem)";
 
 export function SetupFlowShell({
   header,
@@ -30,39 +37,46 @@ export function SetupFlowShell({
   hint,
   footer,
   contentAlign = "center",
+  headerVariant = "default",
   className,
 }: SetupFlowShellProps) {
-  const isRaised = contentAlign === "raised";
+  const overlayTop =
+    headerVariant === "compact" ? OVERLAY_TOP_COMPACT : OVERLAY_TOP_DEFAULT;
+  const overlayBottom = hint ? OVERLAY_BOTTOM_WITH_HINT : OVERLAY_BOTTOM;
+
+  const mainJustify =
+    contentAlign === "upper"
+      ? "justify-start"
+      : contentAlign === "raised"
+        ? "justify-center pb-[5dvh]"
+        : "justify-center";
 
   return (
     <MobileShell
       variant="app"
       className={cn(
-        "relative grid h-dvh max-h-dvh min-h-0 overflow-hidden py-0!",
-        isRaised ? "grid-rows-[1.35fr_auto_0.65fr]" : "grid-rows-[1fr_auto_1fr]",
-        `[--setup-overlay-top:${OVERLAY_TOP}] [--setup-overlay-bottom:${OVERLAY_BOTTOM}]`,
-        `sm:[--setup-overlay-top:${OVERLAY_TOP_SM}] sm:[--setup-overlay-bottom:${OVERLAY_BOTTOM_SM}]`,
+        "relative flex h-dvh max-h-dvh min-h-0 flex-col overflow-hidden py-0!",
         className,
       )}
     >
-      {/* Equal-height spacers — header/footer are absolute and do not size these rows */}
-      <div className="min-h-0" aria-hidden />
-
-      {/* Middle — centered between spacers; raised uses slightly more space above */}
-      <div
+      {/* Main scroll region — padded to clear absolute header/footer overlays */}
+      <main
         className={cn(
-          "flex min-h-0 items-center justify-center",
+          "flex min-h-0 flex-1 flex-col overflow-y-auto",
           APP_CONTENT_INSET_X,
+          mainJustify,
         )}
+        style={
+          {
+            paddingTop: overlayTop,
+            paddingBottom: overlayBottom,
+          } as CSSProperties
+        }
       >
-        <div className="max-h-[calc(100dvh-var(--setup-overlay-top)-var(--setup-overlay-bottom))] w-full overflow-y-auto py-4">
-          {children}
-        </div>
-      </div>
+        <div className="w-full py-2">{children}</div>
+      </main>
 
-      <div className="min-h-0" aria-hidden />
-
-      {/* Top overlay — back, step indicator, title (out of grid flow) */}
+      {/* Top overlay — back, step indicator, title (out of document flow) */}
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 top-0 z-10",
@@ -74,7 +88,7 @@ export function SetupFlowShell({
         </div>
       </div>
 
-      {/* Bottom overlay — hint + actions (out of grid flow) */}
+      {/* Bottom overlay — hint + actions (out of document flow) */}
       {(hint || footer) && (
         <div
           className={cn(

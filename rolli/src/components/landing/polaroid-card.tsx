@@ -25,15 +25,31 @@ export const polaroids: Polaroid[] = [
   { rotate: "5deg", top: "30%", right: "-10%", bg: "#ede7f6", icon: "music", label: "live music" },
 ];
 
+const sizeStyles = {
+  xs: {
+    frame: "p-2 pb-5.5",
+    width: "62px",
+    photo: "h-12",
+    icon: 17,
+    label: "text-[7px]",
+  },
+  lg: {
+    frame: "p-3.5 pb-9",
+    width: "104px",
+    photo: "h-20",
+    icon: 28,
+    label: "text-[9px]",
+  },
+} as const;
+
 type PolaroidCardProps = {
   polaroid: Polaroid;
   index: number;
-  size?: "xs" | "sm" | "lg";
+  size: keyof typeof sizeStyles;
 };
 
-export function PolaroidCard({ polaroid, index, size = "sm" }: PolaroidCardProps) {
-  const isExtraSmall = size === "xs";
-  const isLarge = size === "lg";
+export function PolaroidCard({ polaroid, index, size }: PolaroidCardProps) {
+  const styles = sizeStyles[size];
 
   return (
     <motion.div
@@ -53,29 +69,20 @@ export function PolaroidCard({ polaroid, index, size = "sm" }: PolaroidCardProps
       }}
     >
       <div
-        className={`rounded-sm bg-white ${
-          isLarge ? "p-3.5 pb-9" : isExtraSmall ? "p-2 pb-5.5" : "p-2.5 pb-7"
-        }`}
+        className={`rounded-sm bg-white ${styles.frame}`}
         style={{
           boxShadow: "0 8px 24px rgba(180,120,160,0.18), 0 2px 8px rgba(0,0,0,0.07)",
-          width: isLarge ? "104px" : isExtraSmall ? "62px" : "80px",
+          width: styles.width,
         }}
       >
         <div
-          className={`flex w-full items-center justify-center rounded-[2px] ${
-            isLarge ? "h-20" : isExtraSmall ? "h-12" : "h-16"
-          }`}
+          className={`flex w-full items-center justify-center rounded-[2px] ${styles.photo}`}
           style={{ background: polaroid.bg }}
         >
-          <PolaroidIcon
-            iconKey={polaroid.icon}
-            size={isLarge ? 28 : isExtraSmall ? 17 : 22}
-          />
+          <PolaroidIcon iconKey={polaroid.icon} size={styles.icon} />
         </div>
         <p
-          className={`mt-1.5 text-center leading-tight text-pink-accent/70 ${
-            isLarge ? "text-[9px]" : isExtraSmall ? "text-[7px]" : "text-[8px]"
-          }`}
+          className={`mt-1.5 text-center leading-tight text-pink-accent/70 ${styles.label}`}
         >
           {polaroid.label}
         </p>

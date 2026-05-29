@@ -1,50 +1,16 @@
 import { createClient } from "@/lib/supabase/client";
 import { signPhotoPerspectives } from "@/lib/hangout/signed-photo-urls";
+import { mapPerspectives } from "@/lib/services/map-perspectives";
+import { parseRevealRpcError } from "@/lib/services/rpc-error";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import type { Hangout } from "@/types/hangout";
 import type { RevealPerspective, RevealState } from "@/types/reveal";
 
-function parseRpcError(error: {
-  message?: string;
-  details?: string;
-  code?: string;
-}): string {
-  const message = error.message ?? error.details ?? "Something went wrong";
-
-  if (
-    error.code === "PGRST202" ||
-    message.includes("schema cache") ||
-    message.includes("Could not find the function")
-  ) {
-    return "Reveal is not set up on the database yet. Run migrations 007 and 013 in Supabase SQL Editor, then try again.";
-  }
-
-  return message;
-}
-
-type RevealPhotoJson = {
-  id: string;
-  storage_path: string;
-  captured_at: string;
-};
-
 type RevealPerspectiveJson = {
   participant_id: string;
   nickname: string;
-  photos: RevealPhotoJson[] | null;
+  photos: { id: string; storage_path: string; captured_at: string }[] | null;
 };
-
-function mapPerspectives(rows: RevealPerspectiveJson[]): RevealPerspective[] {
-  return rows.map((row) => ({
-    participantId: row.participant_id,
-    nickname: row.nickname,
-    photos: (row.photos ?? []).map((photo) => ({
-      id: photo.id,
-      storagePath: photo.storage_path,
-      capturedAt: photo.captured_at,
-    })),
-  }));
-}
 
 export async function startReveal(
   hangoutId: string,
@@ -58,7 +24,7 @@ export async function startReveal(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseRevealRpcError(error) };
   }
 
   return { data: mapHangout(data as HangoutRowJson) };
@@ -76,7 +42,7 @@ export async function getRevealState(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseRevealRpcError(error) };
   }
 
   const payload = data as {
@@ -102,7 +68,7 @@ export async function finishReveal(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseRevealRpcError(error) };
   }
 
   return { data: mapHangout(data as HangoutRowJson) };

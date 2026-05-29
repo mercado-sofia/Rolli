@@ -1,16 +1,13 @@
 import { createClient } from "@/lib/supabase/client";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import type { Hangout } from "@/types/hangout";
+import { parseRpcError } from "@/lib/services/rpc-error";
 import type {
   GuessingResults,
   GuessingState,
   GuessingTarget,
   GuessingVote,
 } from "@/types/guessing";
-
-function parseRpcError(error: { message?: string; details?: string }): string {
-  return error.message ?? error.details ?? "Something went wrong";
-}
 
 type GuessingStateJson = {
   targets: { participant_id: string; nickname: string }[];

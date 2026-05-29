@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { TbMoodSad } from "react-icons/tb";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { abandonHangout } from "@/lib/hangout/hangouts";
@@ -71,6 +72,11 @@ export function AbandonHangoutControl({
 
       <ConfirmDialog
         open={open}
+        icon={
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
+            <TbMoodSad size={36} className="text-pink-accent" aria-hidden />
+          </span>
+        }
         title="Abandon this hangout?"
         description={
           <>

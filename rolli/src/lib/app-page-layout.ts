@@ -12,3 +12,14 @@ export const APP_SHELL_PY = "py-6 sm:py-8";
 
 /** Primary CTA at the bottom of app / setup flows */
 export const APP_PRIMARY_BUTTON_CLASS = "h-[54px] w-full max-w-md";
+
+/** White (#FFF) app container surface with 2px --pink border */
+export const APP_CONTAINER_SURFACE = "border-2 border-pink bg-white";
+
+/** Rounded app page container (cards, dialogs) */
+export const APP_CONTAINER_CLASS = `${APP_CONTAINER_SURFACE} rounded-3xl`;
+
+/** White container with neutral border (e.g. waiting room) */
+export const APP_CONTAINER_SURFACE_NEUTRAL = "border-2 border-black/8 bg-white";
+
+export const APP_CONTAINER_CLASS_NEUTRAL = `${APP_CONTAINER_SURFACE_NEUTRAL} rounded-3xl`;

@@ -1,7 +1,5 @@
 "use client";
 
-import { type ReactNode } from "react";
-
 import { AppBackButton } from "@/components/ui/app-back-button";
 import { cn } from "@/lib/utils";
 
@@ -10,8 +8,6 @@ type SetupFlowHeaderProps = {
   totalSteps?: number;
   title: string;
   sublabel: string;
-  /** Centered line below sublabel (part of top overlay, not main content) */
-  detail?: ReactNode;
   backHref?: string;
   onBack?: () => void;
   backLabel?: string;
@@ -25,7 +21,6 @@ export function SetupFlowHeader({
   totalSteps = 1,
   title,
   sublabel,
-  detail,
   backHref,
   onBack,
   backLabel,
@@ -79,9 +74,6 @@ export function SetupFlowHeader({
         <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">
           {sublabel}
         </p>
-        {detail ? (
-          <p className="mt-8 text-sm text-muted sm:mt-10">{detail}</p>
-        ) : null}
       </div>
     </header>
   );

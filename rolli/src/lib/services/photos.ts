@@ -3,6 +3,7 @@ import {
   mapParticipant,
   type ParticipantSessionJson,
 } from "@/lib/supabase/mappers";
+import { parseRpcError } from "@/lib/services/rpc-error";
 import type { Participant } from "@/types/participant";
 
 const BUCKET = "hangout-photos";
@@ -18,10 +19,6 @@ export type CaptureMemoryResult = {
   photoId: string;
   storagePath: string;
 };
-
-function parseRpcError(error: { message?: string; details?: string }): string {
-  return error.message ?? error.details ?? "Something went wrong";
-}
 
 export async function captureMemory(
   input: CaptureMemoryInput,

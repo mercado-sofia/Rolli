@@ -7,43 +7,21 @@ import { type TouchEvent, useRef, useState } from "react";
 import { GuideSlideIcon } from "@/components/landing/landing-icons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { GUIDE_SLIDES } from "@/lib/constants";
-
-const GUIDE_DETAILS = [
-  {
-    heading: "Start your shared roll",
-    description:
-      "Invite friends, pick your vibe, and let everyone add moments without overthinking angles or perfect poses.",
-    tip: "Focus on candid moments and real reactions.",
-  },
-  {
-    heading: "Keep photos hidden during the hangout",
-    description:
-      "Every shot stays private while the hangout is active, so people stay present instead of checking the gallery.",
-    tip: "No peeking, no pressure. Just enjoy the event.",
-  },
-  {
-    heading: "Reveal and relive together",
-    description:
-      "When the hangout ends, the full roll appears at once and everyone gets the same surprise reveal experience.",
-    tip: "Use the reveal as your group recap moment.",
-  },
-] as const;
+import { GUIDE_STEPS, LANDING_SECTION_SCROLL_MT } from "@/lib/constants";
 
 export function LandingGuide() {
   const [index, setIndex] = useState(0);
   const touchStartX = useRef<number | null>(null);
-  const slide = GUIDE_SLIDES[index];
-  const details = GUIDE_DETAILS[index];
-  const isLast = index === GUIDE_SLIDES.length - 1;
+  const step = GUIDE_STEPS[index];
+  const isLast = index === GUIDE_STEPS.length - 1;
 
   function goNext() {
-    setIndex((current) => (current + 1) % GUIDE_SLIDES.length);
+    setIndex((current) => (current + 1) % GUIDE_STEPS.length);
   }
 
   function goPrev() {
     setIndex(
-      (current) => (current - 1 + GUIDE_SLIDES.length) % GUIDE_SLIDES.length,
+      (current) => (current - 1 + GUIDE_STEPS.length) % GUIDE_STEPS.length,
     );
   }
 
@@ -66,7 +44,7 @@ export function LandingGuide() {
   return (
     <section
       id="guide"
-      className="scroll-mt-[calc(3.5rem+env(safe-area-inset-top,0))] overflow-x-hidden bg-canvas px-5 py-16 md:py-24"
+      className={`${LANDING_SECTION_SCROLL_MT} overflow-x-hidden bg-canvas px-5 py-16 md:py-24`}
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 md:gap-14">
         <div className="relative mx-auto max-w-xl overflow-visible text-center md:max-w-2xl">
@@ -84,7 +62,7 @@ export function LandingGuide() {
             <div>
               <p className="text-sm font-medium text-muted">Step {index + 1}</p>
               <p className="font-display mt-2 text-xl leading-snug text-ink">
-                {slide.title}
+                {step.title}
               </p>
             </div>
 
@@ -99,7 +77,7 @@ export function LandingGuide() {
               </button>
 
               <p className="text-center text-sm text-muted">
-                {index + 1} of {GUIDE_SLIDES.length}
+                {index + 1} of {GUIDE_STEPS.length}
               </p>
 
               <button
@@ -131,7 +109,7 @@ export function LandingGuide() {
             >
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={slide.title}
+                  key={step.title}
                   initial={{ opacity: 0, x: 40 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -40 }}
@@ -139,28 +117,28 @@ export function LandingGuide() {
                   className="flex h-full flex-col justify-center gap-6 px-7 pt-12 pb-16 text-left md:px-10"
                 >
                   <div className="flex items-center gap-3">
-                    <GuideSlideIcon iconKey={slide.icon} size={42} />
+                    <GuideSlideIcon iconKey={step.icon} size={42} />
                     <span className="text-sm font-semibold uppercase tracking-overline text-white/90">
                       Detailed guide
                     </span>
                   </div>
 
                   <p className="font-display text-2xl leading-snug text-white md:text-3xl">
-                    {details.heading}
+                    {step.heading}
                   </p>
 
                   <p className="max-w-xl text-sm leading-relaxed text-white/90 md:text-base">
-                    {details.description}
+                    {step.description}
                   </p>
 
                   <p className="text-sm leading-relaxed text-white/80">
-                    {details.tip}
+                    {step.tip}
                   </p>
                 </motion.div>
               </AnimatePresence>
 
               <div className="absolute bottom-6 left-0 right-0 flex items-center justify-center gap-2">
-                {GUIDE_SLIDES.map((_, dotIndex) => (
+                {GUIDE_STEPS.map((_, dotIndex) => (
                   <span
                     key={dotIndex}
                     className={`h-2 rounded-full transition-all ${

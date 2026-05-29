@@ -5,6 +5,7 @@ import {
   type HangoutRowJson,
   type ParticipantSessionJson,
 } from "@/lib/supabase/mappers";
+import { parseRpcError } from "@/lib/services/rpc-error";
 import type { Hangout } from "@/types/hangout";
 import type { Participant } from "@/types/participant";
 
@@ -24,10 +25,6 @@ export type HangoutSessionResult = {
   hangout: Hangout;
   participant: Participant;
 };
-
-function parseRpcError(error: { message?: string; details?: string }): string {
-  return error.message ?? error.details ?? "Something went wrong";
-}
 
 export async function createHangoutWithKeeper(
   input: CreateHangoutInput,

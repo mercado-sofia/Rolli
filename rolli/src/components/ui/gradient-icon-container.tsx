@@ -3,10 +3,6 @@ import { type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const sizeStyles = {
-  sm: {
-    outer: "h-12 w-12 rounded-xl",
-    inner: "rounded-[11px]",
-  },
   md: {
     outer: "h-14 w-14 rounded-2xl",
     inner: "rounded-[15px]",

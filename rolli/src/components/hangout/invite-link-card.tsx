@@ -47,7 +47,7 @@ export function InviteLinkCard({ inviteUrl, hangoutTitle }: InviteLinkCardProps)
 
       <div
         className={cn(
-          "break-all rounded-2xl border border-black/6 bg-[#F8F8F8] px-5 py-4",
+          "break-all rounded-2xl border border-pink/40 bg-[#FAFAFA] px-5 py-4",
           "font-mono text-[13px] leading-relaxed text-ink",
         )}
       >

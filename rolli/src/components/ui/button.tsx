@@ -29,7 +29,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const classes = cn(
-    "group/btn relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-6 text-sm font-medium transition-all duration-300 hover:-translate-y-1 active:translate-y-0",
+    "group/btn relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-6 text-sm font-medium outline-none transition-all duration-300 hover:-translate-y-1 active:translate-y-0 focus:outline-none focus-visible:outline-none",
     variantStyles[variant],
     disabled && "pointer-events-none opacity-50",
     className,

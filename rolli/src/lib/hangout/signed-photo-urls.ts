@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/client";
 import type { RevealPerspective } from "@/types/reveal";
 
-export const SIGNED_URL_TTL_SEC = 3600;
+const SIGNED_URL_TTL_SEC = 3600;
 /** Re-sign before Supabase signed URLs expire (~1 hour). */
 export const SIGNED_URL_REFRESH_MS = 50 * 60 * 1000;
 
 const BUCKET = "hangout-photos";
 
-export function fileNameFromStoragePath(storagePath: string): string {
+function fileNameFromStoragePath(storagePath: string): string {
   const base = storagePath.split("/").pop() ?? "photo.jpg";
   return base.includes(".") ? base : `${base}.jpg`;
 }

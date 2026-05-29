@@ -19,6 +19,7 @@ import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { hangoutSharePath } from "@/lib/hangout/routes";
 import { startHangout } from "@/lib/hangout/hangouts";
+import { getWaitingHint } from "@/lib/hangout/waiting-hint";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -83,15 +84,12 @@ export default function WaitingRoomPage() {
     );
   }
 
-  const hint = isFilmKeeper
-    ? canStart
-      ? "Everyone's here — start when you're ready."
-      : undefined
-    : "Waiting for the Film Keeper to start the hangout…";
+  const hint = getWaitingHint(isFilmKeeper, canStart);
 
   return (
     <SetupFlowShell
-      contentAlign="raised"
+      contentAlign="upper"
+      headerVariant="compact"
       hint={hint}
       header={
         <SetupFlowHeader
@@ -144,7 +142,7 @@ export default function WaitingRoomPage() {
           <p className="text-center text-sm text-pink">{loadError}</p>
         )}
 
-        <Card className="text-center">
+        <Card border="neutral" className="text-center">
           <HangoutCardIcon icon={LuMoon} />
           <p className="font-display mt-4 text-2xl leading-snug">
             {participantCount}{" "}
@@ -154,7 +152,7 @@ export default function WaitingRoomPage() {
           </p>
         </Card>
 
-        <Card>
+        <Card border="neutral">
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between gap-4">
               <dt className="shrink-0 text-muted">Your nickname</dt>
@@ -169,7 +167,7 @@ export default function WaitingRoomPage() {
               </dd>
             </div>
             {isFilmKeeper && (
-              <div className="rounded-2xl border border-black/8 bg-[#F8F8F8] px-4 py-3 text-center text-sm text-ink">
+              <div className="rounded-2xl border-2 border-black/8 bg-white px-4 py-3 text-center text-sm text-ink">
                 You are the Film Keeper
               </div>
             )}

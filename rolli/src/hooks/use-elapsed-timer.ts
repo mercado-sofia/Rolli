@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
 function getElapsedMs(startedAt: string | null | undefined): number {
   if (!startedAt) return 0;
@@ -12,7 +12,7 @@ function getElapsedMs(startedAt: string | null | undefined): number {
 }
 
 export function useElapsedTimer(startedAt: string | null | undefined) {
-  const [tick, setTick] = useState(0);
+  const [, tick] = useReducer((count: number) => count + 1, 0);
 
   useEffect(() => {
     if (!startedAt) return;
@@ -21,7 +21,7 @@ export function useElapsedTimer(startedAt: string | null | undefined) {
     if (Number.isNaN(startMs)) return;
 
     const intervalId = window.setInterval(() => {
-      setTick((value) => value + 1);
+      tick();
     }, 1000);
 
     return () => {

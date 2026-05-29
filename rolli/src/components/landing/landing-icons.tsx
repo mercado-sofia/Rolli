@@ -20,13 +20,13 @@ import type { GuideSlideIconKey, PolaroidIconKey } from "@/lib/constants";
 export const LANDING_ICON_CLASS =
   "stroke-[1.5] [stroke-linecap:round] [stroke-linejoin:round]";
 
-export const GUIDE_ICON_MAP: Record<GuideSlideIconKey, IconType> = {
+const GUIDE_ICON_MAP: Record<GuideSlideIconKey, IconType> = {
   camera: LuCamera,
   film: LuFilm,
   moon: LuMoon,
 };
 
-export const POLAROID_ICON_MAP: Record<PolaroidIconKey, IconType> = {
+const POLAROID_ICON_MAP: Record<PolaroidIconKey, IconType> = {
   flower: LuFlower2,
   sparkles: LuSparkles,
   party: LuPartyPopper,
@@ -54,24 +54,15 @@ export function LandingIcon({ icon: Icon, size = 24, className }: LandingIconPro
 type GuideSlideIconProps = {
   iconKey: GuideSlideIconKey;
   size?: number;
-  /** Icons on the gradient guide card */
-  onGradient?: boolean;
 };
 
-export function GuideSlideIcon({
-  iconKey,
-  size = 48,
-  onGradient = true,
-}: GuideSlideIconProps) {
+export function GuideSlideIcon({ iconKey, size = 48 }: GuideSlideIconProps) {
   const Icon = GUIDE_ICON_MAP[iconKey];
 
   return (
     <Icon
       size={size}
-      className={cn(
-        LANDING_ICON_CLASS,
-        onGradient ? "text-white" : "text-lavender-deep",
-      )}
+      className={cn(LANDING_ICON_CLASS, "text-white")}
       aria-hidden
     />
   );

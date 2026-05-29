@@ -22,7 +22,7 @@ export default function StartPage() {
     >
       <div className="flex flex-col gap-4">
         <Link href="/create">
-          <Card className="sm:border-pink-highlight/25 transition-transform hover:scale-[1.01] active:scale-[0.99]">
+          <Card className="transition-transform hover:scale-[1.01] active:scale-[0.99]">
             <p className="text-sm font-medium text-muted">Option A</p>
             <h2 className="font-display mt-2 text-2xl text-ink">Create Invitation Link</h2>
             <p className="mt-2 text-sm text-muted">
