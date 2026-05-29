@@ -24,9 +24,11 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
+import { useRevealPreload } from "@/hooks/use-reveal-preload";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
+import { preloadRevealState } from "@/lib/hangout/reveal-preload";
 import { beginRevealCountdown, startReveal } from "@/lib/hangout/reveal";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -93,9 +95,17 @@ export default function DevelopingPage() {
       return;
     }
 
+    await preloadRevealState(displayHangout.id, participant.sessionToken);
     setHangout(data);
     router.replace(`/h/${slug}/reveal`);
   }, [displayHangout, isFilmKeeper, participant, router, setHangout, slug]);
+
+  useRevealPreload({
+    slug,
+    hangoutId: displayHangout?.id,
+    sessionToken: participant?.sessionToken,
+    enabled: countdownActive,
+  });
 
   const { displaySeconds } = useRevealCountdown(
     displayHangout?.revealCountdownAt,

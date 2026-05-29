@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { clearRevealPreload, getRevealPreload } from "@/lib/hangout/reveal-preload-cache";
 import {
   finishReveal,
   getRevealState,
@@ -36,12 +37,15 @@ export function RevealExperience({
   onFinishReveal,
   onFooterChange,
 }: RevealExperienceProps) {
-  const [perspectives, setPerspectives] = useState<RevealPerspective[]>([]);
+  const preloaded = getRevealPreload(hangoutId);
+  const [perspectives, setPerspectives] = useState<RevealPerspective[]>(
+    preloaded?.perspectives ?? [],
+  );
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!preloaded);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [signedAt, setSignedAt] = useState<number | null>(null);
+  const [signedAt, setSignedAt] = useState<number | null>(preloaded?.signedAt ?? null);
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
@@ -66,6 +70,14 @@ export function RevealExperience({
 
   useEffect(() => {
     let cancelled = false;
+
+    if (reloadKey === 0) {
+      const cached = getRevealPreload(hangoutId);
+      if (cached) {
+        clearRevealPreload(hangoutId);
+        return;
+      }
+    }
 
     async function load() {
       setLoadError(null);
@@ -179,7 +191,7 @@ export function RevealExperience({
 
     if (isFilmKeeper) {
       onFooterChange({
-        hint: "Continue when your group is ready — you can open guessing even if others are still viewing.",
+        hint: "Continue when your group is ready.",
         children: (
           <>
             {finishError && (

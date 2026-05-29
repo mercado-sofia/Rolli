@@ -124,12 +124,15 @@ export function GuessingExperience({
     setPhotosLoading(false);
   }, [hangoutId, reloadKey]);
 
+  const canLoadPerspectivePhotos = !isCompleted && !loading && state !== null;
+
   useEffect(() => {
-    if (!galleryTarget || isCompleted || loading || !state) {
+    if (!galleryTarget || !canLoadPerspectivePhotos) {
       return;
     }
 
     if (perspectivePhotosLoadedRef.current) {
+      setPhotosLoading(false);
       return;
     }
 
@@ -139,37 +142,35 @@ export function GuessingExperience({
       setPhotosLoading(true);
       setPhotosLoadError(null);
 
-      const { data, error } = await getRevealState(hangoutId, sessionToken);
-      if (cancelled) return;
+      try {
+        const { data, error } = await getRevealState(hangoutId, sessionToken);
+        if (cancelled) return;
 
-      if (error || !data) {
-        setPerspectivePhotos([]);
-        setPhotosLoadError(error ?? "Could not load photos");
-        setPhotosLoading(false);
-        return;
+        if (error || !data) {
+          setPerspectivePhotos([]);
+          setPhotosLoadError(error ?? "Could not load photos");
+          return;
+        }
+
+        const signed = await signRevealPhotoUrls(data.perspectives);
+        if (cancelled) return;
+
+        perspectivePhotosLoadedRef.current = true;
+        setPerspectivePhotos(signed);
+      } finally {
+        if (!cancelled) {
+          setPhotosLoading(false);
+        }
       }
-
-      const signed = await signRevealPhotoUrls(data.perspectives);
-      if (cancelled) return;
-
-      perspectivePhotosLoadedRef.current = true;
-      setPerspectivePhotos(signed);
-      setPhotosLoading(false);
     }
 
     void loadPerspectivePhotos();
 
     return () => {
       cancelled = true;
+      setPhotosLoading(false);
     };
-  }, [
-    galleryTarget,
-    hangoutId,
-    isCompleted,
-    loading,
-    sessionToken,
-    state,
-  ]);
+  }, [canLoadPerspectivePhotos, galleryTarget, hangoutId, sessionToken]);
 
   const galleryPhotos = useMemo(() => {
     if (!galleryTarget) return [];
@@ -432,7 +433,7 @@ export function GuessingExperience({
                   <AppSelect
                     className="min-w-0 flex-1 self-center"
                     value={selected}
-                    placeholder="Match to a real name"
+                    placeholder="Guess"
                     disabled={isSaving}
                     aria-label={`Real name for ${target.nickname}`}
                     options={selectOptions}
