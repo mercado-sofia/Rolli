@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { LuFilm } from "react-icons/lu";
 
+import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
@@ -18,9 +19,11 @@ import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
+import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { startReveal } from "@/lib/hangout/reveal";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -42,6 +45,12 @@ export default function DevelopingPage() {
     slug,
     hangout: displayHangout,
     isLoading,
+  });
+
+  const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
+  const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
+    participant,
+    hangout: displayHangout,
   });
 
   async function handleStartReveal() {
@@ -98,7 +107,7 @@ export default function DevelopingPage() {
     );
   }
 
-  const footerHint = participant.isFilmKeeper
+  const footerHint = isFilmKeeper
     ? "Start the reveal when memories are ready to share."
     : "Waiting for the Film Keeper to start the reveal…";
 
@@ -115,6 +124,10 @@ export default function DevelopingPage() {
       <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
         <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
           <div className="flex flex-col gap-6">
+            <FilmKeeperPromotionBanner
+              visible={showPromotion}
+              onDismiss={dismissPromotion}
+            />
             <Card border="neutral" className="text-center">
               <HangoutCardIcon icon={LuFilm} />
               <p className="font-display mt-4 text-2xl leading-snug">
@@ -144,7 +157,7 @@ export default function DevelopingPage() {
       </main>
 
       <SetupFlowFooter hint={footerHint}>
-        {participant.isFilmKeeper ? (
+        {isFilmKeeper ? (
           <>
             {startError && (
               <p className="text-center text-sm text-pink">{startError}</p>

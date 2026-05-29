@@ -178,7 +178,7 @@ export function RevealExperience({
 
     if (isFilmKeeper) {
       onFooterChange({
-        hint: "Everyone has seen all perspectives — open the guessing round.",
+        hint: "Continue when your group is ready — you can open guessing even if others are still viewing.",
         children: (
           <>
             {finishError && (

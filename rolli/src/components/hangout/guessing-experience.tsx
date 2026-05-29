@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { HANGOUT_LIMITS } from "@/lib/constants";
 import {
   finishGuessing,
   getGuessingResults,
@@ -99,6 +100,27 @@ export function GuessingExperience({
       cancelled = true;
     };
   }, [hangoutId, isCompleted, reloadKey, sessionToken]);
+
+  useEffect(() => {
+    if (isCompleted || hangoutStatus !== "guessing") return;
+
+    let cancelled = false;
+
+    async function poll() {
+      const { data, error } = await getGuessingState(hangoutId, sessionToken);
+      if (cancelled || error || !data) return;
+      setState(data);
+    }
+
+    const intervalId = window.setInterval(() => {
+      void poll();
+    }, HANGOUT_LIMITS.hangoutPollMs);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [hangoutId, hangoutStatus, isCompleted, sessionToken]);
 
   const votesByTarget = useMemo(() => {
     const map = new Map<string, string>();

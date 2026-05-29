@@ -26,9 +26,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Card } from "@/components/ui/card";
+import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
+import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
@@ -70,7 +73,11 @@ export default function WaitingRoomPage() {
   });
 
   const participantCount = displayHangout?.participantCount ?? 0;
-  const isFilmKeeper = participant?.isFilmKeeper ?? false;
+  const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
+  const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
+    participant,
+    hangout: displayHangout,
+  });
   const canStart =
     participantCount >= HANGOUT_LIMITS.minToStart &&
     participantCount <= HANGOUT_LIMITS.maxToStart;
@@ -171,6 +178,11 @@ export default function WaitingRoomPage() {
                 <p className="text-center text-sm text-pink">{loadError}</p>
               )}
 
+              <FilmKeeperPromotionBanner
+                visible={showPromotion}
+                onDismiss={dismissPromotion}
+              />
+
               <Card border="neutral" className="text-center">
                 <HangoutCardIcon
                   icon={LuMoon}
@@ -240,6 +252,14 @@ export default function WaitingRoomPage() {
           <LeaveRoomButton
             hangoutId={displayHangout.id}
             sessionToken={participant!.sessionToken}
+            className={APP_PRIMARY_BUTTON_CLASS}
+          />
+        ) : null}
+        {!isCancelled && isFilmKeeper ? (
+          <LeaveRoomButton
+            hangoutId={displayHangout.id}
+            sessionToken={participant!.sessionToken}
+            isFilmKeeper
             className={APP_PRIMARY_BUTTON_CLASS}
           />
         ) : null}

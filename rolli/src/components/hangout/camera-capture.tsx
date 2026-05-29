@@ -5,17 +5,22 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type RefObject,
 } from "react";
+import { createPortal } from "react-dom";
+import { LuCamera } from "react-icons/lu";
 
-import { Button } from "@/components/ui/button";
+import { AppBackButton } from "@/components/ui/app-back-button";
 import { captureMemory } from "@/lib/hangout/photos";
+import { cn } from "@/lib/utils";
 import type { Participant } from "@/types/participant";
 
 type CameraCaptureProps = {
   hangoutId: string;
   sessionToken: string;
-  photosRemaining: number;
+  photosTaken: number;
+  maxPhotos: number;
   onCaptured: (participant: Participant) => void;
 };
 
@@ -27,10 +32,23 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
+function subscribeToClientMount() {
+  return () => {};
+}
+
+function getClientMountSnapshot() {
+  return true;
+}
+
+function getServerMountSnapshot() {
+  return false;
+}
+
 export function CameraCapture({
   hangoutId,
   sessionToken,
-  photosRemaining,
+  photosTaken,
+  maxPhotos,
   onCaptured,
 }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -40,8 +58,26 @@ export function CameraCapture({
   const [phase, setPhase] = useState<CameraPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeToClientMount,
+    getClientMountSnapshot,
+    getServerMountSnapshot,
+  );
 
+  const photosRemaining = maxPhotos - photosTaken;
   const isDisabled = photosRemaining <= 0 || phase === "capturing";
+  const isOverlayOpen = phase !== "idle";
+
+  useEffect(() => {
+    if (!isOverlayOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOverlayOpen]);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -69,7 +105,6 @@ export function CameraCapture({
     setError(null);
     setPhase("opening");
 
-    // Mount the viewfinder (video element) before attaching the stream.
     await waitForNextFrame();
 
     try {
@@ -177,90 +212,238 @@ export function CameraCapture({
     };
   }, [stopCamera]);
 
-  if (phase === "idle") {
-    return (
-      <>
-        {error && <p className="text-center text-sm text-pink">{error}</p>}
-        <Button type="button" disabled={isDisabled} onClick={() => void openCamera()}>
-          {photosRemaining <= 0 ? "No photos left" : "Capture memory"}
-        </Button>
-      </>
-    );
-  }
+  const overlay =
+    mounted && isOverlayOpen
+      ? createPortal(
+          <CaptureOverlay
+            videoRef={videoRef}
+            photosTaken={photosTaken}
+            maxPhotos={maxPhotos}
+            error={error}
+            flash={flash}
+            isCapturing={phase === "capturing"}
+            isOpening={phase === "opening"}
+            onClose={closeCamera}
+            onCapture={() => void takePhoto()}
+          />,
+          document.body,
+        )
+      : null;
 
   return (
-    <CaptureViewfinder
-      videoRef={videoRef}
-      error={error}
-      flash={flash}
-      isCapturing={phase === "capturing"}
-      isOpening={phase === "opening"}
-      onCancel={closeCamera}
-      onCapture={() => void takePhoto()}
-    />
+    <>
+      <div className="flex flex-col items-center gap-4">
+        {error && !isOverlayOpen && (
+          <p className="text-center text-sm text-pink-accent">{error}</p>
+        )}
+        <CameraTriggerButton
+          disabled={isDisabled}
+          onClick={() => void openCamera()}
+          aria-label={
+            photosRemaining <= 0 ? "No photos left" : "Capture memory"
+          }
+        />
+      </div>
+      {overlay}
+    </>
   );
 }
 
-function CaptureViewfinder({
+function CameraAmbientBackground() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      <div className="absolute -left-24 top-0 h-64 w-64 rounded-full bg-pink/15 blur-3xl" />
+      <div className="absolute -right-20 top-1/4 h-72 w-72 rounded-full bg-pink-highlight/10 blur-3xl" />
+      <div className="absolute bottom-0 left-1/2 h-80 w-80 -translate-x-1/2 translate-y-1/3 rounded-full bg-lavender/25 blur-3xl" />
+    </div>
+  );
+}
+
+function CameraTriggerButton({
+  disabled,
+  onClick,
+  "aria-label": ariaLabel,
+  size = "md",
+}: {
+  disabled?: boolean;
+  onClick: () => void;
+  "aria-label": string;
+  size?: "md" | "lg";
+}) {
+  const dimensions = size === "lg" ? "h-20 w-20" : "h-18 w-18";
+  const iconSize = size === "lg" ? 36 : 34;
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={cn(
+        "inline-flex shrink-0 rounded-full border border-lavender-deep/25 bg-gradient-pastel p-px shadow-soft",
+        "transition-transform hover:scale-[1.03] active:scale-[0.97]",
+        "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100",
+        dimensions,
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-full w-full items-center justify-center rounded-full bg-white",
+          size === "lg" && "shadow-glow",
+        )}
+      >
+        <LuCamera
+          size={iconSize}
+          strokeWidth={1.75}
+          className="text-pink-accent"
+          aria-hidden
+        />
+      </span>
+    </button>
+  );
+}
+
+function ShutterButton({
+  disabled,
+  isCapturing,
+  onClick,
+}: {
+  disabled?: boolean;
+  isCapturing?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      aria-label={isCapturing ? "Saving photo" : "Take photo"}
+      className={cn(
+        "relative flex h-20 w-20 items-center justify-center rounded-full",
+        "border-2 border-lavender-deep/35 bg-white shadow-glow",
+        "transition-transform hover:scale-[1.03] active:scale-[0.97]",
+        "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100",
+        isCapturing && "animate-pulse",
+      )}
+    >
+      <span className="sr-only">{isCapturing ? "Saving…" : "Take photo"}</span>
+      <span
+        className={cn(
+          "flex items-center justify-center rounded-full bg-gradient-pastel transition-all",
+          isCapturing ? "h-8 w-8" : "h-13 w-13",
+        )}
+        aria-hidden
+      >
+        <span
+          className={cn(
+            "rounded-full border-2 border-white/90 bg-white",
+            isCapturing ? "h-3 w-3" : "h-11 w-11",
+          )}
+        />
+      </span>
+    </button>
+  );
+}
+
+function CaptureOverlay({
   videoRef,
+  photosTaken,
+  maxPhotos,
   error,
   flash,
   isCapturing,
   isOpening,
-  onCancel,
+  onClose,
   onCapture,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
+  photosTaken: number;
+  maxPhotos: number;
   error: string | null;
   flash: boolean;
   isCapturing: boolean;
   isOpening: boolean;
-  onCancel: () => void;
+  onClose: () => void;
   onCapture: () => void;
 }) {
+  const shutterDisabled = isOpening || isCapturing;
+
   return (
-    <div className="space-y-4">
-      <div className="relative aspect-3/4 overflow-hidden rounded-3xl bg-ink">
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="h-full w-full object-cover"
-        />
-        {flash && <FlashOverlay />}
-        {isOpening && (
-          <div className="absolute inset-0 flex items-center justify-center bg-ink/40 text-sm text-white">
-            Opening camera…
-          </div>
+    <div
+      className="fixed inset-0 z-200 flex flex-col overflow-hidden bg-canvas text-ink"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Capture memory"
+    >
+      <CameraAmbientBackground />
+
+      <header
+        className={cn(
+          "relative z-10 flex shrink-0 flex-col items-center gap-1 px-4 pb-3",
+          "pt-[max(0.75rem,env(safe-area-inset-top))]",
         )}
+      >
+        <div className="flex w-full max-w-md items-center justify-between gap-4">
+          <AppBackButton onBack={onClose} backLabel="Close camera" />
+          <div className="h-9 w-9" aria-hidden />
+        </div>
+        <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+          Capture memory
+        </p>
+        <p className="font-display text-3xl tabular-nums tracking-tight text-pink-highlight">
+          {photosTaken}/{maxPhotos}
+        </p>
+      </header>
+
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col px-4 pb-2">
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-3xl border border-container-border bg-white shadow-soft">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 h-full w-full bg-ink object-cover"
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-linear-to-b from-pink/10 via-transparent to-lavender/15"
+            aria-hidden
+          />
+          {flash && <FlashOverlay />}
+          {isOpening && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-lavender/50 backdrop-blur-[2px]">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
+              <p className="text-sm font-medium text-pink-accent">
+                Opening camera…
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-      {error && <p className="text-center text-sm text-pink">{error}</p>}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Button
-          type="button"
-          variant="secondary"
-          className="sm:flex-1"
-          disabled={isCapturing}
-          onClick={onCancel}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          className="sm:flex-1"
-          disabled={isOpening || isCapturing}
+
+      <footer
+        className={cn(
+          "relative z-10 flex shrink-0 flex-col items-center gap-3",
+          "border-t border-container-border/60 bg-white/95 px-4 pt-5 backdrop-blur-sm",
+          "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
+        )}
+      >
+        {error && (
+          <p className="max-w-sm rounded-2xl bg-pink/10 px-4 py-2 text-center text-sm text-pink-accent">
+            {error}
+          </p>
+        )}
+        <ShutterButton
+          disabled={shutterDisabled}
+          isCapturing={isCapturing}
           onClick={onCapture}
-        >
-          {isCapturing ? "Saving…" : "Take photo"}
-        </Button>
-      </div>
+        />
+      </footer>
     </div>
   );
 }
 
 function FlashOverlay() {
   return (
-    <div className="pointer-events-none absolute inset-0 animate-pulse bg-white/70" />
+    <div className="pointer-events-none absolute inset-0 animate-pulse bg-linear-to-br from-white/80 via-pink/30 to-lavender/20" />
   );
 }

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
+import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   GuessingExperience,
   type SetupFlowFooterState,
@@ -19,9 +20,11 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
+import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -51,6 +54,11 @@ export default function GuessingPage() {
     displayHangout?.status === "completed";
 
   const isCompleted = displayHangout?.status === "completed";
+  const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
+  const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
+    participant,
+    hangout: displayHangout,
+  });
 
   async function handleHangoutCompleted() {
     const { data } = await fetchHangoutBySlug(slug);
@@ -96,13 +104,17 @@ export default function GuessingPage() {
       </header>
 
       <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
-        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-4")}>
+          <FilmKeeperPromotionBanner
+            visible={showPromotion}
+            onDismiss={dismissPromotion}
+          />
           <GuessingExperience
             hangoutId={displayHangout.id}
             hangoutSlug={slug}
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
-            isFilmKeeper={participant.isFilmKeeper}
+            isFilmKeeper={isFilmKeeper}
             onHangoutCompleted={() => void handleHangoutCompleted()}
             onFooterChange={setFooter}
           />

@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   RevealExperience,
   type SetupFlowFooterState,
@@ -18,8 +19,10 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
+import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
@@ -39,6 +42,12 @@ export default function RevealPage() {
     slug,
     hangout: displayHangout,
     isLoading,
+  });
+
+  const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
+  const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
+    participant,
+    hangout: displayHangout,
   });
 
   const handleFinishReveal = useCallback(
@@ -95,11 +104,15 @@ export default function RevealPage() {
       </header>
 
       <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
-        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-4")}>
+          <FilmKeeperPromotionBanner
+            visible={showPromotion}
+            onDismiss={dismissPromotion}
+          />
           <RevealExperience
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
-            isFilmKeeper={participant.isFilmKeeper}
+            isFilmKeeper={isFilmKeeper}
             onFinishReveal={handleFinishReveal}
             onFooterChange={setFooter}
           />

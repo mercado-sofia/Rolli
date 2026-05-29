@@ -43,12 +43,14 @@ type LeaveRoomButtonProps = {
   hangoutId: string;
   sessionToken: string;
   className?: string;
+  isFilmKeeper?: boolean;
 };
 
 export function LeaveRoomButton({
   hangoutId,
   sessionToken,
   className,
+  isFilmKeeper = false,
 }: LeaveRoomButtonProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
@@ -110,6 +112,13 @@ export function LeaveRoomButton({
           <>
             You&apos;ll be removed from this hangout. You can rejoin with your
             invite link if the room is still open.
+            {isFilmKeeper ? (
+              <>
+                {" "}
+                If you&apos;re the Film Keeper, host duties pass to the next
+                person in the room.
+              </>
+            ) : null}
           </>
         }
         confirmLabel="Yes, leave room"

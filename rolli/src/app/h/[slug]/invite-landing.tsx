@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
 import {
+  getLateJoinHint,
   isHangoutInProgress,
   isHangoutJoinable,
 } from "@/lib/hangout/join-eligibility";
@@ -274,7 +275,8 @@ export function InviteLanding() {
       <SetupFlowFooter
         hint={
           hangoutInProgress
-            ? "This hangout is already underway — you'll land in the room with everyone else."
+            ? (getLateJoinHint(hangout.status) ??
+              "This hangout is already underway — you'll land in the room with everyone else.")
             : "Join with a nickname — your real name stays secret until reveal."
         }
       >

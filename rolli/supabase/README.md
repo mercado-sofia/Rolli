@@ -32,8 +32,9 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 17 | `migrations/017_abandon_hangout.sql` |
 | 18 | `migrations/018_abandon_hangout_rpc.sql` |
 | 19 | `migrations/019_allow_join_after_start.sql` |
+| 20 | `migrations/020_transfer_film_keeper_on_leave.sql` |
 
-**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join or rejoin while a session is in progress).
+**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join or rejoin while a session is in progress), **020** (`transfer_film_keeper`, `leave_hangout` keeper handoff, keeper RPCs use `film_keeper_id`).
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -65,6 +66,26 @@ Restart `npm run dev` after changing env vars locally.
 
 Migration `004_storage.sql` creates a private bucket `hangout-photos`. Migration `006_photo_capture.sql` adds upload slots, capture RPCs, and storage policies for the camera feature.
 
+### Storage CORS (gallery downloads)
+
+Bulk ZIP and single-photo downloads in the app use `fetch()` on signed Storage URLs. Configure CORS on the **`hangout-photos`** bucket or downloads fail in the browser.
+
+1. Supabase Dashboard → **Storage** → **hangout-photos** → **Configuration** → **CORS**
+2. Allow `GET` from your app origins, for example:
+
+```json
+[
+  {
+    "origin": ["http://localhost:3000", "https://your-production-domain.com"],
+    "method": ["GET"],
+    "headers": ["*"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+Use the same host as `NEXT_PUBLIC_APP_URL` in production. After updating CORS, test **Download all** and a single photo from the memory gallery.
+
 ## 5. Auto-end after 24 hours
 
 Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `started_at` is more than 24 hours ago (same as Film Keeper tapping **Develop Memories** → status `developing`).
@@ -80,9 +101,15 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 - Migration **017** adds hangout status `cancelled`.
 - **`abandon_hangout`** (018) — Film Keeper only; allowed while status is `waiting`. Sets status to `cancelled` and blocks new joins.
 
-## Leave / rejoin / join (014, 019)
+## Film Keeper transfer (020)
 
-- **`leave_hangout`** — marks participant inactive; Film Keeper cannot leave while status is `waiting`.
+- **`transfer_film_keeper`** — when the current Film Keeper leaves and other active participants remain, host duties pass to the next active guest (`joined_at` ASC).
+- Keeper-gated RPCs (`start_hangout`, `end_hangout`, `start_reveal`, `finish_reveal`, `finish_guessing`, `abandon_hangout`) authorize via `participants.id = hangouts.film_keeper_id`.
+- Solo Film Keeper in `waiting` still cannot leave (use **Abandon**). Solo active session can leave with no successor until someone rejoins or 24h auto-end.
+
+## Leave / rejoin / join (014, 019, 020)
+
+- **`leave_hangout`** — marks participant inactive; transfers Film Keeper first when others are in the room (see **020**). Solo Keeper in `waiting` cannot leave.
 - **`rejoin_hangout`** — reactivates a participant who left, using the same `session_token`. After **019**, allowed for any status except `completed` and `cancelled` (subject to the 10-participant cap).
 - **`join_hangout`** — new guest or reactivation of an inactive nickname row; blocks duplicate active nicknames and real names (case-insensitive). After **019**, new guests can join while the hangout is `active`, `developing`, `revealing`, or `guessing` — not only in `waiting`.
 
@@ -90,7 +117,7 @@ If a user clears browser storage without leaving, they cannot recover their sess
 
 ## Verify migrations (optional)
 
-Run in the SQL Editor after applying **001–019**:
+Run in the SQL Editor after applying **001–020**:
 
 ```sql
 -- Core RPCs should exist
@@ -99,7 +126,8 @@ JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public'
   AND proname IN (
     'join_hangout', 'rejoin_hangout', 'leave_hangout',
-    'abandon_hangout', 'end_hangout', 'get_hangout_public'
+    'abandon_hangout', 'end_hangout', 'get_hangout_public',
+    'transfer_film_keeper'
   )
 ORDER BY proname;
 
