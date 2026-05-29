@@ -15,9 +15,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-ink text-white shadow-soft hover:bg-[#2a2a2a] active:scale-[0.98]",
+    "border border-ink bg-ink text-white hover:bg-[#2a2a2a] active:scale-[0.98]",
   secondary:
-    "border border-black/8 bg-white text-ink shadow-soft hover:bg-white/90 active:scale-[0.98]",
+    "border border-black/8 bg-white text-ink hover:bg-white/90 active:scale-[0.98]",
 };
 
 export function Button({

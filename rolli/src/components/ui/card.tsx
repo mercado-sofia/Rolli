@@ -12,10 +12,10 @@ export function Card({ children, className, gradient = false }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-3xl p-6 shadow-soft",
+        "p-6",
         gradient
-          ? "bg-gradient-pastel text-white"
-          : "border border-black/8 bg-white shadow-soft",
+          ? "rounded-3xl border border-lavender-deep/25 bg-gradient-pastel text-white"
+          : "sm:rounded-3xl sm:border sm:border-black/8 sm:bg-white",
         className,
       )}
     >

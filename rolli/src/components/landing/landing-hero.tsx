@@ -34,6 +34,7 @@ function MobileHeroCard() {
             src={PUBLIC_ASSETS.images.logo}
             alt="Rolli logo"
             fill
+            priority
             className="object-cover"
           />
         </div>
@@ -59,6 +60,7 @@ function DesktopPolaroidPanel() {
             src={PUBLIC_ASSETS.images.logo}
             alt="Rolli logo"
             fill
+            priority
             className="object-cover"
           />
         </div>

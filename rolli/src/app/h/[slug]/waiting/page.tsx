@@ -9,7 +9,7 @@ import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
 import { MobileShell } from "@/components/layout/mobile-shell";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
-import { AppBackButton } from "@/components/ui/app-back-button";
+import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
@@ -94,7 +94,10 @@ export default function WaitingRoomPage() {
       contentAlign="raised"
       hint={hint}
       header={
-        <AppBackButton
+        <SetupFlowHeader
+          showProgress={false}
+          title={displayHangout.title}
+          sublabel="Waiting room"
           backHref={hangoutSharePath(slug)}
           backLabel="Back to invite link"
         />
@@ -117,7 +120,7 @@ export default function WaitingRoomPage() {
               onClick={() => void handleStartHangout()}
               className={cn(
                 APP_PRIMARY_BUTTON_CLASS,
-                "bg-gradient-pastel text-white shadow-glow hover:bg-gradient-pastel active:scale-[0.98]",
+                "border border-lavender-deep/35 bg-gradient-pastel text-white hover:bg-gradient-pastel active:scale-[0.98]",
               )}
             >
               {starting ? "Starting…" : "Start hangout"}
@@ -137,15 +140,6 @@ export default function WaitingRoomPage() {
       }
     >
       <div className="flex flex-col gap-6">
-        <div className="text-center">
-          <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight text-pink-highlight">
-            {displayHangout.title}
-          </h1>
-          <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">
-            Waiting room
-          </p>
-        </div>
-
         {loadError && (
           <p className="text-center text-sm text-pink">{loadError}</p>
         )}

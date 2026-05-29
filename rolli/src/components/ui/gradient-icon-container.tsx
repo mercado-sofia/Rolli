@@ -33,7 +33,7 @@ export function GradientIconContainer({
   return (
     <div
       className={cn(
-        "inline-flex shrink-0 bg-gradient-pastel p-px shadow-glow",
+        "inline-flex shrink-0 border border-lavender-deep/25 bg-gradient-pastel p-px",
         styles.outer,
         className,
       )}

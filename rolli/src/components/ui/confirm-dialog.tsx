@@ -49,7 +49,7 @@ export function ConfirmDialog({
       ref={dialogRef}
       className={cn(
         "fixed inset-0 z-50 m-auto w-[min(100%,22rem)] max-w-md",
-        "rounded-3xl border border-black/8 bg-white p-6 text-ink shadow-soft",
+        "rounded-3xl border border-black/8 bg-white p-6 text-ink",
         "backdrop:bg-black/40",
       )}
       onClose={onCancel}

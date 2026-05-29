@@ -125,7 +125,10 @@ export function LandingGuide() {
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <Card gradient className="relative min-h-[min(340px,62dvh)] overflow-hidden md:min-h-[420px]">
+            <Card
+              gradient
+              className="relative min-h-[min(340px,62dvh)] overflow-hidden shadow-soft md:min-h-[420px]"
+            >
               <AnimatePresence mode="wait">
                 <motion.div
                   key={slide.title}
