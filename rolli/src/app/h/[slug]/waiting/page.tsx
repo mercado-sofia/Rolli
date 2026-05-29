@@ -14,6 +14,7 @@ import {
   HANGOUT_CANCELLED_FOOTER_HINT,
   HangoutInvitationClosedContent,
 } from "@/components/hangout/hangout-invitation-closed";
+import { GuestWaitingRoomBack } from "@/components/hangout/guest-waiting-room-back";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -151,13 +152,20 @@ export default function WaitingRoomPage() {
             title={displayHangout.title}
             sublabel="Invitation closed"
           />
-        ) : (
+        ) : isFilmKeeper ? (
           <SetupFlowHeader
             showProgress={false}
             title={displayHangout.title}
             sublabel="Waiting room"
             backHref={hangoutSharePath(slug)}
             backLabel="Back to invite link"
+          />
+        ) : (
+          <GuestWaitingRoomBack
+            slug={slug}
+            hangoutId={displayHangout.id}
+            sessionToken={participant!.sessionToken}
+            title={displayHangout.title}
           />
         )}
       </header>
@@ -189,10 +197,10 @@ export default function WaitingRoomPage() {
                 <HangoutCardIcon
                   icon={LuMoon}
                   containerClassName="md:h-14 md:w-14"
-                  iconClassName="md:h-7 md:w-7"
+                  iconClassName="text-ink md:h-7 md:w-7"
                 />
-                <p className="font-display mt-4 text-2xl leading-snug">
-                  {participantCount}{" "}
+                <p className="font-display mt-4 text-2xl leading-snug text-ink">
+                  <span className="text-pink-highlight">{participantCount}</span>{" "}
                   {participantCount === 1
                     ? "friend is in the room"
                     : "friends are in the room"}
@@ -209,7 +217,10 @@ export default function WaitingRoomPage() {
                   </div>
                   {isFilmKeeper && (
                     <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
-                      You are the Film Keeper
+                      You are the{" "}
+                      <span className="font-medium text-pink-highlight">
+                        Film Keeper
+                      </span>
                     </div>
                   )}
                 </dl>
@@ -263,14 +274,10 @@ export default function WaitingRoomPage() {
               hangoutId={displayHangout.id}
               sessionToken={participant.sessionToken}
               hideTrigger={isCancelled}
+              triggerVariant="pill"
               onAbandoned={setHangout}
               onUiStateChange={setAbandonUiState}
-              className={cn(
-                APP_PRIMARY_BUTTON_CLASS,
-                "min-w-0 rounded-full border border-ink bg-white px-2 sm:w-full sm:min-h-[54px] sm:rounded-full sm:px-2",
-                "text-pink-accent underline underline-offset-4",
-                "hover:text-pink-deep active:bg-white/95",
-              )}
+              className={cn(APP_PRIMARY_BUTTON_CLASS, "min-w-0")}
             />
           </div>
         ) : null}

@@ -24,6 +24,10 @@ import {
   isHangoutJoinable,
 } from "@/lib/hangout/join-eligibility";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
+import {
+  hangoutInviteReturnPath,
+  setWaitingReturnPath,
+} from "@/lib/hangout/waiting-return-path";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { useSessionStore } from "@/store/session-store";
@@ -138,6 +142,9 @@ export function InviteLanding() {
       }
 
       setSession(data.hangout, data.participant);
+      if (data.hangout.status === "waiting") {
+        setWaitingReturnPath(slug, hangoutInviteReturnPath(slug));
+      }
       router.replace(hangoutParticipantPath(slug, data.hangout.status));
     }
 

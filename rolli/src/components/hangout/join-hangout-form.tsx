@@ -13,6 +13,10 @@ import { SetupFormCard } from "@/components/ui/setup-form-card";
 import { joinHangout } from "@/lib/hangout/hangouts";
 import { buildInviteUrl, extractSlugFromInviteLink } from "@/lib/hangout/invite";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
+import {
+  inferWaitingReturnPathFromJoin,
+  setWaitingReturnPath,
+} from "@/lib/hangout/waiting-return-path";
 import { useSessionStore } from "@/store/session-store";
 
 const baseJoinSchema = z.object({
@@ -130,6 +134,12 @@ export const JoinHangoutForm = forwardRef<
     }
 
     setSession(data.hangout, data.participant);
+    if (data.hangout.status === "waiting") {
+      setWaitingReturnPath(
+        slug,
+        inferWaitingReturnPathFromJoin(slug, slugFromUrl),
+      );
+    }
     router.push(hangoutParticipantPath(slug, data.hangout.status));
   }
 

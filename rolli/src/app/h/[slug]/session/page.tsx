@@ -250,13 +250,9 @@ export default function SessionPage() {
             <AbandonHangoutControl
               hangoutId={displayHangout.id}
               sessionToken={participant.sessionToken}
+              triggerVariant="pill"
               onAbandoned={setHangout}
-              className={cn(
-                APP_PRIMARY_BUTTON_CLASS,
-                "min-w-0 rounded-full border border-ink bg-white px-2 sm:w-full sm:min-h-[54px] sm:rounded-full sm:px-2",
-                "text-pink-accent underline underline-offset-4",
-                "hover:text-pink-deep active:bg-white/95",
-              )}
+              className={cn(APP_PRIMARY_BUTTON_CLASS, "min-w-0")}
             />
           </div>
         ) : (
