@@ -5,13 +5,14 @@ import { useState } from "react";
 import { LuFilm } from "react-icons/lu";
 
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
-import { AppPageContent } from "@/components/layout/app-page-content";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
+import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { startReveal } from "@/lib/hangout/reveal";
 import { useSessionStore } from "@/store/session-store";
 
@@ -63,22 +64,17 @@ export default function DevelopingPage() {
     !displayHangout ||
     displayHangout.status !== "developing"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   return (
-    <MobileShell variant="app" className="justify-center gap-8">
-      <AppPageContent className="gap-8">
+    <AppScrollShell>
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Hangout ended</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">
+        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink">
           {displayHangout.title}
         </h1>
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-3 text-sm leading-relaxed text-muted">
           Your memories are developing. The reveal is coming soon.
         </p>
       </div>
@@ -88,24 +84,23 @@ export default function DevelopingPage() {
         <p className="font-display mt-4 text-2xl leading-snug">
           Memories in the darkroom
         </p>
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-3 text-sm leading-relaxed text-muted">
           Every anonymous perspective is being prepared for the big reveal.
         </p>
       </Card>
 
       <Card>
         <dl className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <dt className="text-muted">Your nickname</dt>
-            <dd className="font-medium text-ink">{participant.nickname}</dd>
+          <div className="flex justify-between gap-4">
+            <dt className="shrink-0 text-muted">Your nickname</dt>
+            <dd className="text-right font-medium text-ink">{participant.nickname}</dd>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between gap-4">
             <dt className="text-muted">Status</dt>
             <dd className="font-medium capitalize text-ink">developing</dd>
           </div>
         </dl>
       </Card>
-      </AppPageContent>
 
       {participant.isFilmKeeper ? (
         <>
@@ -115,16 +110,17 @@ export default function DevelopingPage() {
           <Button
             type="button"
             disabled={starting}
+            className={APP_PRIMARY_BUTTON_CLASS}
             onClick={() => void handleStartReveal()}
           >
             {starting ? "Starting reveal…" : "Start reveal"}
           </Button>
         </>
       ) : (
-        <p className="text-center text-sm text-muted">
+        <p className="text-center text-sm leading-relaxed text-muted">
           Waiting for the Film Keeper to start the reveal…
         </p>
       )}
-    </MobileShell>
+    </AppScrollShell>
   );
 }

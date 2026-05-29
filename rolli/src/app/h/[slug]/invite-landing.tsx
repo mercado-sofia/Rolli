@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { Button } from "@/components/ui/button";
 import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
@@ -122,11 +122,9 @@ export function InviteLanding() {
 
   if (loading || rejoining) {
     return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">
-          {rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
-        </p>
-      </MobileShell>
+      <AppLoadingState
+        message={rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
+      />
     );
   }
 
@@ -152,11 +150,7 @@ export function InviteLanding() {
   }
 
   if (hasMatchingSession) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Taking you to your hangout…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState message="Taking you to your hangout…" />;
   }
 
   if (hangout.status !== "waiting") {

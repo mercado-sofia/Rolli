@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 
 import { InviteLinkCard } from "@/components/hangout/invite-link-card";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,7 @@ export default function HangoutSharePage() {
     !displayHangout ||
     displayHangout.status !== "waiting"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   const waitingPath = `/h/${slug}/waiting`;

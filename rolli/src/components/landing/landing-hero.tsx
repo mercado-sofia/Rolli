@@ -238,7 +238,8 @@ export function LandingHero() {
           >
             <Button
               href="/start"
-              className="h-[54px] w-full max-w-sm bg-gradient-pastel text-[15px] shadow-glow active:scale-[0.98]"
+              variant="gradient"
+              className="h-[54px] w-full max-w-sm text-[15px] shadow-glow"
             >
               Start a hangout
             </Button>
@@ -278,7 +279,8 @@ export function LandingHero() {
 
               <Button
                 href="/start"
-                className="mt-3 h-[54px] w-auto min-w-[220px] bg-gradient-pastel px-10 text-[15px] shadow-glow active:scale-[0.98] lg:mt-4"
+                variant="gradient"
+                className="mt-3 h-[54px] w-auto min-w-[220px] px-10 text-[15px] shadow-glow lg:mt-4"
               >
                 Start a hangout
               </Button>

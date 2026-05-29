@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import {
   finishGuessing,
   getGuessingResults,
@@ -206,7 +207,9 @@ export function GuessingExperience({
           ))}
         </div>
 
-        <Button href={`/h/${hangoutSlug}/gallery`}>View memory gallery</Button>
+        <Button href={`/h/${hangoutSlug}/gallery`} className={APP_PRIMARY_BUTTON_CLASS}>
+          View memory gallery
+        </Button>
         <BackHomeButton />
       </div>
     );
@@ -226,7 +229,7 @@ export function GuessingExperience({
   const allVotesIn = state.votesSubmitted >= state.votesRequired;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-6">
       <div className="text-center">
         <p className="text-sm font-medium text-muted">Guessing phase</p>
         <h2 className="font-display mt-1 text-2xl text-ink">{hangoutTitle}</h2>
@@ -298,6 +301,7 @@ export function GuessingExperience({
           <Button
             type="button"
             disabled={finishing}
+            className={APP_PRIMARY_BUTTON_CLASS}
             onClick={() => void handleFinishGuessing()}
           >
             {finishing ? "Finishing…" : "Reveal results"}

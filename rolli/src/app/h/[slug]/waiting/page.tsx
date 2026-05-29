@@ -7,7 +7,7 @@ import { LuMoon } from "react-icons/lu";
 import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { Button } from "@/components/ui/button";
@@ -77,11 +77,7 @@ export default function WaitingRoomPage() {
     !displayHangout ||
     displayHangout.status !== "waiting"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   const hint = getWaitingHint(isFilmKeeper, canStart);
@@ -167,7 +163,7 @@ export default function WaitingRoomPage() {
               </dd>
             </div>
             {isFilmKeeper && (
-              <div className="rounded-2xl border-2 border-black/8 bg-white px-4 py-3 text-center text-sm text-ink">
+              <div className="rounded-2xl border border-container-border bg-white px-4 py-3 text-center text-sm text-ink">
                 You are the Film Keeper
               </div>
             )}

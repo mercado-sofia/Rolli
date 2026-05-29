@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
-import { AppPageContent } from "@/components/layout/app-page-content";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
+import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
@@ -30,29 +30,23 @@ export default function GalleryPage() {
     !displayHangout ||
     displayHangout.status !== "completed"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   return (
-    <MobileShell variant="app" className="gap-6">
-      <AppPageContent className="gap-6">
-        <GalleryExperience
-          hangoutId={displayHangout.id}
-          sessionToken={participant.sessionToken}
-          hangoutTitle={displayHangout.title}
-        />
-      </AppPageContent>
+    <AppScrollShell>
+      <GalleryExperience
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+        hangoutTitle={displayHangout.title}
+      />
 
       <Link
         href={`/h/${slug}/guessing`}
-        className="block text-center text-sm text-muted underline underline-offset-4"
+        className="inline-flex min-h-11 items-center justify-center text-center text-sm text-muted underline underline-offset-4"
       >
         Back to results
       </Link>
-    </MobileShell>
+    </AppScrollShell>
   );
 }

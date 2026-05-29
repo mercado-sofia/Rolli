@@ -13,6 +13,8 @@ type SetupFlowHeaderProps = {
   backLabel?: string;
   /** When false, only back + title block (e.g. waiting room). Default true. */
   showProgress?: boolean;
+  /** Page title color — default pink; use ink (black) on start page only */
+  titleTone?: "pink" | "ink";
   className?: string;
 };
 
@@ -25,6 +27,7 @@ export function SetupFlowHeader({
   onBack,
   backLabel,
   showProgress = true,
+  titleTone = "pink",
   className,
 }: SetupFlowHeaderProps) {
   const progress = Math.min(100, Math.max(0, (currentStep / totalSteps) * 100));
@@ -68,7 +71,12 @@ export function SetupFlowHeader({
           showProgress ? "mt-12 sm:mt-14" : "mt-8 sm:mt-10",
         )}
       >
-        <h1 className="font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight text-pink-highlight">
+        <h1
+          className={cn(
+            "font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight",
+            titleTone === "ink" ? "text-ink" : "text-pink-highlight",
+          )}
+        >
           {title}
         </h1>
         <p className="mt-2 text-[11px] font-medium uppercase tracking-overline text-pink-muted">

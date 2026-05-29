@@ -92,7 +92,8 @@ export function LandingGuide() {
 
             <Button
               href="/start"
-              className="h-13 self-center px-8 bg-gradient-pastel shadow-glow md:max-w-[240px]"
+              variant="gradient"
+              className="h-13 self-center px-8 shadow-glow md:max-w-[240px]"
             >
               {isLast ? "Continue to Start" : "Start a hangout"}
             </Button>

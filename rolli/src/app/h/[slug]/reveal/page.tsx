@@ -4,8 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 
 import { RevealExperience } from "@/components/hangout/reveal-experience";
-import { AppPageContent } from "@/components/layout/app-page-content";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
+import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
@@ -43,24 +43,18 @@ export default function RevealPage() {
     !displayHangout ||
     displayHangout.status !== "revealing"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   return (
-    <MobileShell variant="app" className="justify-center gap-6">
-      <AppPageContent className="gap-6">
-        <RevealExperience
-          hangoutId={displayHangout.id}
-          sessionToken={participant.sessionToken}
-          hangoutTitle={displayHangout.title}
-          isFilmKeeper={participant.isFilmKeeper}
-          onFinishReveal={handleFinishReveal}
-        />
-      </AppPageContent>
-    </MobileShell>
+    <AppScrollShell>
+      <RevealExperience
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+        hangoutTitle={displayHangout.title}
+        isFilmKeeper={participant.isFilmKeeper}
+        onFinishReveal={handleFinishReveal}
+      />
+    </AppScrollShell>
   );
 }

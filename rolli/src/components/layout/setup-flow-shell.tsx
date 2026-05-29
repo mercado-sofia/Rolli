@@ -2,8 +2,8 @@ import { type CSSProperties, type ReactNode } from "react";
 
 import { MobileShell } from "@/components/layout/mobile-shell";
 import {
-  APP_ACTION_INSET_X,
-  APP_CONTENT_INSET_X,
+  APP_ACTION_PADDING_X,
+  APP_CONTENT_PADDING_X,
 } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ const OVERLAY_TOP_COMPACT =
 /** Bottom clearance: safe-area + hint/button stack */
 const OVERLAY_BOTTOM = "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 9.5rem)";
 const OVERLAY_BOTTOM_WITH_HINT =
-  "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 13.5rem)";
+  "calc(max(2rem, env(safe-area-inset-bottom, 0px)) + 12rem)";
 
 export function SetupFlowShell({
   header,
@@ -62,8 +62,8 @@ export function SetupFlowShell({
       {/* Main scroll region — padded to clear absolute header/footer overlays */}
       <main
         className={cn(
-          "flex min-h-0 flex-1 flex-col overflow-y-auto",
-          APP_CONTENT_INSET_X,
+          "flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain",
+          APP_CONTENT_PADDING_X,
           mainJustify,
         )}
         style={
@@ -80,7 +80,7 @@ export function SetupFlowShell({
       <div
         className={cn(
           "pointer-events-none absolute inset-x-0 top-0 z-10",
-          APP_CONTENT_INSET_X,
+          APP_CONTENT_PADDING_X,
         )}
       >
         <div className="pointer-events-auto pt-[max(1.5rem,env(safe-area-inset-top))] sm:pt-8">
@@ -93,7 +93,7 @@ export function SetupFlowShell({
         <div
           className={cn(
             "pointer-events-none absolute inset-x-0 bottom-0 z-10",
-            APP_ACTION_INSET_X,
+            APP_ACTION_PADDING_X,
           )}
         >
           <div className="pointer-events-auto flex flex-col items-center pb-[max(2rem,env(safe-area-inset-bottom))] sm:pb-10">
@@ -106,7 +106,7 @@ export function SetupFlowShell({
               <div
                 className={cn(
                   "flex w-full max-w-md flex-col items-center gap-3",
-                  hint ? "mt-14 sm:mt-16" : null,
+                  hint ? "mt-6 sm:mt-8" : null,
                 )}
               >
                 {footer}

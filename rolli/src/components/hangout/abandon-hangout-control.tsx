@@ -62,8 +62,8 @@ export function AbandonHangoutControl({
         type="button"
         onClick={handleOpen}
         className={cn(
-          "text-sm font-medium text-muted underline underline-offset-4",
-          "transition-colors hover:text-pink-accent",
+          "inline-flex min-h-11 items-center justify-center text-sm font-medium text-muted",
+          "underline underline-offset-4 transition-colors hover:text-pink-accent",
           className,
         )}
       >

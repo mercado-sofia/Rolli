@@ -6,13 +6,14 @@ import { useState } from "react";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
-import { AppPageContent } from "@/components/layout/app-page-content";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
+import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { endHangout } from "@/lib/hangout/hangouts";
 import { useSessionStore } from "@/store/session-store";
@@ -69,19 +70,14 @@ export default function SessionPage() {
     !displayHangout ||
     displayHangout.status !== "active"
   ) {
-    return (
-      <MobileShell variant="app" className="justify-center">
-        <p className="text-center text-muted">Loading…</p>
-      </MobileShell>
-    );
+    return <AppLoadingState />;
   }
 
   return (
-    <MobileShell variant="app" className="justify-center gap-8">
-      <AppPageContent className="gap-8">
+    <AppScrollShell>
       <div>
         <p className="text-sm font-medium text-muted">Active hangout</p>
-        <h1 className="font-display mt-2 text-3xl text-ink">
+        <h1 className="font-display mt-2 text-[clamp(1.5rem,5vw,1.875rem)] leading-tight text-ink">
           {displayHangout.title}
         </h1>
       </div>
@@ -102,7 +98,6 @@ export default function SessionPage() {
         photosRemaining={photosRemaining}
         onCaptured={setParticipant}
       />
-      </AppPageContent>
 
       {participant.isFilmKeeper && (
         <>
@@ -113,6 +108,7 @@ export default function SessionPage() {
             variant="secondary"
             type="button"
             disabled={ending}
+            className={APP_PRIMARY_BUTTON_CLASS}
             onClick={() => void handleDevelopMemories()}
           >
             {ending ? "Ending…" : "End hangout"}
@@ -123,7 +119,8 @@ export default function SessionPage() {
       <LeaveRoomButton
         hangoutId={displayHangout.id}
         sessionToken={participant.sessionToken}
+        className={APP_PRIMARY_BUTTON_CLASS}
       />
-    </MobileShell>
+    </AppScrollShell>
   );
 }

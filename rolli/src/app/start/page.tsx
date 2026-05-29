@@ -17,14 +17,19 @@ export default function StartPage() {
           backLabel="Back to home"
           title="Get started"
           sublabel="Choose how to join"
+          titleTone="ink"
         />
       }
     >
       <div className="flex flex-col gap-4">
         <Link href="/create">
           <Card className="transition-transform hover:scale-[1.01] active:scale-[0.99]">
-            <p className="text-sm font-medium text-muted">Option A</p>
-            <h2 className="font-display mt-2 text-2xl text-ink">Create Invitation Link</h2>
+            <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+              Option A
+            </p>
+            <h2 className="font-display mt-2 text-2xl text-ink">
+              <span className="text-pink-highlight">Create</span> Invitation Link
+            </h2>
             <p className="mt-2 text-sm text-muted">
               You become the Film Keeper and control when memories develop.
             </p>
@@ -33,8 +38,12 @@ export default function StartPage() {
 
         <Link href="/join">
           <Card className="transition-transform hover:scale-[1.01] active:scale-[0.99]">
-            <p className="text-sm font-medium text-muted">Option B</p>
-            <h2 className="font-display mt-2 text-2xl text-ink">Paste Invitation Link</h2>
+            <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+              Option B
+            </p>
+            <h2 className="font-display mt-2 text-2xl text-ink">
+              <span className="text-pink-highlight">Paste</span> Invitation Link
+            </h2>
             <p className="mt-2 text-sm text-muted">
               Join anonymously with a nickname and hidden real name.
             </p>

@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 
-import { APP_SHELL_PY } from "@/lib/app-page-layout";
+import { APP_SAFE_BOTTOM, APP_SHELL_PY } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 type MobileShellProps = {
@@ -12,6 +12,8 @@ type MobileShellProps = {
   fillViewport?: boolean;
   /** App pages: tighter vertical padding on mobile; landing keeps default. */
   variant?: "default" | "app";
+  /** Enables vertical scroll when content exceeds the viewport (app pages). */
+  scrollable?: boolean;
 };
 
 export function MobileShell({
@@ -21,17 +23,20 @@ export function MobileShell({
   ambient = true,
   fillViewport = true,
   variant = "default",
+  scrollable = false,
 }: MobileShellProps) {
-  const shellPadding =
-    variant === "app"
-      ? cn("px-4", APP_SHELL_PY)
-      : "px-4 py-8 sm:px-5";
+  const isApp = variant === "app";
+  const shellPadding = isApp
+    ? cn("px-4", APP_SHELL_PY, APP_SAFE_BOTTOM)
+    : "px-4 py-8 sm:px-5";
   return (
     <div
       className={cn(
         "relative overflow-x-hidden text-ink",
         backgroundClassName,
-        fillViewport ? "min-h-dvh" : "h-full min-h-0",
+        fillViewport
+          ? "min-h-dvh supports-[height:100dvh]:min-h-dvh"
+          : "h-full min-h-0",
       )}
     >
       {ambient && (
@@ -45,8 +50,14 @@ export function MobileShell({
       )}
       <div
         className={cn(
-          "relative mx-auto flex w-full max-w-md flex-col",
-          fillViewport ? cn("min-h-dvh", shellPadding) : "h-full min-h-0 py-0",
+          "relative mx-auto flex w-full max-w-md min-w-0 flex-col",
+          fillViewport
+            ? cn(
+                "min-h-dvh supports-[height:100dvh]:min-h-dvh",
+                shellPadding,
+                scrollable && "overflow-y-auto overscroll-y-contain",
+              )
+            : "h-full min-h-0 py-0",
           className,
         )}
       >

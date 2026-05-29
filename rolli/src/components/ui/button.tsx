@@ -5,7 +5,7 @@ import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type ButtonVariant = "primary" | "secondary";
+type ButtonVariant = "primary" | "secondary" | "gradient";
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -18,6 +18,8 @@ const variantStyles: Record<ButtonVariant, string> = {
     "border border-ink bg-ink text-white hover:bg-[#2a2a2a] active:scale-[0.98]",
   secondary:
     "border border-black/8 bg-white text-ink hover:bg-white/90 active:scale-[0.98]",
+  gradient:
+    "border-0 bg-gradient-pastel text-white hover:brightness-[1.02] active:scale-[0.98]",
 };
 
 export function Button({

@@ -6,7 +6,7 @@ import { Suspense, useState } from "react";
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { SetupFlowShell } from "@/components/layout/setup-flow-shell";
-import { MobileShell } from "@/components/layout/mobile-shell";
+import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { Button } from "@/components/ui/button";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
@@ -55,11 +55,7 @@ function JoinPageContent() {
 export default function JoinPage() {
   return (
     <Suspense
-      fallback={
-        <MobileShell variant="app" className="justify-center">
-          <p className="text-center text-muted">Loading…</p>
-        </MobileShell>
-      }
+      fallback={<AppLoadingState />}
     >
       <JoinPageContent />
     </Suspense>
