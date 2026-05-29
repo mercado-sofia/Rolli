@@ -277,10 +277,10 @@ export default function SessionPage() {
 
       <ConfirmDialog
         open={endConfirmOpen}
-        accent="ink"
+        accent="pink"
         icon={
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/8">
-            <TbPhoto size={36} className="text-ink" aria-hidden />
+          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
+            <TbPhoto size={36} className="text-pink-highlight" aria-hidden />
           </span>
         }
         title="End the hangout?"
@@ -291,7 +291,7 @@ export default function SessionPage() {
           </>
         }
         confirmLabel="Yes, end hangout"
-        cancelLabel="Keep capturing"
+        cancelLabel="No"
         loading={ending}
         error={endError}
         dismissible={!ending}

@@ -124,7 +124,7 @@ export function RevealPhotoCarousel({
     >
       <div
         ref={viewportRef}
-        className="relative mx-auto aspect-5/6 w-full max-w-sm max-h-[min(48dvh,22rem)] overflow-hidden [contain:layout_paint]"
+        className="relative mx-auto aspect-4/3 w-full max-w-lg overflow-hidden rounded-2xl border border-container-border/60 bg-[#F8F8F8] shadow-soft"
       >
         <motion.div
           className="flex h-full will-change-transform"
@@ -197,7 +197,7 @@ function CarouselSlide({
 }) {
   return (
     <div
-      className="flex h-full shrink-0 items-center justify-center px-[7%]"
+      className="flex h-full shrink-0 items-center justify-center"
       style={{ width: width > 0 ? width : "100%" }}
       aria-hidden={!isActive}
     >
@@ -206,8 +206,8 @@ function CarouselSlide({
         perspectiveLabel={perspectiveLabel}
         priority={isNearActive}
         className={cn(
-          "h-full w-full shadow-soft transition-[transform,opacity] duration-200 ease-out",
-          isActive ? "scale-100 opacity-100" : "scale-[0.94] opacity-70",
+          "h-full w-full transition-opacity duration-200 ease-out",
+          isActive ? "opacity-100" : "opacity-70",
         )}
       />
     </div>
@@ -228,10 +228,7 @@ function PhotoCard({
 } & ComponentPropsWithoutRef<"div">) {
   return (
     <div
-      className={cn(
-        "overflow-hidden rounded-2xl border border-container-border/60 bg-[#F8F8F8]",
-        className,
-      )}
+      className={cn("flex h-full w-full items-center justify-center", className)}
       {...rest}
     >
       {photo.signedUrl ? (
@@ -239,14 +236,14 @@ function PhotoCard({
         <img
           src={photo.signedUrl}
           alt={`Memory from ${perspectiveLabel}`}
-          className="pointer-events-none h-full w-full object-cover select-none"
+          className="max-h-full max-w-full object-contain select-none pointer-events-none"
           draggable={false}
           decoding="async"
           fetchPriority={priority ? "high" : "auto"}
           loading={priority ? "eager" : "lazy"}
         />
       ) : (
-        <div className="flex h-full min-h-48 items-center justify-center text-xs text-muted">
+        <div className="flex h-full min-h-48 w-full items-center justify-center text-xs text-muted">
           Unavailable
         </div>
       )}

@@ -294,7 +294,7 @@ export function RevealExperience({
             ) : null}
 
             {current.photos.length === 0 && (
-              <div className="relative mx-auto flex aspect-5/6 w-full max-w-sm max-h-[min(48dvh,22rem)] items-center justify-center">
+              <div className="relative mx-auto flex aspect-4/3 w-full max-w-lg items-center justify-center overflow-hidden rounded-2xl border border-container-border/60 bg-[#F8F8F8]">
                 <p className="px-4 text-center text-sm text-muted">
                   No photos from this perspective.
                 </p>
