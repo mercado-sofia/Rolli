@@ -37,6 +37,7 @@ import { HANGOUT_LIMITS } from "@/lib/constants";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { hangoutSharePath } from "@/lib/hangout/routes";
 import { startHangout } from "@/lib/hangout/hangouts";
+import { markSessionGuidePending } from "@/lib/hangout/session-guide-storage";
 import { getWaitingHint } from "@/lib/hangout/waiting-hint";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -101,6 +102,7 @@ export default function WaitingRoomPage() {
     }
 
     setHangout(data);
+    markSessionGuidePending(slug);
     router.replace(`/h/${slug}/session`);
   }
 
@@ -249,22 +251,28 @@ export default function WaitingRoomPage() {
             className={APP_PRIMARY_BUTTON_CLASS}
           />
         ) : null}
-        {!isCancelled && isFilmKeeper ? (
-          <LeaveRoomButton
-            hangoutId={displayHangout.id}
-            sessionToken={participant!.sessionToken}
-            isFilmKeeper
-            className={APP_PRIMARY_BUTTON_CLASS}
-          />
-        ) : null}
-        {isFilmKeeper && participant ? (
-          <AbandonHangoutControl
-            hangoutId={displayHangout.id}
-            sessionToken={participant.sessionToken}
-            hideTrigger={isCancelled}
-            onAbandoned={setHangout}
-            onUiStateChange={setAbandonUiState}
-          />
+        {!isCancelled && isFilmKeeper && participant ? (
+          <div className="grid w-full grid-cols-2 gap-3">
+            <LeaveRoomButton
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              isFilmKeeper
+              className={cn(APP_PRIMARY_BUTTON_CLASS, "min-w-0")}
+            />
+            <AbandonHangoutControl
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              hideTrigger={isCancelled}
+              onAbandoned={setHangout}
+              onUiStateChange={setAbandonUiState}
+              className={cn(
+                APP_PRIMARY_BUTTON_CLASS,
+                "min-w-0 rounded-full border border-ink bg-white px-2 sm:w-full sm:min-h-[54px] sm:rounded-full sm:px-2",
+                "text-pink-accent underline underline-offset-4",
+                "hover:text-pink-deep active:bg-white/95",
+              )}
+            />
+          </div>
         ) : null}
       </SetupFlowFooter>
     </SetupFlowShell>

@@ -1,5 +1,7 @@
 "use client";
 
+import { type ReactNode } from "react";
+
 import { AppBackButton } from "@/components/ui/app-back-button";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +17,8 @@ type SetupFlowHeaderProps = {
   showProgress?: boolean;
   /** Page title color — default pink; use ink (black) on start page only */
   titleTone?: "pink" | "ink";
+  /** Top-right action (e.g. guide menu on session page). */
+  trailingAction?: ReactNode;
   className?: string;
 };
 
@@ -28,6 +32,7 @@ export function SetupFlowHeader({
   backLabel,
   showProgress = true,
   titleTone = "pink",
+  trailingAction,
   className,
 }: SetupFlowHeaderProps) {
   const progress = Math.min(100, Math.max(0, (currentStep / totalSteps) * 100));
@@ -42,6 +47,10 @@ export function SetupFlowHeader({
           ) : (
             <div className="h-9 w-9" aria-hidden />
           )}
+        </div>
+
+        <div className="absolute right-0 top-0">
+          {trailingAction ?? <div className="h-9 w-9" aria-hidden />}
         </div>
 
         {showProgress ? (
@@ -68,12 +77,15 @@ export function SetupFlowHeader({
 
       {/* Desktop left panel: back → progress → title */}
       <div className="hidden md:flex md:flex-col md:gap-8">
-        <div>
-          {backHref || onBack ? (
-            <AppBackButton backHref={backHref} onBack={onBack} backLabel={backLabel} />
-          ) : (
-            <div className="h-9 w-9" aria-hidden />
-          )}
+        <div className="flex w-full items-start justify-between gap-3">
+          <div>
+            {backHref || onBack ? (
+              <AppBackButton backHref={backHref} onBack={onBack} backLabel={backLabel} />
+            ) : (
+              <div className="h-9 w-9" aria-hidden />
+            )}
+          </div>
+          {trailingAction ? <div className="shrink-0">{trailingAction}</div> : null}
         </div>
 
         {showProgress ? (

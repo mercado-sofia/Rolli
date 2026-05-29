@@ -231,8 +231,6 @@ export function CameraCapture({
       ? createPortal(
           <CaptureOverlay
             videoRef={videoRef}
-            photosTaken={photosTaken}
-            maxPhotos={maxPhotos}
             error={error}
             flash={flash}
             isCapturing={phase === "capturing"}
@@ -305,8 +303,8 @@ function CameraTriggerButton({
         aria-label={ariaLabel}
         className={cn(
           "inline-flex shrink-0 touch-manipulation items-center justify-center rounded-full border border-lavender-deep/35 bg-white",
-          "transition-transform hover:scale-[1.03] active:scale-[0.97]",
-          "disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:scale-100",
+          "active:scale-[0.97]",
+          "disabled:cursor-not-allowed disabled:opacity-45",
           "h-20 w-20 sm:h-24 sm:w-24",
         )}
       >
@@ -394,8 +392,6 @@ function ShutterButton({
 
 function CaptureOverlay({
   videoRef,
-  photosTaken,
-  maxPhotos,
   error,
   flash,
   isCapturing,
@@ -404,8 +400,6 @@ function CaptureOverlay({
   onCapture,
 }: {
   videoRef: RefObject<HTMLVideoElement | null>;
-  photosTaken: number;
-  maxPhotos: number;
   error: string | null;
   flash: boolean;
   isCapturing: boolean;
@@ -439,14 +433,9 @@ function CaptureOverlay({
         >
           <div className="relative flex w-full items-center justify-between gap-3">
             <AppBackButton onBack={onClose} backLabel="Close camera" />
-            <div className="pointer-events-none absolute inset-x-0 top-1/2 flex -translate-y-1/2 flex-col items-center gap-0.5 px-14 text-center md:static md:translate-y-0 md:flex-1 md:px-4">
-              <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
-                Capture memory
-              </p>
-              <p className="font-display text-2xl tabular-nums tracking-tight text-pink-highlight sm:text-3xl">
-                {photosTaken}/{maxPhotos}
-              </p>
-            </div>
+            <p className="pointer-events-none absolute inset-x-0 text-center text-[11px] font-medium uppercase tracking-overline text-pink-muted">
+              Capture memory
+            </p>
             <div className="h-9 w-9 shrink-0" aria-hidden />
           </div>
         </header>

@@ -1,21 +1,24 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { TfiMenuAlt } from "react-icons/tfi";
 
 import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
 import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
+import { RolliGuideModal } from "@/components/hangout/rolli-guide-modal";
+import { SessionGuideModal } from "@/components/hangout/session-guide-modal";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
   SetupFlowShell,
   SETUP_FLOW_HEADER_COMPACT_CLASS,
+  SETUP_FLOW_MAIN_CENTER_CLASS,
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
-  SETUP_FLOW_MAIN_UPPER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { Button } from "@/components/ui/button";
@@ -27,6 +30,11 @@ import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { endHangout } from "@/lib/hangout/hangouts";
+import {
+  consumeSessionGuidePending,
+  hasSeenSessionGuide,
+  markSessionGuideSeen,
+} from "@/lib/hangout/session-guide-storage";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -45,6 +53,8 @@ export default function SessionPage() {
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
+  const [sessionGuideOpen, setSessionGuideOpen] = useState(false);
+  const [rolliGuideOpen, setRolliGuideOpen] = useState(false);
 
   const { displayHangout, isLoading } = useDisplayHangout(slug);
 
@@ -62,6 +72,24 @@ export default function SessionPage() {
     participant,
     hangout: displayHangout,
   });
+
+  const closeSessionGuide = useCallback(() => {
+    if (displayHangout) {
+      markSessionGuideSeen(displayHangout.id);
+    }
+    setSessionGuideOpen(false);
+  }, [displayHangout]);
+
+  useEffect(() => {
+    if (!displayHangout || !hasValidSession) return;
+
+    const fromStart = consumeSessionGuidePending(slug);
+    const firstVisit = !hasSeenSessionGuide(displayHangout.id);
+
+    if (fromStart || firstVisit) {
+      setSessionGuideOpen(true);
+    }
+  }, [displayHangout, hasValidSession, slug]);
 
   async function handleDevelopMemories() {
     if (!participant || !displayHangout) return;
@@ -101,7 +129,7 @@ export default function SessionPage() {
             <div className="h-3 w-28 rounded-full bg-black/10" />
           </div>
         </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
           <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
             <MobileLoadingSpinner />
             <div className="hidden animate-pulse space-y-6 md:block">
@@ -123,41 +151,74 @@ export default function SessionPage() {
 
   const povLabel = `${participant.nickname.toLowerCase()}'s pov`;
 
+  const guideMenuButton = (
+    <button
+      type="button"
+      onClick={() => setRolliGuideOpen(true)}
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-full bg-[#F8F8F8]",
+        "text-ink outline-none transition-colors hover:bg-[#F0F0F0] active:scale-95",
+      )}
+      aria-label="Open Rolli guide"
+    >
+      <TfiMenuAlt size={20} strokeWidth={0.25} aria-hidden />
+    </button>
+  );
+
   return (
     <SetupFlowShell>
+      <SessionGuideModal open={sessionGuideOpen} onClose={closeSessionGuide} />
+      <RolliGuideModal open={rolliGuideOpen} onClose={() => setRolliGuideOpen(false)} />
+
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           showProgress={false}
           title={displayHangout.title}
           sublabel="Active hangout"
+          trailingAction={guideMenuButton}
         />
       </header>
 
-      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
-        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-6")}>
+      <main className={SETUP_FLOW_MAIN_CLASS}>
+        <div
+          className={cn(
+            SETUP_FLOW_MAIN_INNER_CLASS,
+            "flex min-h-0 w-full flex-1 flex-col",
+          )}
+        >
           <FilmKeeperPromotionBanner
             visible={showPromotion}
             onDismiss={dismissPromotion}
+            className="mb-4 w-full shrink-0 sm:mb-6"
           />
 
-          <ElapsedTimer
-            startedAt={displayHangout.startedAt}
-            autoEndHours={HANGOUT_LIMITS.autoEndHours}
-          />
+          <div
+            className={cn(
+              "flex min-h-0 flex-1 flex-col items-center justify-center gap-6",
+              SETUP_FLOW_MAIN_CENTER_CLASS,
+            )}
+          >
+            <div className="flex w-full max-w-md flex-col items-center gap-6">
+              <ElapsedTimer
+                startedAt={displayHangout.startedAt}
+                autoEndHours={HANGOUT_LIMITS.autoEndHours}
+              />
 
-          <div className="flex flex-col items-center gap-4 sm:gap-5">
-            <p className="text-sm tabular-nums text-pink-muted">
-              {photosTaken}/{maxPhotos}
-            </p>
-            <CameraCapture
-              hangoutId={displayHangout.id}
-              sessionToken={participant.sessionToken}
-              photosTaken={photosTaken}
-              maxPhotos={maxPhotos}
-              onCaptured={setParticipant}
-              appearance="session"
-              povLabel={povLabel}
-            />
+              <div className="flex flex-col items-center gap-4 sm:gap-5">
+                <p className="text-sm tabular-nums text-pink-muted">
+                  {photosTaken}/{maxPhotos}
+                </p>
+                <CameraCapture
+                  hangoutId={displayHangout.id}
+                  sessionToken={participant.sessionToken}
+                  photosTaken={photosTaken}
+                  maxPhotos={maxPhotos}
+                  onCaptured={setParticipant}
+                  appearance="session"
+                  povLabel={povLabel}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -178,20 +239,33 @@ export default function SessionPage() {
             </Button>
           </>
         )}
-        <LeaveRoomButton
-          hangoutId={displayHangout.id}
-          sessionToken={participant.sessionToken}
-          isFilmKeeper={isFilmKeeper}
-          className={APP_PRIMARY_BUTTON_CLASS}
-        />
         {isFilmKeeper ? (
-          <AbandonHangoutControl
+          <div className="grid w-full grid-cols-2 gap-3">
+            <LeaveRoomButton
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              isFilmKeeper
+              className={cn(APP_PRIMARY_BUTTON_CLASS, "min-w-0")}
+            />
+            <AbandonHangoutControl
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              onAbandoned={setHangout}
+              className={cn(
+                APP_PRIMARY_BUTTON_CLASS,
+                "min-w-0 rounded-full border border-ink bg-white px-2 sm:w-full sm:min-h-[54px] sm:rounded-full sm:px-2",
+                "text-pink-accent underline underline-offset-4",
+                "hover:text-pink-deep active:bg-white/95",
+              )}
+            />
+          </div>
+        ) : (
+          <LeaveRoomButton
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
-            onAbandoned={setHangout}
-            className="min-h-11 touch-manipulation rounded-none px-0 text-pink-accent underline-offset-4 hover:text-pink-deep active:bg-transparent"
+            className={APP_PRIMARY_BUTTON_CLASS}
           />
-        ) : null}
+        )}
       </SetupFlowFooter>
     </SetupFlowShell>
   );
