@@ -22,15 +22,18 @@ export function RevealAmbientAudio({ active }: RevealAmbientAudioProps) {
     audio.volume = REVEAL_MUSIC_VOLUME;
 
     function stopPlayback() {
-      audio.pause();
-      audio.currentTime = 0;
+      const el = audioRef.current;
+      if (!el) return;
+      el.pause();
+      el.currentTime = 0;
       isPlayingRef.current = false;
     }
 
     async function tryPlay() {
-      if (!active || isPlayingRef.current) return;
+      const el = audioRef.current;
+      if (!el || !active || isPlayingRef.current) return;
       try {
-        await audio.play();
+        await el.play();
         isPlayingRef.current = true;
       } catch {
         // Autoplay may be blocked until the user interacts with the page.
@@ -52,11 +55,12 @@ export function RevealAmbientAudio({ active }: RevealAmbientAudioProps) {
     document.addEventListener("keydown", handleFirstInteraction, { once: true });
 
     function handleVisibilityChange() {
-      if (!active) return;
+      const el = audioRef.current;
+      if (!el || !active) return;
       if (document.hidden) {
-        audio.pause();
+        el.pause();
       } else if (isPlayingRef.current) {
-        void audio.play().catch(() => {});
+        void el.play().catch(() => {});
       }
     }
 
