@@ -33,7 +33,7 @@ export function WaitingRoomNickname({ nickname }: WaitingRoomNicknameProps) {
           onClick={() => setVisible((value) => !value)}
           className={NICKNAME_TOGGLE_BUTTON_CLASS}
         >
-          {visible ? "Hide nickname" : "Show nickname"}
+          {visible ? "Hide" : "Show"}
         </button>
       </dd>
     </div>

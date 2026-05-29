@@ -408,14 +408,14 @@ export function GuessingExperience({
               return (
                 <li
                   key={target.participantId}
-                  className="flex items-start gap-2.5 py-4 first:pt-0 last:pb-0 sm:gap-3"
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 py-4 first:pt-0 last:pb-0 sm:gap-x-3"
                 >
-                  <div className="flex min-w-0 flex-1 items-start gap-1.5 sm:gap-2">
+                  <div className="flex min-w-0 self-stretch items-center justify-start gap-1.5 sm:gap-2">
                     <button
                       type="button"
                       onClick={() => setGalleryTarget(target)}
                       className={cn(
-                        "mt-0.5 shrink-0 rounded-md p-1 text-pink-highlight transition-colors",
+                        "shrink-0 rounded-md p-1 text-pink-highlight transition-colors",
                         "hover:bg-pink/10 hover:text-pink-accent active:scale-95",
                       )}
                       aria-label={`View photos from ${target.nickname}`}
@@ -428,7 +428,7 @@ export function GuessingExperience({
                     />
                   </div>
                   <AppSelect
-                    className="w-29 shrink-0 self-center sm:w-32"
+                    className="w-36 shrink-0 justify-self-end sm:w-40"
                     value={selected}
                     placeholder="Guess"
                     disabled={isSaving}

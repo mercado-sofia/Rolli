@@ -6,15 +6,9 @@ import {
   type PanInfo,
   useMotionValue,
   useReducedMotion,
+  useTransform,
 } from "framer-motion";
-import {
-  type ComponentPropsWithoutRef,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import type { RevealPhoto } from "@/types/reveal";
@@ -24,8 +18,9 @@ type RevealPhotoCarouselProps = {
   perspectiveLabel: string;
 };
 
-const SWIPE_OFFSET_RATIO = 0.14;
-const SWIPE_VELOCITY_THRESHOLD = 320;
+const SWIPE_OFFSET = 72;
+const SWIPE_VELOCITY_THRESHOLD = 420;
+const EXIT_OFFSET = 320;
 
 const SNAP_SPRING = {
   type: "spring" as const,
@@ -34,87 +29,93 @@ const SNAP_SPRING = {
   mass: 0.5,
 };
 
+const EXIT_TRANSITION = { duration: 0.24, ease: "easeIn" as const };
+
 export function RevealPhotoCarousel({
   photos,
   perspectiveLabel,
 }: RevealPhotoCarouselProps) {
   const [index, setIndex] = useState(0);
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [slideWidth, setSlideWidth] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const x = useMotionValue(0);
+  const rotate = useTransform(x, [-180, 0, 180], [-12, 0, 12]);
   const prefersReducedMotion = useReducedMotion();
 
-  const measureSlideWidth = useCallback(() => {
-    const width = viewportRef.current?.offsetWidth ?? 0;
-    setSlideWidth(width);
-  }, []);
+  const advance = useCallback(
+    async (direction: "next" | "prev") => {
+      if (isAnimating) return;
 
-  useLayoutEffect(() => {
-    measureSlideWidth();
-  }, [measureSlideWidth]);
+      const canNext = direction === "next" && index < photos.length - 1;
+      const canPrev = direction === "prev" && index > 0;
+      if (!canNext && !canPrev) return;
 
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (!viewport) return;
+      setIsAnimating(true);
 
-    const observer = new ResizeObserver(measureSlideWidth);
-    observer.observe(viewport);
-    return () => observer.disconnect();
-  }, [measureSlideWidth]);
+      if (prefersReducedMotion) {
+        setIndex((current) =>
+          direction === "next" ? current + 1 : current - 1,
+        );
+        x.set(0);
+        setIsAnimating(false);
+        return;
+      }
 
-  useEffect(() => {
-    if (slideWidth === 0) return;
-
-    const target = -index * slideWidth;
-    if (prefersReducedMotion) {
-      x.set(target);
-      return;
-    }
-
-    void animate(x, target, SNAP_SPRING);
-  }, [index, prefersReducedMotion, slideWidth, x]);
+      const exitX = direction === "next" ? -EXIT_OFFSET : EXIT_OFFSET;
+      await animate(x, exitX, EXIT_TRANSITION);
+      x.set(0);
+      setIndex((current) =>
+        direction === "next" ? current + 1 : current - 1,
+      );
+      setIsAnimating(false);
+    },
+    [index, isAnimating, photos.length, prefersReducedMotion, x],
+  );
 
   const snapBack = useCallback(() => {
-    if (slideWidth === 0) return;
-    const target = -index * slideWidth;
     if (prefersReducedMotion) {
-      x.set(target);
+      x.set(0);
       return;
     }
-    void animate(x, target, SNAP_SPRING);
-  }, [index, prefersReducedMotion, slideWidth, x]);
+    void animate(x, 0, SNAP_SPRING);
+  }, [prefersReducedMotion, x]);
 
   const handleDragEnd = useCallback(
     (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-      if (slideWidth === 0) return;
+      if (isAnimating) {
+        snapBack();
+        return;
+      }
 
       const { offset, velocity } = info;
-      const offsetThreshold = slideWidth * SWIPE_OFFSET_RATIO;
       const swipedNext =
-        offset.x <= -offsetThreshold ||
+        offset.x <= -SWIPE_OFFSET ||
         velocity.x <= -SWIPE_VELOCITY_THRESHOLD;
       const swipedPrev =
-        offset.x >= offsetThreshold ||
+        offset.x >= SWIPE_OFFSET ||
         velocity.x >= SWIPE_VELOCITY_THRESHOLD;
 
       if (swipedNext && index < photos.length - 1) {
-        setIndex((current) => current + 1);
+        void advance("next");
         return;
       }
 
       if (swipedPrev && index > 0) {
-        setIndex((current) => current - 1);
+        void advance("prev");
         return;
       }
 
       snapBack();
     },
-    [index, photos.length, slideWidth, snapBack],
+    [advance, index, isAnimating, photos.length, snapBack],
   );
 
   if (photos.length === 0) return null;
 
-  const dragEnabled = photos.length > 1 && !prefersReducedMotion;
+  const dragEnabled = photos.length > 1 && !prefersReducedMotion && !isAnimating;
+  const currentPhoto = photos[index];
+  const prevPhoto = index > 0 ? photos[index - 1] : null;
+  const nextPhoto =
+    index < photos.length - 1 ? photos[index + 1] : null;
 
   return (
     <div
@@ -122,43 +123,49 @@ export function RevealPhotoCarousel({
       aria-roledescription="carousel"
       aria-label={`Photos from ${perspectiveLabel}`}
     >
-      <div
-        ref={viewportRef}
-        className="relative mx-auto aspect-4/3 w-full max-w-lg overflow-hidden rounded-2xl border border-container-border/60 bg-[#F8F8F8] shadow-soft"
-      >
-        <motion.div
-          className="flex h-full will-change-transform"
-          style={{
-            x,
-            width: slideWidth > 0 ? slideWidth * photos.length : "100%",
-            touchAction: dragEnabled ? "pan-y" : undefined,
-          }}
-          drag={dragEnabled ? "x" : false}
-          dragConstraints={{
-            left:
-              slideWidth > 0 ? -((photos.length - 1) * slideWidth) : 0,
-            right: 0,
-          }}
-          dragElastic={0.1}
-          dragMomentum={false}
-          dragTransition={{ power: 0.2, timeConstant: 200 }}
-          onDragEnd={dragEnabled ? handleDragEnd : undefined}
-        >
-          {photos.map((photo, photoIndex) => (
-            <CarouselSlide
-              key={photo.id}
-              photo={photo}
+      <div className="relative mx-auto w-full max-w-76 px-5 sm:max-w-80 sm:px-6">
+        <div className="relative aspect-3/4 w-full">
+          {prevPhoto ? (
+            <StackPeekCard
+              photo={prevPhoto}
               perspectiveLabel={perspectiveLabel}
-              isActive={photoIndex === index}
-              isNearActive={Math.abs(photoIndex - index) <= 1}
-              width={slideWidth}
+              side="left"
             />
-          ))}
-        </motion.div>
+          ) : null}
+
+          {nextPhoto ? (
+            <StackPeekCard
+              photo={nextPhoto}
+              perspectiveLabel={perspectiveLabel}
+              side="right"
+            />
+          ) : null}
+
+          <motion.div
+            className={cn(
+              "absolute inset-0 z-10",
+              dragEnabled && "cursor-grab active:cursor-grabbing",
+            )}
+            style={{ x, rotate }}
+            drag={dragEnabled ? "x" : false}
+            dragConstraints={{ left: -240, right: 240 }}
+            dragElastic={0.18}
+            dragMomentum={false}
+            whileDrag={{ scale: 1.02 }}
+            onDragEnd={dragEnabled ? handleDragEnd : undefined}
+          >
+            <RevealPhotoCard
+              photo={currentPhoto}
+              perspectiveLabel={perspectiveLabel}
+              priority
+              className="shadow-soft"
+            />
+          </motion.div>
+        </div>
       </div>
 
       {photos.length > 1 ? (
-        <div className="mt-3 flex flex-col items-center gap-1.5">
+        <div className="mt-4 flex flex-col items-center gap-1.5">
           <div className="flex justify-center gap-1.5" aria-hidden>
             {photos.map((photo, dotIndex) => (
               <span
@@ -182,68 +189,67 @@ export function RevealPhotoCarousel({
   );
 }
 
-function CarouselSlide({
+function StackPeekCard({
   photo,
   perspectiveLabel,
-  isActive,
-  isNearActive,
-  width,
+  side,
 }: {
   photo: RevealPhoto;
   perspectiveLabel: string;
-  isActive: boolean;
-  isNearActive: boolean;
-  width: number;
+  side: "left" | "right";
 }) {
+  const isLeft = side === "left";
+
   return (
     <div
-      className="flex h-full shrink-0 items-center justify-center"
-      style={{ width: width > 0 ? width : "100%" }}
-      aria-hidden={!isActive}
+      className={cn(
+        "pointer-events-none absolute inset-0 z-0 scale-[0.92] opacity-90",
+        isLeft
+          ? "translate-x-[-15%] rotate-[-8deg] origin-bottom-right"
+          : "translate-x-[15%] rotate-[8deg] origin-bottom-left",
+      )}
+      aria-hidden
     >
-      <PhotoCard
+      <RevealPhotoCard
         photo={photo}
         perspectiveLabel={perspectiveLabel}
-        priority={isNearActive}
-        className={cn(
-          "h-full w-full transition-opacity duration-200 ease-out",
-          isActive ? "opacity-100" : "opacity-70",
-        )}
+        className="shadow-[0_16px_40px_rgba(26,26,26,0.08)]"
       />
     </div>
   );
 }
 
-function PhotoCard({
+function RevealPhotoCard({
   photo,
   perspectiveLabel,
   priority = false,
   className,
-  ...rest
 }: {
   photo: RevealPhoto;
   perspectiveLabel: string;
   priority?: boolean;
   className?: string;
-} & ComponentPropsWithoutRef<"div">) {
+}) {
   return (
     <div
-      className={cn("flex h-full w-full items-center justify-center", className)}
-      {...rest}
+      className={cn(
+        "h-full w-full overflow-hidden rounded-[1.75rem]",
+        className,
+      )}
     >
       {photo.signedUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={photo.signedUrl}
           alt={`Memory from ${perspectiveLabel}`}
-          className="max-h-full max-w-full object-contain select-none pointer-events-none"
+          className="h-full w-full object-cover select-none pointer-events-none"
           draggable={false}
           decoding="async"
           fetchPriority={priority ? "high" : "auto"}
           loading={priority ? "eager" : "lazy"}
         />
       ) : (
-        <div className="flex h-full min-h-48 w-full items-center justify-center text-xs text-muted">
+        <div className="flex h-full w-full items-center justify-center text-xs text-muted">
           Unavailable
         </div>
       )}
