@@ -199,11 +199,12 @@ export default function WaitingRoomPage() {
               <Card border="neutral" className="text-center">
                 <HangoutCardIcon
                   icon={LuMoon}
+                  borderTone="ink"
                   containerClassName="md:h-14 md:w-14"
                   iconClassName="text-ink md:h-7 md:w-7"
                 />
                 <p className="font-display mt-4 text-2xl leading-snug text-ink">
-                  <span className="text-pink-highlight">{participantCount}</span>{" "}
+                  {participantCount}{" "}
                   {participantCount === 1
                     ? "friend is in the room"
                     : "friends are in the room"}

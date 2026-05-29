@@ -9,7 +9,8 @@
   --lavender-deep: #b993d6;
   --pink: #fbc2eb;
   --pink-highlight: #fba2c2;
-  --pink-highlight-light: #ffe8f0;
+  --pink-highlight-dark: #f095b6;
+  --pink-highlight-light: #fcc0d6;
   --pink-accent: #7d1348;
   --pink-muted: #c4a9b5;
   --pink-deep: #5c1036;
@@ -49,7 +50,7 @@
   );
   --background-image-gradient-pink-highlight: linear-gradient(
     135deg,
-    var(--pink-highlight) 0%,
+    var(--pink-highlight-dark) 0%,
     var(--pink-highlight-light) 100%
   );
 }

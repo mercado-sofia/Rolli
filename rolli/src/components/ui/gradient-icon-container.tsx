@@ -16,6 +16,7 @@ const sizeStyles = {
 const borderToneStyles = {
   default: "border-lavender-deep/25 bg-gradient-pastel",
   pink: "border-pink-highlight/40 bg-pink/25",
+  ink: "border-ink/20 bg-white",
 } as const;
 
 type GradientIconContainerProps = {

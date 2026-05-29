@@ -8,16 +8,22 @@ type HangoutCardIconProps = {
   icon: IconType;
   containerClassName?: string;
   iconClassName?: string;
+  borderTone?: "default" | "pink" | "ink";
 };
 
 export function HangoutCardIcon({
   icon: Icon,
   containerClassName,
   iconClassName,
+  borderTone = "default",
 }: HangoutCardIconProps) {
   return (
     <div className="flex justify-center">
-      <GradientIconContainer size="lg" className={containerClassName}>
+      <GradientIconContainer
+        size="lg"
+        borderTone={borderTone}
+        className={containerClassName}
+      >
         <Icon
           size={32}
           className={cn(LANDING_ICON_CLASS, "text-pink-accent", iconClassName)}
