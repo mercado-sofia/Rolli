@@ -24,17 +24,81 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
+import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
 import {
+  getRevealPreload,
+  isRevealPreloadUsable,
+} from "@/lib/hangout/reveal-preload-cache";
+import {
   preloadRevealAmbientAudio,
   preloadRevealState,
 } from "@/lib/hangout/reveal-preload";
-import { startReveal } from "@/lib/hangout/reveal";
+import { signalRevealPending, startReveal } from "@/lib/hangout/reveal";
 import { playRevealAmbientAudio } from "@/lib/hangout/reveal-ambient-audio-controller";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
+
+function DevelopingStatusMessage({
+  revealStarting,
+  prepareStatus,
+  prepareError,
+  photoCount,
+  perspectiveCount,
+  onRetry,
+}: {
+  revealStarting: boolean;
+  prepareStatus: ReturnType<typeof useRevealPrepare>["status"];
+  prepareError: string | null;
+  photoCount: number;
+  perspectiveCount: number;
+  onRetry: () => void;
+}) {
+  if (revealStarting) {
+    return (
+      <p className="mt-3 text-sm font-medium leading-relaxed text-pink-highlight">
+        Reveal starting…
+      </p>
+    );
+  }
+
+  if (prepareStatus === "loading" || prepareStatus === "idle") {
+    return (
+      <div className="mt-4 flex flex-col items-center gap-3">
+        <div
+          className="h-8 w-8 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight"
+          aria-hidden
+        />
+        <p className="text-sm leading-relaxed text-muted">
+          Preparing memories…
+        </p>
+      </div>
+    );
+  }
+
+  if (prepareStatus === "error") {
+    return (
+      <div className="mt-3 space-y-3">
+        <p className="text-sm leading-relaxed text-pink">
+          {prepareError ?? "Could not prepare memories."}
+        </p>
+        <Button type="button" variant="secondary" onClick={onRetry}>
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <p className="mt-3 text-sm leading-relaxed text-muted">
+      {photoCount > 0
+        ? `${photoCount} photo${photoCount === 1 ? "" : "s"} from ${perspectiveCount} perspective${perspectiveCount === 1 ? "" : "s"} ready.`
+        : "Memories ready — no photos were captured, but you can still reveal."}
+    </p>
+  );
+}
 
 export default function DevelopingPage() {
   const params = useParams<{ slug: string }>();
@@ -44,6 +108,7 @@ export default function DevelopingPage() {
   const setHangout = useSessionStore((state) => state.setHangout);
 
   const [starting, setStarting] = useState(false);
+  const [signaling, setSignaling] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [countdownStartedAt, setCountdownStartedAt] = useState<number | null>(
     null,
@@ -65,7 +130,16 @@ export default function DevelopingPage() {
     hangout: displayHangout,
   });
 
+  const prepare = useRevealPrepare({
+    hangoutId: displayHangout?.id ?? "",
+    sessionToken: participant?.sessionToken ?? "",
+    enabled:
+      Boolean(displayHangout?.id && participant?.sessionToken) &&
+      displayHangout?.status === "developing",
+  });
+
   const countdownActive = isRevealCountdownActive(countdownStartedAt);
+  const revealStarting = Boolean(displayHangout?.revealPendingAt);
 
   const handleCountdownComplete = useCallback(async () => {
     if (
@@ -93,17 +167,21 @@ export default function DevelopingPage() {
       participant.sessionToken,
     );
 
-    setStarting(false);
-
     if (error || !data) {
       finishingRevealRef.current = false;
+      setStarting(false);
       setCountdownStartedAt(null);
       setStartError(error ?? "Could not start reveal");
       return;
     }
 
-    await preloadRevealState(displayHangout.id, participant.sessionToken);
+    const cached = getRevealPreload(displayHangout.id);
+    if (!isRevealPreloadUsable(cached)) {
+      await preloadRevealState(displayHangout.id, participant.sessionToken);
+    }
+
     setHangout(data);
+    setStarting(false);
     router.replace(`/h/${slug}/reveal`);
   }, [displayHangout, isFilmKeeper, participant, router, setHangout, slug]);
 
@@ -112,10 +190,32 @@ export default function DevelopingPage() {
     onComplete: handleCountdownComplete,
   });
 
-  function handleBeginCountdown() {
-    if (!participant || !displayHangout || countdownActive) return;
+  async function handleBeginCountdown() {
+    if (
+      !participant ||
+      !displayHangout ||
+      countdownActive ||
+      !prepare.isReady
+    ) {
+      return;
+    }
 
     setStartError(null);
+    setSignaling(true);
+
+    const { data, error } = await signalRevealPending(
+      displayHangout.id,
+      participant.sessionToken,
+    );
+
+    setSignaling(false);
+
+    if (error || !data) {
+      setStartError(error ?? "Could not start reveal");
+      return;
+    }
+
+    setHangout(data);
     router.prefetch(`/h/${slug}/reveal`);
     preloadRevealAmbientAudio();
     setCountdownStartedAt(Date.now());
@@ -153,6 +253,10 @@ export default function DevelopingPage() {
     );
   }
 
+  const guestFooterHint = revealStarting
+    ? "Reveal starting…"
+    : "Waiting for the Film Keeper to start the reveal…";
+
   return (
     <SetupFlowShell>
       {displaySeconds !== null ? (
@@ -181,23 +285,22 @@ export default function DevelopingPage() {
                 iconClassName="text-ink"
               />
               <p className="font-display mt-4 text-2xl leading-snug">
-                Memories in the darkroom
+                {revealStarting ? "Reveal starting" : "Memories in the darkroom"}
               </p>
-              <p className="mt-3 text-sm leading-relaxed text-muted">
-                Every anonymous perspective is being prepared for the big reveal.
-              </p>
+              <DevelopingStatusMessage
+                revealStarting={revealStarting}
+                prepareStatus={prepare.status}
+                prepareError={prepare.error}
+                photoCount={prepare.photoCount}
+                perspectiveCount={prepare.perspectiveCount}
+                onRetry={prepare.retry}
+              />
             </Card>
           </div>
         </div>
       </main>
 
-      <SetupFlowFooter
-        hint={
-          isFilmKeeper
-            ? undefined
-            : "Waiting for the Film Keeper to start the reveal…"
-        }
-      >
+      <SetupFlowFooter hint={isFilmKeeper ? undefined : guestFooterHint}>
         {isFilmKeeper ? (
           <>
             {startError && (
@@ -205,15 +308,24 @@ export default function DevelopingPage() {
             )}
             <Button
               type="button"
-              disabled={starting || countdownActive}
+              disabled={
+                starting ||
+                signaling ||
+                countdownActive ||
+                !prepare.isReady
+              }
               className={APP_PRIMARY_BUTTON_CLASS}
-              onClick={handleBeginCountdown}
+              onClick={() => void handleBeginCountdown()}
             >
               {countdownActive
                 ? "Revealing…"
-                : starting
+                : signaling
                   ? "Starting…"
-                  : "Start reveal"}
+                  : starting
+                    ? "Opening reveal…"
+                    : !prepare.isReady
+                      ? "Preparing…"
+                      : "Start reveal"}
             </Button>
           </>
         ) : null}

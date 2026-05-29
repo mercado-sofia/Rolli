@@ -80,11 +80,15 @@ export function RevealExperience({
 
     if (reloadKey === 0) {
       const cached = getRevealPreload(hangoutId);
+      if (isRevealPreloadUsable(cached)) {
+        setPerspectives(cached.perspectives);
+        setSignedAt(cached.signedAt);
+        setLoadError(null);
+        setLoading(false);
+        return;
+      }
       if (cached) {
         clearRevealPreload(hangoutId);
-        if (isRevealPreloadUsable(cached)) {
-          return;
-        }
       }
     }
 

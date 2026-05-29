@@ -9,6 +9,8 @@ export type RevealPhoto = {
 export type RevealPerspective = {
   participantId: string;
   nickname: string;
+  realName?: string;
+  isFilmKeeper?: boolean;
   photos: RevealPhoto[];
 };
 

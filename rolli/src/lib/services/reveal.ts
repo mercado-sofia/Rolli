@@ -12,6 +12,24 @@ type RevealPerspectiveJson = {
   photos: { id: string; storage_path: string; captured_at: string }[] | null;
 };
 
+export async function signalRevealPending(
+  hangoutId: string,
+  sessionToken: string,
+): Promise<{ data?: Hangout; error?: string }> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.rpc("signal_reveal_pending", {
+    p_hangout_id: hangoutId,
+    p_session_token: sessionToken,
+  });
+
+  if (error) {
+    return { error: parseRevealRpcError(error) };
+  }
+
+  return { data: mapHangout(data as HangoutRowJson) };
+}
+
 export async function startReveal(
   hangoutId: string,
   sessionToken: string,

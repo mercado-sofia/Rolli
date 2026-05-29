@@ -3,7 +3,10 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { getHangoutRouteRedirect } from "@/lib/hangout/routes";
+import {
+  getHangoutRouteRedirect,
+  normalizeHangoutPath,
+} from "@/lib/hangout/routes";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 
@@ -11,12 +14,18 @@ type UseHangoutRouteGuardOptions = {
   slug: string;
   hangout: Hangout | null;
   isLoading: boolean;
+  /**
+   * Only enforce redirects while the URL ends with this segment (e.g. `/guessing`).
+   * Prevents a stale guard on the previous page from cancelling client navigation.
+   */
+  guardPathSuffix?: string;
 };
 
 export function useHangoutRouteGuard({
   slug,
   hangout,
   isLoading,
+  guardPathSuffix,
 }: UseHangoutRouteGuardOptions) {
   const router = useRouter();
   const pathname = usePathname();
@@ -25,10 +34,15 @@ export function useHangoutRouteGuard({
   useEffect(() => {
     if (isLoading || leavingApp || !hangout || hangout.slug !== slug) return;
 
-    const redirectTo = getHangoutRouteRedirect(slug, pathname, hangout.status);
+    const path = normalizeHangoutPath(pathname);
+    if (guardPathSuffix && !path.endsWith(guardPathSuffix)) {
+      return;
+    }
+
+    const redirectTo = getHangoutRouteRedirect(slug, path, hangout.status);
 
     if (redirectTo) {
       router.replace(redirectTo);
     }
-  }, [hangout, isLoading, leavingApp, pathname, router, slug]);
+  }, [guardPathSuffix, hangout, isLoading, leavingApp, pathname, router, slug]);
 }

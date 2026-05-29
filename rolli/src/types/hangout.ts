@@ -17,4 +17,6 @@ export type Hangout = {
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
+  /** Set when Film Keeper taps Start reveal (before countdown ends). */
+  revealPendingAt: string | null;
 };

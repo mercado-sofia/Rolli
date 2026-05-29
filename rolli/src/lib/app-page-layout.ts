@@ -94,7 +94,7 @@ export const SETUP_FLOW_MAIN_INNER_CLASS = "w-full py-2 md:py-0";
 
 /** Right panel — hint + CTAs below fields */
 export const SETUP_FLOW_FOOTER_CLASS = cn(
-  "shrink-0 border-t border-container-border/60 pt-4",
+  "relative z-10 shrink-0 border-t border-container-border/60 pt-4",
   SETUP_FLOW_FOOTER_BLEED_X,
   APP_ACTION_PADDING_X,
   "md:col-start-2 md:row-start-2",

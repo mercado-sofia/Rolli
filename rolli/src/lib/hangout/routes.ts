@@ -22,9 +22,13 @@ export function hangoutParticipantPath(slug: string, status: HangoutStatus): str
   }
 }
 
-const GUESSING_PATH_SUFFIX = "/guessing";
-const GALLERY_PATH_SUFFIX = "/gallery";
-const SHARE_PATH_SUFFIX = "/share";
+export const HANGOUT_GUESSING_PATH_SUFFIX = "/guessing";
+export const HANGOUT_GALLERY_PATH_SUFFIX = "/gallery";
+export const HANGOUT_SHARE_PATH_SUFFIX = "/share";
+
+const GUESSING_PATH_SUFFIX = HANGOUT_GUESSING_PATH_SUFFIX;
+const GALLERY_PATH_SUFFIX = HANGOUT_GALLERY_PATH_SUFFIX;
+const SHARE_PATH_SUFFIX = HANGOUT_SHARE_PATH_SUFFIX;
 
 export function normalizeHangoutPath(path: string): string {
   if (path.length > 1 && path.endsWith("/")) {

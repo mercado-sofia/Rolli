@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { GalleryFolderCard } from "@/components/hangout/gallery-folder-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { APP_PHOTO_GRID_CLASS } from "@/lib/app-page-layout";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
+import { getGalleryParticipantTheme } from "@/lib/hangout/gallery-colors";
 import { getGallery, signGalleryPhotoUrls } from "@/lib/hangout/gallery";
 import type { RevealPerspective } from "@/types/reveal";
 
@@ -16,15 +18,15 @@ type GalleryExperienceProps = {
   hangoutTitle: string;
 };
 
-type GalleryFilter = "all" | string;
-
 export function GalleryExperience({
   hangoutId,
   sessionToken,
   hangoutTitle,
 }: GalleryExperienceProps) {
   const [perspectives, setPerspectives] = useState<RevealPerspective[]>([]);
-  const [filter, setFilter] = useState<GalleryFilter>("all");
+  const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
@@ -84,23 +86,47 @@ export function GalleryExperience({
     };
   }, [hangoutId, reloadKey, sessionToken]);
 
-  const filteredPerspectives = useMemo(() => {
-    if (filter === "all") return perspectives;
-    return perspectives.filter((p) => p.participantId === filter);
-  }, [filter, perspectives]);
+  const activeParticipantId = useMemo(() => {
+    if (perspectives.length === 0) return null;
+    if (
+      selectedParticipantId &&
+      perspectives.some((p) => p.participantId === selectedParticipantId)
+    ) {
+      return selectedParticipantId;
+    }
+    return perspectives[0]?.participantId ?? null;
+  }, [perspectives, selectedParticipantId]);
+
+  const selectedPerspective = useMemo(
+    () => perspectives.find((p) => p.participantId === activeParticipantId) ?? null,
+    [perspectives, activeParticipantId],
+  );
 
   const visiblePhotos = useMemo(() => {
-    return filteredPerspectives.flatMap((perspective) =>
-      perspective.photos
-        .filter((photo) => photo.signedUrl)
-        .map((photo) => ({
-          id: photo.id,
-          url: photo.signedUrl!,
-          fileName: photo.fileName ?? `${perspective.nickname}.jpg`,
-          nickname: perspective.nickname,
-        })),
-    );
-  }, [filteredPerspectives]);
+    if (!selectedPerspective) return [];
+
+    return selectedPerspective.photos
+      .filter((photo) => photo.signedUrl)
+      .map((photo, index) => ({
+        id: photo.id,
+        url: photo.signedUrl!,
+        fileName:
+          photo.fileName ?? `${selectedPerspective.nickname}-${index + 1}.jpg`,
+        nickname: selectedPerspective.nickname,
+      }));
+  }, [selectedPerspective]);
+
+  const folderCards = useMemo(() => {
+    let nonHostColorIndex = 0;
+
+    return perspectives.map((perspective) => {
+      const theme = perspective.isFilmKeeper
+        ? getGalleryParticipantTheme(0, true)
+        : getGalleryParticipantTheme(nonHostColorIndex++, false);
+
+      return { perspective, theme };
+    });
+  }, [perspectives]);
 
   const totalPhotos = perspectives.reduce(
     (sum, perspective) => sum + perspective.photos.length,
@@ -181,25 +207,16 @@ export function GalleryExperience({
         </p>
       </Card>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          type="button"
-          variant={filter === "all" ? "primary" : "secondary"}
-          className="min-h-12 w-auto! shrink-0 px-4"
-          onClick={() => setFilter("all")}
-        >
-          All
-        </Button>
-        {perspectives.map((perspective) => (
-          <Button
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        {folderCards.map(({ perspective, theme }) => (
+          <GalleryFolderCard
             key={perspective.participantId}
-            type="button"
-            variant={filter === perspective.participantId ? "primary" : "secondary"}
-            className="min-h-12 w-auto! shrink-0 px-4"
-            onClick={() => setFilter(perspective.participantId)}
-          >
-            {perspective.nickname}
-          </Button>
+            nickname={perspective.nickname}
+            realName={perspective.realName}
+            theme={theme}
+            selected={activeParticipantId === perspective.participantId}
+            onSelect={() => setSelectedParticipantId(perspective.participantId)}
+          />
         ))}
       </div>
 
@@ -225,15 +242,15 @@ export function GalleryExperience({
               ? "Preparing zip…"
               : "Download full album (zip)"}
           </Button>
-          {filter !== "all" && visiblePhotos.length > 0 && (
+          {selectedPerspective && visiblePhotos.length > 0 && (
             <Button
               type="button"
               variant="secondary"
               disabled={Boolean(downloading)}
               onClick={() =>
                 void handleDownloadPack(
-                  `perspective-${filter}`,
-                  `${hangoutTitle}-${filteredPerspectives[0]?.nickname ?? "perspective"}`,
+                  `perspective-${selectedPerspective.participantId}`,
+                  `${hangoutTitle}-${selectedPerspective.nickname}`,
                   visiblePhotos.map((photo) => ({
                     url: photo.url,
                     fileName: photo.fileName,
@@ -241,63 +258,61 @@ export function GalleryExperience({
                 )
               }
             >
-              {downloading === `perspective-${filter}`
+              {downloading === `perspective-${selectedPerspective.participantId}`
                 ? "Preparing zip…"
-                : "Download this perspective (zip)"}
+                : `Download ${selectedPerspective.nickname}'s folder (zip)`}
             </Button>
           )}
         </div>
       </Card>
 
-      {visiblePhotos.length === 0 ? (
+      {!selectedPerspective || visiblePhotos.length === 0 ? (
         <Card border="neutral" className="text-center text-sm text-muted">
-          No photos in this view.
+          No photos in this folder.
         </Card>
       ) : (
-        <div className="space-y-6">
-          {filteredPerspectives.map((perspective) => (
-            <div key={perspective.participantId} className="space-y-3">
-              <p className="font-medium text-ink">{perspective.nickname}</p>
-              <div className={APP_PHOTO_GRID_CLASS}>
-                {perspective.photos.map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[#F8F8F8]"
-                  >
-                    {photo.signedUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={photo.signedUrl}
-                        alt={`${perspective.nickname} memory ${index + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted">
-                        Unavailable
-                      </div>
-                    )}
-                    {photo.signedUrl && (
-                      <button
-                        type="button"
-                        className="absolute bottom-2 right-2 inline-flex min-h-10 min-w-14 items-center justify-center rounded-full bg-ink/80 px-4 py-2 text-sm text-white"
-                        disabled={downloading === photo.id}
-                        onClick={() =>
-                          void handleDownloadSingle(
-                            photo.id,
-                            photo.signedUrl!,
-                            photo.fileName ??
-                              `${perspective.nickname}-${index + 1}.jpg`,
-                          )
-                        }
-                      >
-                        {downloading === photo.id ? "…" : "Save"}
-                      </button>
-                    )}
+        <div className="space-y-3">
+          <p className="text-center text-sm text-muted">
+            {selectedPerspective.nickname}&apos;s memories
+          </p>
+          <div className={APP_PHOTO_GRID_CLASS}>
+            {selectedPerspective.photos.map((photo, index) => (
+              <div
+                key={photo.id}
+                className="relative aspect-3/4 overflow-hidden rounded-2xl bg-[#F8F8F8]"
+              >
+                {photo.signedUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={photo.signedUrl}
+                    alt={`${selectedPerspective.nickname} memory ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs text-muted">
+                    Unavailable
                   </div>
-                ))}
+                )}
+                {photo.signedUrl && (
+                  <button
+                    type="button"
+                    className="absolute bottom-2 right-2 inline-flex min-h-10 min-w-14 items-center justify-center rounded-full bg-ink/80 px-4 py-2 text-sm text-white"
+                    disabled={downloading === photo.id}
+                    onClick={() =>
+                      void handleDownloadSingle(
+                        photo.id,
+                        photo.signedUrl!,
+                        photo.fileName ??
+                          `${selectedPerspective.nickname}-${index + 1}.jpg`,
+                      )
+                    }
+                  >
+                    {downloading === photo.id ? "…" : "Save"}
+                  </button>
+                )}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
     </div>

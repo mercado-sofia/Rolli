@@ -1,7 +1,7 @@
 "use client";
 
-import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
@@ -26,7 +26,10 @@ import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { Button } from "@/components/ui/button";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
-import { hangoutGalleryPath } from "@/lib/hangout/routes";
+import {
+  HANGOUT_GUESSING_PATH_SUFFIX,
+  hangoutGalleryPath,
+} from "@/lib/hangout/routes";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
@@ -35,12 +38,22 @@ import { useSessionStore } from "@/store/session-store";
 export default function GuessingPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
+  const router = useRouter();
 
   const setHangout = useSessionStore((state) => state.setHangout);
   const { displayHangout, isLoading } = useDisplayHangout(slug);
   const [footer, setFooter] = useState<SetupFlowFooterState>({});
 
-  useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
+  useHangoutRouteGuard({
+    slug,
+    hangout: displayHangout,
+    isLoading,
+    guardPathSuffix: HANGOUT_GUESSING_PATH_SUFFIX,
+  });
+
+  const openMemoryGallery = useCallback(() => {
+    router.push(hangoutGalleryPath(slug));
+  }, [router, slug]);
   const { participant, hasValidSession } = useHangoutSessionGuard({
     slug,
     hangout: displayHangout,
@@ -127,7 +140,11 @@ export default function GuessingPage() {
       <SetupFlowFooter hint={footer.hint}>
         {footer.showGalleryButton ? (
           <>
-            <Button href={hangoutGalleryPath(slug)} className={APP_PRIMARY_BUTTON_CLASS}>
+            <Button
+              type="button"
+              className={APP_PRIMARY_BUTTON_CLASS}
+              onClick={openMemoryGallery}
+            >
               View memory gallery
             </Button>
             <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />

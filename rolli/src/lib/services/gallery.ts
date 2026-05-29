@@ -7,6 +7,8 @@ import type { RevealPerspective } from "@/types/reveal";
 type GalleryPerspectiveJson = {
   participant_id: string;
   nickname: string;
+  real_name?: string | null;
+  is_film_keeper?: boolean | null;
   photos: { id: string; storage_path: string; captured_at: string }[] | null;
 };
 

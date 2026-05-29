@@ -11,6 +11,7 @@ export type HangoutRowJson = {
   started_at: string | null;
   ended_at: string | null;
   created_at: string;
+  reveal_pending_at?: string | null;
 };
 
 export type ParticipantSessionJson = {
@@ -52,6 +53,7 @@ export function mapHangout(row: HangoutRowJson): Hangout {
     startedAt: row.started_at,
     endedAt: row.ended_at,
     createdAt: row.created_at,
+    revealPendingAt: row.reveal_pending_at ?? null,
   };
 }
 
