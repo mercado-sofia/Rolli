@@ -103,6 +103,7 @@ export default function GuessingPage() {
           showProgress={false}
           title={displayHangout.title}
           sublabel={isCompleted ? "Results" : "Guessing phase"}
+          titleTone="ink"
         />
       </header>
 

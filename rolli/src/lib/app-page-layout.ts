@@ -131,6 +131,12 @@ export const APP_PAGE_STACK_GAP = "gap-6 md:gap-8";
 /** Primary CTA at the bottom of app / setup flows */
 export const APP_PRIMARY_BUTTON_CLASS = "h-[54px] w-full";
 
+/** Hangout session CTAs — pink-highlight gradient (not landing purple→pink) */
+export const HANGOUT_PINK_GRADIENT_BUTTON_CLASS = cn(
+  "border border-pink-highlight/40 bg-gradient-pink-highlight text-white",
+  "hover:brightness-[1.03] active:scale-[0.98]",
+);
+
 /** Multi-column photo grids (gallery, etc.) */
 export const APP_PHOTO_GRID_CLASS =
   "grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4";

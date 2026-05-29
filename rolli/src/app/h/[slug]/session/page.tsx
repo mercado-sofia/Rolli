@@ -26,7 +26,10 @@ import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import {
+  APP_PRIMARY_BUTTON_CLASS,
+  HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
+} from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { endHangout } from "@/lib/hangout/hangouts";
@@ -61,7 +64,8 @@ function AutoOpenSessionGuide({
 
 const SESSION_END_BUTTON_CLASS = cn(
   APP_PRIMARY_BUTTON_CLASS,
-  "touch-manipulation border border-lavender-deep/35 bg-gradient-pastel text-white hover:bg-gradient-pastel active:scale-[0.98]",
+  "touch-manipulation",
+  HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
 );
 
 export default function SessionPage() {

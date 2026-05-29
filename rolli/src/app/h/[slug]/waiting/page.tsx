@@ -33,7 +33,10 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import {
+  APP_PRIMARY_BUTTON_CLASS,
+  HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
+} from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
 import { hangoutSharePath } from "@/lib/hangout/routes";
@@ -246,10 +249,7 @@ export default function WaitingRoomPage() {
               type="button"
               disabled={!canStart || starting}
               onClick={() => void handleStartHangout()}
-              className={cn(
-                APP_PRIMARY_BUTTON_CLASS,
-                "border border-lavender-deep/35 bg-gradient-pastel text-white hover:bg-gradient-pastel active:scale-[0.98]",
-              )}
+              className={cn(APP_PRIMARY_BUTTON_CLASS, HANGOUT_PINK_GRADIENT_BUTTON_CLASS)}
             >
               {starting ? "Starting…" : "Start hangout"}
             </Button>

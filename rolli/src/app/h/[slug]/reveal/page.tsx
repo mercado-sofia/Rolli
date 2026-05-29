@@ -96,7 +96,11 @@ export default function RevealPage() {
   return (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-        <SetupFlowHeader showProgress={false} title={displayHangout.title} />
+        <SetupFlowHeader
+          showProgress={false}
+          title={displayHangout.title}
+          titleTone="ink"
+        />
       </header>
 
       <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>

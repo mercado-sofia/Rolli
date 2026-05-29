@@ -11,7 +11,7 @@ export function GuideBulletList({ items, className }: GuideBulletListProps) {
       {items.map((item) => (
         <li key={item} className="flex gap-3 text-left text-sm leading-relaxed text-ink">
           <span
-            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-pink"
+            className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-pink-highlight"
             aria-hidden
           />
           <span>{item}</span>

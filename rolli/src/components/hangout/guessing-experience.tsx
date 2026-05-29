@@ -333,13 +333,13 @@ export function GuessingExperience({
             return (
               <li
                 key={target.participantId}
-                className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:gap-5"
+                className="flex flex-row items-center gap-3 py-4 first:pt-0 last:pb-0 sm:gap-5"
               >
-                <p className="shrink-0 font-display text-lg leading-snug text-pink-highlight sm:w-28 md:w-32">
+                <p className="w-24 shrink-0 truncate font-medium text-sm leading-snug text-ink sm:w-28 sm:text-base md:w-32">
                   {target.nickname}
                 </p>
                 <AppSelect
-                  className="w-full sm:min-w-0 sm:flex-1"
+                  className="min-w-0 flex-1"
                   value={selected}
                   placeholder="Match to a real name"
                   disabled={isSaving}
