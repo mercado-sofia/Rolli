@@ -21,6 +21,8 @@ type MobileShellProps = {
   variant?: "default" | "app";
   /** Enables vertical scroll when content exceeds the viewport (app pages). */
   scrollable?: boolean;
+  /** Raised white card on md+ (disable for split-panel setup flows). Default true. */
+  desktopFrame?: boolean;
 };
 
 export function MobileShell({
@@ -31,6 +33,7 @@ export function MobileShell({
   fillViewport = true,
   variant = "default",
   scrollable = false,
+  desktopFrame = true,
 }: MobileShellProps) {
   const isApp = variant === "app";
   const shellPadding = isApp
@@ -39,7 +42,10 @@ export function MobileShell({
   const contentMaxWidth = isApp ? APP_SHELL_MAX_WIDTH : "max-w-md";
   const desktopPanel =
     isApp && fillViewport
-      ? cn(APP_SHELL_DESKTOP_INSET, APP_SHELL_DESKTOP_FRAME)
+      ? cn(
+          APP_SHELL_DESKTOP_INSET,
+          desktopFrame && APP_SHELL_DESKTOP_FRAME,
+        )
       : null;
 
   return (

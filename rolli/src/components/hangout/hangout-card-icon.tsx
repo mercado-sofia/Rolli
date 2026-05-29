@@ -6,15 +6,21 @@ import { cn } from "@/lib/utils";
 
 type HangoutCardIconProps = {
   icon: IconType;
+  containerClassName?: string;
+  iconClassName?: string;
 };
 
-export function HangoutCardIcon({ icon: Icon }: HangoutCardIconProps) {
+export function HangoutCardIcon({
+  icon: Icon,
+  containerClassName,
+  iconClassName,
+}: HangoutCardIconProps) {
   return (
     <div className="flex justify-center">
-      <GradientIconContainer size="lg">
+      <GradientIconContainer size="lg" className={containerClassName}>
         <Icon
           size={32}
-          className={cn(LANDING_ICON_CLASS, "text-pink-accent")}
+          className={cn(LANDING_ICON_CLASS, "text-pink-accent", iconClassName)}
           aria-hidden
         />
       </GradientIconContainer>

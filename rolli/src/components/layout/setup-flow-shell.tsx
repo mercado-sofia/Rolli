@@ -36,6 +36,7 @@ export function SetupFlowShell({ children, className }: SetupFlowShellProps) {
   return (
     <MobileShell
       variant="app"
+      desktopFrame={false}
       className={cn(SETUP_FLOW_SHELL_CLASS, className)}
     >
       <div className={SETUP_FLOW_INNER_CLASS}>{children}</div>

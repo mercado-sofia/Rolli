@@ -96,3 +96,12 @@ button:focus-visible {
   font-weight: 600;
   letter-spacing: -0.02em;
 }
+
+/* Confirm / abandon dialogs: bottom sheet on small screens, centered on md+ */
+.confirm-flow-dialog:modal {
+  max-width: 100%;
+}
+
+.confirm-flow-dialog::backdrop {
+  background: rgb(0 0 0 / 50%);
+}

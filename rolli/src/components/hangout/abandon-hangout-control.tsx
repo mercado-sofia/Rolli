@@ -4,30 +4,44 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { TbMoodSad } from "react-icons/tb";
 
+import { HANGOUT_CANCELLED_MESSAGE } from "@/components/hangout/hangout-invitation-closed";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { abandonHangout } from "@/lib/hangout/hangouts";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
+import type { Hangout } from "@/types/hangout";
+
+export type AbandonHangoutUiState = "idle" | "working" | "success" | "leaving";
 
 type AbandonHangoutControlProps = {
   hangoutId: string;
   sessionToken: string;
   className?: string;
+  hideTrigger?: boolean;
+  onAbandoned?: (hangout: Hangout) => void;
+  onUiStateChange?: (state: AbandonHangoutUiState) => void;
 };
+
+type AbandonModalPhase = "confirm" | "success";
 
 export function AbandonHangoutControl({
   hangoutId,
   sessionToken,
   className,
+  hideTrigger = false,
+  onAbandoned,
+  onUiStateChange,
 }: AbandonHangoutControlProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
 
   const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<AbandonModalPhase>("confirm");
   const [abandoning, setAbandoning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function handleOpen() {
+    setPhase("confirm");
     setError(null);
     setOpen(true);
   }
@@ -36,60 +50,92 @@ export function AbandonHangoutControl({
     if (abandoning) return;
     setOpen(false);
     setError(null);
+    onUiStateChange?.("idle");
   }
 
   async function handleConfirm() {
+    onUiStateChange?.("working");
     setAbandoning(true);
     setError(null);
 
-    const { error: abandonError } = await abandonHangout(hangoutId, sessionToken);
+    const { data, error: abandonError } = await abandonHangout(hangoutId, sessionToken);
 
-    setAbandoning(false);
-
-    if (abandonError) {
-      setError(abandonError);
+    if (abandonError || !data) {
+      setAbandoning(false);
+      setError(abandonError ?? "Could not abandon hangout");
+      onUiStateChange?.("idle");
       return;
     }
 
+    onAbandoned?.(data);
+
+    requestAnimationFrame(() => {
+      setAbandoning(false);
+      setPhase("success");
+      onUiStateChange?.("success");
+    });
+  }
+
+  function handleGoHome() {
+    onUiStateChange?.("leaving");
     setOpen(false);
     resetSession();
-    router.push("/");
+    router.replace("/");
   }
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className={cn(
-          "inline-flex min-h-11 items-center justify-center text-sm font-medium text-muted",
-          "underline underline-offset-4 transition-colors hover:text-pink-accent",
-          className,
-        )}
-      >
-        Abandon hangout
-      </button>
+      {!hideTrigger ? (
+        <button
+          type="button"
+          onClick={handleOpen}
+          className={cn(
+            "touch-manipulation",
+            "flex min-h-12 w-full items-center justify-center rounded-full px-4",
+            "text-sm font-medium text-muted underline underline-offset-4",
+            "transition-colors active:bg-black/5 hover:text-pink-accent",
+            "sm:inline-flex sm:min-h-11 sm:w-auto sm:rounded-none sm:px-0 sm:active:bg-transparent",
+            className,
+          )}
+        >
+          Abandon hangout
+        </button>
+      ) : null}
 
       <ConfirmDialog
         open={open}
         icon={
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
-            <TbMoodSad size={36} className="text-pink-accent" aria-hidden />
-          </span>
+          phase === "confirm" ? (
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-pink/15">
+              <TbMoodSad size={36} className="text-pink-accent" aria-hidden />
+            </span>
+          ) : undefined
         }
-        title="Abandon this hangout?"
+        title={phase === "confirm" ? "Abandon this hangout?" : "Invitation closed"}
         description={
-          <>
-            This closes the room for everyone. Invite links will stop working and
-            the hangout cannot be restarted.
-          </>
+          phase === "confirm" ? (
+            <>
+              This closes the room for everyone. Invite links will stop working and
+              the hangout cannot be restarted.
+            </>
+          ) : (
+            <>{HANGOUT_CANCELLED_MESSAGE}</>
+          )
         }
-        confirmLabel="Yes, abandon hangout"
+        confirmLabel={phase === "confirm" ? "Yes, abandon hangout" : "Go home"}
         cancelLabel="Keep waiting"
-        loading={abandoning}
-        error={error}
-        onConfirm={() => void handleConfirm()}
-        onCancel={handleCancel}
+        loading={phase === "confirm" && abandoning}
+        error={phase === "confirm" ? error : null}
+        showCancelButton={phase === "confirm"}
+        dismissible={phase === "confirm" && !abandoning}
+        onConfirm={() => {
+          if (phase === "confirm") {
+            void handleConfirm();
+            return;
+          }
+          handleGoHome();
+        }}
+        onCancel={phase === "confirm" ? handleCancel : undefined}
       />
     </>
   );

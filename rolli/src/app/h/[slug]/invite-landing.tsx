@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { HangoutInvitationClosed } from "@/components/hangout/hangout-invitation-closed";
 import { JoinHangoutForm } from "@/components/hangout/join-hangout-form";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
@@ -14,7 +15,6 @@ import {
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
-import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { Button } from "@/components/ui/button";
 import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
 import { hangoutParticipantPath } from "@/lib/hangout/routes";
@@ -25,6 +25,31 @@ import { cn } from "@/lib/utils";
 import type { Hangout } from "@/types/hangout";
 
 const INVITE_JOIN_FORM_ID = "invite-join-form";
+
+function InviteLandingSkeleton({ message }: { message: string }) {
+  return (
+    <SetupFlowShell>
+      <header className={SETUP_FLOW_HEADER_CLASS}>
+        <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
+          <div className="h-9 w-9 rounded-full bg-black/10" />
+          <div className="h-3 w-24 rounded-full bg-black/10" />
+          <div className="h-10 w-52 rounded-lg bg-black/10" />
+        </div>
+      </header>
+      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
+        <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
+          <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
+          </div>
+          <div className="hidden h-56 w-full animate-pulse rounded-3xl border border-container-border bg-white md:block" />
+        </div>
+      </main>
+      <SetupFlowFooter hint={message}>
+        <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
+      </SetupFlowFooter>
+    </SetupFlowShell>
+  );
+}
 
 export function InviteLanding() {
   const params = useParams<{ slug: string }>();
@@ -130,7 +155,7 @@ export function InviteLanding() {
 
   if (loading || rejoining) {
     return (
-      <AppLoadingState
+      <InviteLandingSkeleton
         message={rejoining ? "Rejoining your hangout…" : "Loading invitation…"}
       />
     );
@@ -168,11 +193,13 @@ export function InviteLanding() {
   }
 
   if (hasMatchingSession) {
-    return <AppLoadingState message="Taking you to your hangout…" />;
+    return <InviteLandingSkeleton message="Taking you to your hangout…" />;
   }
 
   if (hangout.status !== "waiting") {
-    const isCancelled = hangout.status === "cancelled";
+    if (hangout.status === "cancelled") {
+      return <HangoutInvitationClosed title={hangout.title} />;
+    }
 
     return (
       <SetupFlowShell>
@@ -194,9 +221,7 @@ export function InviteLanding() {
         >
           <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
             <p className="text-center text-sm text-muted">
-              {isCancelled
-                ? "This hangout was abandoned. New guests cannot join."
-                : "This hangout has already started or ended. New guests cannot join."}
+              This hangout has already started or ended. New guests cannot join.
             </p>
             <Link
               href="/"
@@ -207,13 +232,7 @@ export function InviteLanding() {
           </div>
         </main>
 
-        <SetupFlowFooter
-          hint={
-            isCancelled
-              ? "The Film Keeper cancelled this hangout before it started."
-              : "This hangout already started or ended — new guests can't join."
-          }
-        />
+        <SetupFlowFooter hint="This hangout already started or ended — new guests can't join." />
       </SetupFlowShell>
     );
   }

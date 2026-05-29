@@ -5,7 +5,6 @@ import { useState } from "react";
 import { LuFilm } from "react-icons/lu";
 
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
-import { AppLoadingState } from "@/components/layout/app-loading-state";
 import { AppScrollShell } from "@/components/layout/app-scroll-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -64,7 +63,23 @@ export default function DevelopingPage() {
     !displayHangout ||
     displayHangout.status !== "developing"
   ) {
-    return <AppLoadingState />;
+    return (
+      <AppScrollShell>
+        <div className="md:hidden flex min-h-[45dvh] items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight" />
+        </div>
+        <div className="hidden w-full animate-pulse space-y-6 md:block">
+          <div className="space-y-2 text-center">
+            <div className="mx-auto h-4 w-28 rounded-full bg-black/10" />
+            <div className="mx-auto h-9 w-56 rounded-lg bg-black/10 md:h-10 md:w-72" />
+            <div className="mx-auto h-4 w-64 rounded-full bg-black/10" />
+          </div>
+          <div className="h-48 w-full rounded-3xl border border-container-border bg-white" />
+          <div className="h-28 w-full rounded-3xl border border-container-border bg-white" />
+          <div className="h-12 w-full rounded-full bg-black/10" />
+        </div>
+      </AppScrollShell>
+    );
   }
 
   return (

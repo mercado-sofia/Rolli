@@ -31,9 +31,9 @@ export const APP_SHELL_PY = "pt-6 sm:pt-8 md:pt-9";
 export const APP_SHELL_MAX_WIDTH =
   "max-w-md md:max-w-[28rem] lg:max-w-[34rem]";
 
-/** Wider shell for multi-step setup flows on desktop */
+/** Wider shell for split-panel setup flows on desktop */
 export const APP_SETUP_SHELL_MAX_WIDTH =
-  "max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl";
+  "max-w-md md:max-w-4xl lg:max-w-5xl xl:max-w-6xl";
 
 /** Max width for centered hints / footer actions in setup flows */
 export const APP_ACTION_MAX_WIDTH = "mx-auto w-full max-w-md md:max-w-lg";
@@ -46,52 +46,77 @@ export const SETUP_FLOW_SHELL_CLASS = cn(
   "lg:min-h-[calc(100dvh-4rem)]",
 );
 
-/** Inner column wrapping header, main, and footer */
+/**
+ * Mobile: header → main → footer stack.
+ * Desktop (md+): left = nav + headings, right = fields + actions.
+ */
 export const SETUP_FLOW_INNER_CLASS = cn(
   "flex min-h-0 flex-1 flex-col",
   APP_CONTENT_PADDING_X,
   "pt-[max(1.5rem,env(safe-area-inset-top))] sm:pt-6 md:pt-8",
   "pb-[max(1.25rem,env(safe-area-inset-bottom))] md:pb-8",
+  "md:grid md:grid-cols-[minmax(13rem,38%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto]",
+  "md:items-stretch md:gap-x-8 lg:gap-x-12 xl:gap-x-14",
+  "md:px-6 md:pb-8 lg:px-8",
 );
 
-export const SETUP_FLOW_HEADER_CLASS = "shrink-0 md:mb-8";
+/** White card surface for the right panel only (desktop) */
+export const SETUP_FLOW_RIGHT_PANEL_SURFACE =
+  "md:bg-white md:shadow-soft";
 
-export const SETUP_FLOW_HEADER_COMPACT_CLASS = "shrink-0 md:mb-6";
+/** Left panel — back, progress, title; sits on canvas (desktop) */
+export const SETUP_FLOW_HEADER_CLASS = cn(
+  "shrink-0",
+  "md:col-start-1 md:row-start-1 md:row-span-2",
+  "md:self-start md:sticky md:top-8",
+  "md:pr-4 lg:pr-6",
+);
 
+export const SETUP_FLOW_HEADER_COMPACT_CLASS = SETUP_FLOW_HEADER_CLASS;
+
+/** Right panel — scrollable body */
 export const SETUP_FLOW_MAIN_CLASS = cn(
   "flex min-h-0 flex-1 flex-col",
-  "overflow-y-auto overscroll-y-contain md:overflow-visible",
+  "overflow-y-auto overscroll-y-contain",
+  "md:col-start-2 md:row-start-1 md:overflow-y-auto md:overscroll-y-contain",
+  SETUP_FLOW_RIGHT_PANEL_SURFACE,
+  "md:rounded-t-[1.75rem] md:border md:border-b-0 md:border-container-border",
+  "md:px-8 md:pt-8 lg:px-10 lg:pt-9",
 );
 
-/** Vertically center short content between header and footer */
-export const SETUP_FLOW_MAIN_CENTER_CLASS =
-  "justify-center md:pb-[4dvh]";
+/** Vertically center short content in the right panel */
+export const SETUP_FLOW_MAIN_CENTER_CLASS = "justify-center md:py-6";
 
-/** Keep content under the header (e.g. waiting room) */
-export const SETUP_FLOW_MAIN_UPPER_CLASS = "justify-start";
+/** Keep content at the top of the right panel (e.g. waiting room) */
+export const SETUP_FLOW_MAIN_UPPER_CLASS = "justify-start md:pt-2";
 
-export const SETUP_FLOW_MAIN_INNER_CLASS = "w-full py-2 md:py-4";
+export const SETUP_FLOW_MAIN_INNER_CLASS = "w-full py-2 md:py-0";
 
+/** Right panel — hint + CTAs below fields */
 export const SETUP_FLOW_FOOTER_CLASS = cn(
-  "shrink-0 border-t border-container-border/60 pt-4 md:pt-5",
+  "shrink-0 border-t border-container-border/60 pt-4",
   SETUP_FLOW_FOOTER_BLEED_X,
   APP_ACTION_PADDING_X,
+  "md:col-start-2 md:row-start-2",
+  SETUP_FLOW_RIGHT_PANEL_SURFACE,
+  "md:rounded-b-[1.75rem] md:border md:border-container-border",
+  "md:mx-0 md:px-8 md:pb-8 md:pt-6 lg:px-10 lg:pb-9",
 );
 
 export const SETUP_FLOW_FOOTER_INNER_CLASS =
-  "flex flex-col items-center gap-4 md:gap-5";
+  "flex w-full flex-col items-stretch gap-4 md:gap-5";
 
 export const SETUP_FLOW_FOOTER_HINT_CLASS = cn(
-  APP_ACTION_MAX_WIDTH,
-  "text-center text-sm leading-relaxed text-muted md:text-base",
+  "text-center text-sm leading-relaxed text-muted md:text-left md:text-base",
 );
 
-/** Two-up choice cards (start page, etc.) */
+/** Choice cards — stacked in the right panel on desktop */
 export const APP_CHOICE_GRID_CLASS =
-  "grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6";
+  "grid grid-cols-1 gap-4 md:flex md:flex-col md:gap-5";
 
-/** Centered single-column forms inside a wide setup shell */
-export const APP_SETUP_FORM_MAX_WIDTH = "mx-auto w-full max-w-lg lg:max-w-xl";
+/** Form width — centered on mobile, full width in the right panel on desktop */
+export const APP_SETUP_FORM_MAX_WIDTH =
+  "mx-auto w-full max-w-lg md:mx-0 md:max-w-none";
 
 /** Raised panel on tablet+ so app pages read as a card on wide screens */
 export const APP_SHELL_DESKTOP_FRAME =

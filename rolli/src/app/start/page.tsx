@@ -35,12 +35,12 @@ export default function StartPage() {
           SETUP_FLOW_MAIN_CENTER_CLASS,
         )}
       >
-        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, APP_CHOICE_GRID_CLASS)}>
+        <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, APP_CHOICE_GRID_CLASS, "md:w-full")}>
           <Link href="/create" className="group block h-full min-h-0">
             <Card
               className={cn(
-                "flex h-full min-h-44 flex-col transition-[transform,box-shadow] duration-200",
-                "hover:scale-[1.01] hover:shadow-glow active:scale-[0.99] md:min-h-52 md:p-8",
+                "flex h-full min-h-44 flex-col transition-[transform,box-shadow,border-color] duration-300 ease-out",
+                "hover:scale-[1.01] hover:shadow-glow active:scale-[0.99] md:min-h-52 md:p-8 md:hover:border-pink-highlight",
               )}
             >
               <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
@@ -58,8 +58,8 @@ export default function StartPage() {
           <Link href="/join" className="group block h-full min-h-0">
             <Card
               className={cn(
-                "flex h-full min-h-44 flex-col transition-[transform,box-shadow] duration-200",
-                "hover:scale-[1.01] hover:shadow-glow active:scale-[0.99] md:min-h-52 md:p-8",
+                "flex h-full min-h-44 flex-col transition-[transform,box-shadow,border-color] duration-300 ease-out",
+                "hover:scale-[1.01] hover:shadow-glow active:scale-[0.99] md:min-h-52 md:p-8 md:hover:border-pink-highlight",
               )}
             >
               <p className="text-[11px] font-medium uppercase tracking-overline text-pink-muted">
