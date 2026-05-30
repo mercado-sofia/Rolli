@@ -30,6 +30,7 @@ export {
 type SetupFlowShellProps = {
   children: ReactNode;
   className?: string;
+  backgroundClassName?: string;
   /** Tighter top padding for post-hangout flows. */
   compact?: boolean;
 };
@@ -38,12 +39,14 @@ type SetupFlowShellProps = {
 export function SetupFlowShell({
   children,
   className,
+  backgroundClassName,
   compact = false,
 }: SetupFlowShellProps) {
   return (
     <MobileShell
       variant="app"
       desktopFrame={false}
+      backgroundClassName={backgroundClassName}
       className={cn(SETUP_FLOW_SHELL_CLASS, className)}
     >
       <div

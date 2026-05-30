@@ -54,6 +54,10 @@ export function hangoutGalleryPath(slug: string): string {
   return `/h/${slug}${GALLERY_PATH_SUFFIX}`;
 }
 
+export type HangoutRouteRedirectOptions = {
+  revealFinishedAt?: string | null;
+};
+
 /**
  * Returns the path to redirect to when the user is on the wrong phase page, or null if OK.
  */
@@ -61,9 +65,25 @@ export function getHangoutRouteRedirect(
   slug: string,
   currentPath: string,
   status: HangoutStatus,
+  options?: HangoutRouteRedirectOptions,
 ): string | null {
   const path = normalizeHangoutPath(currentPath);
   const canonical = hangoutParticipantPath(slug, status);
+  const readyForGuessing = Boolean(options?.revealFinishedAt);
+  const revealPath = `/h/${slug}/reveal`;
+  const guessingPath = `/h/${slug}${GUESSING_PATH_SUFFIX}`;
+
+  if (status === "revealing") {
+    if (path === revealPath && !readyForGuessing) {
+      return null;
+    }
+    if (path === guessingPath && readyForGuessing) {
+      return null;
+    }
+    if (path === guessingPath && !readyForGuessing) {
+      return revealPath;
+    }
+  }
 
   if (path === canonical) {
     return null;
@@ -77,12 +97,12 @@ export function getHangoutRouteRedirect(
     return null;
   }
 
-  if (status === "developing" && path === `/h/${slug}/reveal`) {
+  if (status === "developing" && path === revealPath) {
     return null;
   }
 
   if (path === `/h/${slug}/developing`) {
-    return `/h/${slug}/reveal`;
+    return revealPath;
   }
 
   return canonical;

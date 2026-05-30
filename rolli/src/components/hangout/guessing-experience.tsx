@@ -33,6 +33,7 @@ type GuessingExperienceProps = {
   hangoutId: string;
   sessionToken: string;
   hangoutStatus: HangoutStatus;
+  canAccessGuessing: boolean;
   onHangoutCompleted: (hangout?: Hangout) => void;
   onFooterChange?: (footer: SetupFlowFooterState) => void;
 };
@@ -41,6 +42,7 @@ export function GuessingExperience({
   hangoutId,
   sessionToken,
   hangoutStatus,
+  canAccessGuessing,
   onHangoutCompleted,
   onFooterChange,
 }: GuessingExperienceProps) {
@@ -71,6 +73,10 @@ export function GuessingExperience({
   }, []);
 
   useEffect(() => {
+    if (!canAccessGuessing) {
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -121,7 +127,7 @@ export function GuessingExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, isCompleted, reloadKey, sessionToken]);
+  }, [canAccessGuessing, hangoutId, isCompleted, reloadKey, sessionToken]);
 
   useEffect(() => {
     perspectivePhotosLoadedRef.current = false;
@@ -188,7 +194,9 @@ export function GuessingExperience({
   }, [galleryTarget, perspectivePhotos]);
 
   useEffect(() => {
-    if (isCompleted || hangoutStatus !== "guessing") return;
+    if (isCompleted || !canAccessGuessing) {
+      return;
+    }
 
     let cancelled = false;
 
@@ -209,7 +217,7 @@ export function GuessingExperience({
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [hangoutId, hangoutStatus, isCompleted, sessionToken]);
+  }, [canAccessGuessing, hangoutId, hangoutStatus, isCompleted, sessionToken]);
 
   const myVotesIn = (state?.votesSubmitted ?? 0) >= (state?.votesRequired ?? 0);
   const allParticipantsVoted = state?.allParticipantsVoted ?? false;

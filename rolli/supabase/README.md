@@ -111,7 +111,8 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 ## Film Keeper transfer (020, 031)
 
 - **`transfer_film_keeper`** — when the current Film Keeper leaves and other active participants remain, host duties pass to the next active guest (`joined_at` ASC). Migration **031** revokes direct client execute on this RPC; it is internal-only via **`leave_hangout`**.
-- Keeper-gated RPCs (`start_hangout`, `end_hangout`, `start_reveal`, `finish_reveal`, `abandon_hangout`) authorize via `participants.id = hangouts.film_keeper_id`.
+- Keeper-gated RPCs (`start_hangout`, `end_hangout`, `start_reveal`, `abandon_hangout`) authorize via `participants.id = hangouts.film_keeper_id`.
+- Migration **032** — **`mark_ready_for_guessing`** (any participant) sets `reveal_finished_at` and moves the hangout to `guessing` only when every active participant is ready; early finishers can guess while status is still `revealing`.
 - Solo Film Keeper in `waiting` still cannot leave (use **Abandon**). Solo active session can leave with no successor until someone rejoins or 24h auto-end.
 
 ## Leave / rejoin / join (014, 019, 020, 030, 031)
@@ -135,6 +136,12 @@ If a user clears browser storage without leaving, they cannot recover their sess
 - **`maybe_complete_guessing_if_ready`** requires every **active** participant to submit all required votes (fixes early completion when someone leaves).
 - **`assert_rate_limit`** on `create_hangout_with_keeper`, `join_hangout`, `get_hangout_public`, and `prepare_photo_upload`.
 
+## Per-participant reveal ready (032)
+
+- **`mark_ready_for_guessing`** — any active participant marks themselves done viewing; early finishers can vote while the hangout is still `revealing`.
+- Hangout moves to **`guessing`** only when every active participant has `reveal_finished_at` set.
+- In-flight hangouts already in `guessing` / `completed` are backfilled on migrate.
+
 ## Guessing & gallery completion (027–029)
 
 - Migration **027** — `get_gallery` includes participant nicknames and real names (only after status is `completed`).
@@ -143,7 +150,7 @@ If a user clears browser storage without leaving, they cannot recover their sess
 
 ## Verify migrations (optional)
 
-Run in the SQL Editor after applying **001–031**:
+Run in the SQL Editor after applying **001–032**:
 
 ```sql
 -- Core RPCs should exist

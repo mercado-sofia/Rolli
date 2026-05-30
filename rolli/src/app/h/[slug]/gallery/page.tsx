@@ -79,7 +79,6 @@ export default function GalleryPage() {
 
   return (
     <HangoutPageLoadGate
-      loadingHint="Loading gallery…"
       loadError={loadError}
       isLoading={isLoading}
       displayHangout={displayHangout}

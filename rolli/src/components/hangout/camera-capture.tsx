@@ -20,6 +20,7 @@ import {
   encodeVideoFrameToJpeg,
 } from "@/lib/hangout/camera-frame";
 import { captureMemory } from "@/lib/hangout/photos";
+import { FIXED_VIEWPORT_BLEED_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 import type { Participant } from "@/types/participant";
 
@@ -590,7 +591,10 @@ function CaptureOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-200 flex items-stretch justify-center bg-black/55 p-0 md:items-center md:p-6 lg:p-10"
+      className={cn(
+        FIXED_VIEWPORT_BLEED_CLASS,
+        "z-200 flex items-stretch justify-center bg-black/55 p-0 md:items-center md:p-6 lg:p-10",
+      )}
       role="dialog"
       aria-modal="true"
       aria-label="Capture memory"

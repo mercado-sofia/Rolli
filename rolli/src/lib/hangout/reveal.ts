@@ -1,6 +1,6 @@
 export {
-  finishReveal,
   getRevealState,
+  markReadyForGuessing,
   signRevealPhotoUrls,
   signalRevealPending,
   startReveal,

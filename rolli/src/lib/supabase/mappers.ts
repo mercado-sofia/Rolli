@@ -23,6 +23,7 @@ export type ParticipantSessionJson = {
   is_film_keeper: boolean;
   photos_taken: number;
   joined_at: string;
+  reveal_finished_at?: string | null;
 };
 
 const HANGOUT_STATUSES: HangoutStatus[] = [
@@ -67,5 +68,6 @@ export function mapParticipant(row: ParticipantSessionJson): Participant {
     isFilmKeeper: row.is_film_keeper,
     photosTaken: row.photos_taken,
     joinedAt: row.joined_at,
+    revealFinishedAt: row.reveal_finished_at ?? null,
   };
 }

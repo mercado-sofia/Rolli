@@ -289,10 +289,7 @@ export function DevelopingPrepareOverlay({
               revealStarting={revealStarting}
               isFilmKeeper={isFilmKeeper}
               prepare={prepare}
-              className={cn(
-                DEVELOPING_MOBILE_OVERLAY_CLASS,
-                "min-h-dvh supports-[height:100dvh]:min-h-dvh",
-              )}
+              className={DEVELOPING_MOBILE_OVERLAY_CLASS}
             />,
             document.body,
           )

@@ -24,8 +24,13 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
-import { DEVELOPING_FLOW_CHROME_CLASS } from "@/lib/app-page-layout";
+import {
+  DEVELOPING_FLOW_CHROME_CLASS,
+  DEVELOPING_FLOW_FOOTER_CHROME_CLASS,
+} from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
+import type { MarkReadyForGuessingResult } from "@/types/reveal";
+import type { Participant } from "@/types/participant";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
@@ -36,6 +41,7 @@ export default function RevealPage() {
   const slug = params.slug;
 
   const setHangout = useSessionStore((state) => state.setHangout);
+  const setParticipant = useSessionStore((state) => state.setParticipant);
   const [revealFooter, setRevealFooter] = useState<SetupFlowFooterState>({});
   const [developingFooter, setDevelopingFooter] = useState<SetupFlowFooterState>(
     {},
@@ -76,12 +82,25 @@ export default function RevealPage() {
     [setHangout],
   );
 
-  const handleFinishReveal = useCallback(
-    (updatedHangout: Hangout) => {
-      setHangout(updatedHangout);
+  const handleSessionSync = useCallback(
+    (payload: { hangout?: Hangout; participant?: Participant }) => {
+      if (payload.hangout) {
+        setHangout(payload.hangout);
+      }
+      if (payload.participant) {
+        setParticipant(payload.participant);
+      }
+    },
+    [setHangout, setParticipant],
+  );
+
+  const handleMarkReadyForGuessing = useCallback(
+    (result: MarkReadyForGuessingResult) => {
+      setHangout(result.hangout);
+      setParticipant(result.participant);
       router.replace(`/h/${slug}/guessing`);
     },
-    [router, setHangout, slug],
+    [router, setHangout, setParticipant, slug],
   );
 
   const revealReady =
@@ -111,7 +130,10 @@ export default function RevealPage() {
       }
     >
       {revealReady ? (
-    <SetupFlowShell compact>
+    <SetupFlowShell
+      compact
+      backgroundClassName={isDeveloping ? "bg-white md:bg-canvas" : undefined}
+    >
       <header
         className={cn(
           SETUP_FLOW_HEADER_COMPACT_CLASS,
@@ -142,8 +164,8 @@ export default function RevealPage() {
           <RevealExperience
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
-            isFilmKeeper={isFilmKeeper}
-            onFinishReveal={handleFinishReveal}
+            onMarkReadyForGuessing={handleMarkReadyForGuessing}
+            onSessionSync={handleSessionSync}
             onFooterChange={setRevealFooter}
             footerEnabled={isRevealing}
             prepareReady={prepare.isReady}
@@ -164,7 +186,9 @@ export default function RevealPage() {
       </main>
 
       <SetupFlowFooter
-        className={cn(isDeveloping && DEVELOPING_FLOW_CHROME_CLASS)}
+        className={cn(
+          isDeveloping && DEVELOPING_FLOW_FOOTER_CHROME_CLASS,
+        )}
         hint={activeFooter.hint}
       >
         {activeFooter.children}

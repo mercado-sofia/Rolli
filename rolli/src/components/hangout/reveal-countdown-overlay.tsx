@@ -2,6 +2,9 @@
 
 import { createPortal } from "react-dom";
 
+import { FIXED_VIEWPORT_BLEED_CLASS } from "@/lib/app-page-layout";
+import { cn } from "@/lib/utils";
+
 type RevealCountdownOverlayProps = {
   seconds: number;
 };
@@ -11,7 +14,7 @@ export function RevealCountdownOverlay({ seconds }: RevealCountdownOverlayProps)
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/70 backdrop-blur-sm"
+      className={cn(FIXED_VIEWPORT_BLEED_CLASS, "z-[100] flex items-center justify-center bg-ink/70 backdrop-blur-sm")}
       role="status"
       aria-live="polite"
       aria-label={`Reveal starting in ${seconds}`}

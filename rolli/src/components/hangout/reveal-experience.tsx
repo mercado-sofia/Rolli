@@ -14,12 +14,17 @@ import {
   isRevealPreloadUsable,
 } from "@/lib/hangout/reveal-preload-cache";
 import {
-  finishReveal,
   getRevealState,
+  markReadyForGuessing,
   signRevealPhotoUrls,
 } from "@/lib/hangout/reveal";
 import type { Hangout } from "@/types/hangout";
-import type { RevealPerspective } from "@/types/reveal";
+import type { Participant } from "@/types/participant";
+import type {
+  MarkReadyForGuessingResult,
+  RevealPerspective,
+  RevealReadyProgress,
+} from "@/types/reveal";
 
 export type SetupFlowFooterState = {
   hint?: string;
@@ -29,8 +34,11 @@ export type SetupFlowFooterState = {
 type RevealExperienceProps = {
   hangoutId: string;
   sessionToken: string;
-  isFilmKeeper: boolean;
-  onFinishReveal: (hangout: Hangout) => void;
+  onMarkReadyForGuessing: (result: MarkReadyForGuessingResult) => void;
+  onSessionSync?: (payload: {
+    hangout?: Hangout;
+    participant?: Participant;
+  }) => void;
   onFooterChange?: (footer: SetupFlowFooterState) => void;
   /** When false, reveal UI still loads but footer actions stay hidden (developing overlay). */
   footerEnabled?: boolean;
@@ -41,8 +49,8 @@ type RevealExperienceProps = {
 export function RevealExperience({
   hangoutId,
   sessionToken,
-  isFilmKeeper,
-  onFinishReveal,
+  onMarkReadyForGuessing,
+  onSessionSync,
   onFooterChange,
   footerEnabled = true,
   prepareReady = false,
@@ -51,6 +59,9 @@ export function RevealExperience({
   const usablePreload = isRevealPreloadUsable(preloaded) ? preloaded : null;
   const [perspectives, setPerspectives] = useState<RevealPerspective[]>(
     usablePreload?.perspectives ?? [],
+  );
+  const [readyProgress, setReadyProgress] = useState<RevealReadyProgress | null>(
+    null,
   );
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(!usablePreload);
@@ -66,6 +77,15 @@ export function RevealExperience({
     setReloadKey((key) => key + 1);
   }, []);
 
+  const syncSessionFromRevealState = useCallback(
+    (payload: { hangout?: Hangout; participant?: Participant }) => {
+      if (payload.hangout || payload.participant) {
+        onSessionSync?.(payload);
+      }
+    },
+    [onSessionSync],
+  );
+
   const resignPhotos = useCallback(async () => {
     const { data, error } = await getRevealState(hangoutId, sessionToken);
     if (error || !data) return;
@@ -73,7 +93,14 @@ export function RevealExperience({
     const signed = await signRevealPhotoUrls(data.perspectives);
     setPerspectives(signed);
     setSignedAt(Date.now());
-  }, [hangoutId, sessionToken]);
+    if (data.readyProgress) {
+      setReadyProgress(data.readyProgress);
+    }
+    syncSessionFromRevealState({
+      hangout: data.hangout,
+      participant: data.participant,
+    });
+  }, [hangoutId, sessionToken, syncSessionFromRevealState]);
 
   useResignPhotosOnVisibility({
     signedAt,
@@ -124,6 +151,7 @@ export function RevealExperience({
         setPerspectives([]);
         setCurrentIndex(0);
         setSignedAt(null);
+        setReadyProgress(null);
         setLoadError(error ?? "Could not load reveal");
         setLoading(false);
         return;
@@ -135,6 +163,11 @@ export function RevealExperience({
       setPerspectives(signed);
       setCurrentIndex(0);
       setSignedAt(Date.now());
+      setReadyProgress(data.readyProgress ?? null);
+      syncSessionFromRevealState({
+        hangout: data.hangout,
+        participant: data.participant,
+      });
       setLoading(false);
     }
 
@@ -143,7 +176,13 @@ export function RevealExperience({
     return () => {
       cancelled = true;
     };
-  }, [hangoutId, hydrateFromPreloadCache, reloadKey, sessionToken]);
+  }, [
+    hangoutId,
+    hydrateFromPreloadCache,
+    reloadKey,
+    sessionToken,
+    syncSessionFromRevealState,
+  ]);
 
   const current = perspectives[currentIndex];
   const isLastPerspective = currentIndex >= perspectives.length - 1;
@@ -158,11 +197,11 @@ export function RevealExperience({
     }
   }, [isLastPerspective]);
 
-  const handleFinishReveal = useCallback(async () => {
+  const handleMarkReadyForGuessing = useCallback(async () => {
     setFinishing(true);
     setFinishError(null);
 
-    const { data, error } = await finishReveal(hangoutId, sessionToken);
+    const { data, error } = await markReadyForGuessing(hangoutId, sessionToken);
 
     setFinishing(false);
 
@@ -171,8 +210,37 @@ export function RevealExperience({
       return;
     }
 
-    onFinishReveal(data);
-  }, [hangoutId, onFinishReveal, sessionToken]);
+    onMarkReadyForGuessing(data);
+  }, [hangoutId, onMarkReadyForGuessing, sessionToken]);
+
+  const continueToGuessingFooter = useCallback(
+    (hint: string): SetupFlowFooterState => ({
+      hint,
+      children: (
+        <>
+          {finishError && (
+            <p className="text-center text-sm text-pink">{finishError}</p>
+          )}
+          <Button
+            type="button"
+            className={APP_PRIMARY_BUTTON_CLASS}
+            disabled={finishing}
+            onClick={() => void handleMarkReadyForGuessing()}
+          >
+            {finishing ? "Continuing…" : "Continue to guessing"}
+          </Button>
+        </>
+      ),
+    }),
+    [finishError, finishing, handleMarkReadyForGuessing],
+  );
+
+  const swipeHint = useCallback(() => {
+    if (readyProgress && readyProgress.total > 0) {
+      return `${readyProgress.ready} of ${readyProgress.total} ready for guessing · Swipe through photos`;
+    }
+    return "Swipe through photos";
+  }, [readyProgress]);
 
   useEffect(() => {
     if (!footerEnabled || !onFooterChange || loading || loadError) {
@@ -181,35 +249,17 @@ export function RevealExperience({
     }
 
     if (perspectives.length === 0 || totalPhotos === 0) {
-      if (!isFilmKeeper) {
-        onFooterChange({});
-        return;
-      }
-
-      onFooterChange({
-        hint: "No memories were captured — you can still continue to guessing.",
-        children: (
-          <>
-            {finishError && (
-              <p className="text-center text-sm text-pink">{finishError}</p>
-            )}
-            <Button
-              type="button"
-              className={APP_PRIMARY_BUTTON_CLASS}
-              disabled={finishing}
-              onClick={() => void handleFinishReveal()}
-            >
-              {finishing ? "Continuing…" : "Continue to guessing"}
-            </Button>
-          </>
+      onFooterChange(
+        continueToGuessingFooter(
+          "No memories were captured — you can still continue to guessing.",
         ),
-      });
+      );
       return;
     }
 
     if (!isLastPerspective) {
       onFooterChange({
-        hint: "Swipe through photos",
+        hint: swipeHint(),
         children: (
           <Button
             type="button"
@@ -223,42 +273,19 @@ export function RevealExperience({
       return;
     }
 
-    if (isFilmKeeper) {
-      onFooterChange({
-        hint: "Continue when your group is ready.",
-        children: (
-          <>
-            {finishError && (
-              <p className="text-center text-sm text-pink">{finishError}</p>
-            )}
-            <Button
-              type="button"
-              className={APP_PRIMARY_BUTTON_CLASS}
-              disabled={finishing}
-              onClick={() => void handleFinishReveal()}
-            >
-              {finishing ? "Continuing…" : "Continue to guessing"}
-            </Button>
-          </>
-        ),
-      });
-      return;
-    }
-
-    onFooterChange({});
+    onFooterChange(
+      continueToGuessingFooter("Continue when you're done viewing."),
+    );
   }, [
-    currentIndex,
-    finishError,
-    finishing,
+    continueToGuessingFooter,
     footerEnabled,
-    isFilmKeeper,
     isLastPerspective,
     loadError,
     loading,
     onFooterChange,
     perspectives.length,
+    swipeHint,
     totalPhotos,
-    handleFinishReveal,
     goToNextPerspective,
   ]);
 

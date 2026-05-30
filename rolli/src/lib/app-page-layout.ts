@@ -157,10 +157,33 @@ export function galleryFolderGridClass(folderCount: number) {
 /** Min height for gallery loading spinners (page shell + experience). */
 export const GALLERY_LOADING_MIN_HEIGHT_CLASS = "min-h-[40vh] md:min-h-112";
 
+/**
+ * Fixed layer that fills the full device viewport, including status bar and home
+ * indicator regions when viewport-fit=cover is enabled (iOS Safari).
+ */
+export const FIXED_VIEWPORT_BLEED_CLASS = cn(
+  "fixed",
+  "top-[calc(-1*env(safe-area-inset-top,0px))]",
+  "right-[calc(-1*env(safe-area-inset-right,0px))]",
+  "bottom-[calc(-1*env(safe-area-inset-bottom,0px))]",
+  "left-[calc(-1*env(safe-area-inset-left,0px))]",
+  "min-h-[calc(100dvh+env(safe-area-inset-top,0px)+env(safe-area-inset-bottom,0px))]",
+  "supports-[height:100dvh]:min-h-[calc(100dvh+env(safe-area-inset-top,0px)+env(safe-area-inset-bottom,0px))]",
+);
+
 /** Header/footer above the developing overlay on mobile (title + CTAs stay readable). */
 export const DEVELOPING_FLOW_CHROME_CLASS = cn(
   "relative z-40 bg-white",
-  "md:relative md:z-auto md:bg-transparent",
+  // Parent shell adds safe-area top padding — bleed white into the status bar gap.
+  "before:pointer-events-none before:absolute before:-top-[max(0.75rem,env(safe-area-inset-top))] before:-left-[100vw] before:-right-[100vw] before:h-[max(0.75rem,env(safe-area-inset-top))] before:bg-white before:content-['']",
+  "md:relative md:z-auto md:bg-transparent md:before:hidden",
+);
+
+/** Footer variant — bleed white into the home-indicator safe area. */
+export const DEVELOPING_FLOW_FOOTER_CHROME_CLASS = cn(
+  DEVELOPING_FLOW_CHROME_CLASS,
+  "after:pointer-events-none after:absolute after:-bottom-[max(1.25rem,env(safe-area-inset-bottom))] after:-left-[100vw] after:-right-[100vw] after:h-[max(1.25rem,env(safe-area-inset-bottom))] after:bg-white after:content-['']",
+  "md:after:hidden",
 );
 
 /**
@@ -168,7 +191,8 @@ export const DEVELOPING_FLOW_CHROME_CLASS = cn(
  * Top/bottom inset keeps centered content clear of page header and footer.
  */
 export const DEVELOPING_MOBILE_OVERLAY_CLASS = cn(
-  "fixed inset-0 z-30 flex flex-col bg-white md:hidden",
+  FIXED_VIEWPORT_BLEED_CLASS,
+  "z-30 flex flex-col bg-white md:hidden",
   "justify-center",
   "pt-[max(7.25rem,calc(env(safe-area-inset-top)+5.25rem))]",
   "pb-[max(11rem,calc(env(safe-area-inset-bottom)+8.5rem))]",

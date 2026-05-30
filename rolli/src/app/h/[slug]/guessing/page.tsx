@@ -28,6 +28,7 @@ import {
   APP_PRIMARY_BUTTON_CLASS,
   HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
 } from "@/lib/app-page-layout";
+import { isParticipantReadyForGuessing } from "@/lib/hangout/participant-ready";
 import {
   HANGOUT_GUESSING_PATH_SUFFIX,
   hangoutGalleryPath,
@@ -96,9 +97,12 @@ export default function GuessingPage() {
     router.push(hangoutGalleryPath(slug));
   }, [displayHangout, participant, router, setHangout, slug]);
 
+  const participantReadyForGuessing = isParticipantReadyForGuessing(participant);
+
   const isGuessingPhase =
     displayHangout?.status === "guessing" ||
-    displayHangout?.status === "completed";
+    displayHangout?.status === "completed" ||
+    (displayHangout?.status === "revealing" && participantReadyForGuessing);
 
   const isCompleted = displayHangout?.status === "completed";
   const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
@@ -196,6 +200,7 @@ export default function GuessingPage() {
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
             hangoutStatus={displayHangout.status}
+            canAccessGuessing={isGuessingPhase}
             onHangoutCompleted={handleHangoutCompleted}
             onFooterChange={setFooter}
           />

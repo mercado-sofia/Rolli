@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { FIXED_VIEWPORT_BLEED_CLASS } from "@/lib/app-page-layout";
 
 type MobileLoadingSpinnerProps = {
   className?: string;
@@ -16,7 +17,10 @@ export function MobileLoadingSpinner({
       className={cn(
         inline
           ? "flex w-full items-center justify-center"
-          : "pointer-events-none fixed inset-0 z-20 flex items-center justify-center md:hidden",
+          : cn(
+              FIXED_VIEWPORT_BLEED_CLASS,
+              "pointer-events-none z-20 flex items-center justify-center md:hidden",
+            ),
         className,
       )}
       aria-live="polite"

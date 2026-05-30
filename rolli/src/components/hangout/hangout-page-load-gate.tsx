@@ -16,7 +16,7 @@ import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 
 type HangoutPageLoadGateProps = {
-  loadingHint: string;
+  loadingHint?: string;
   loadError: string | null;
   isLoading: boolean;
   displayHangout: Hangout | null;

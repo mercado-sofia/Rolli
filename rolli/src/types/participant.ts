@@ -7,4 +7,5 @@ export type Participant = {
   isFilmKeeper: boolean;
   photosTaken: number;
   joinedAt: string;
+  revealFinishedAt: string | null;
 };

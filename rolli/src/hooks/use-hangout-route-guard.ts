@@ -30,6 +30,7 @@ export function useHangoutRouteGuard({
   const router = useRouter();
   const pathname = usePathname();
   const leavingApp = useSessionStore((state) => state.leavingApp);
+  const participant = useSessionStore((state) => state.participant);
 
   useEffect(() => {
     if (isLoading || leavingApp || !hangout || hangout.slug !== slug) return;
@@ -39,10 +40,21 @@ export function useHangoutRouteGuard({
       return;
     }
 
-    const redirectTo = getHangoutRouteRedirect(slug, path, hangout.status);
+    const redirectTo = getHangoutRouteRedirect(slug, path, hangout.status, {
+      revealFinishedAt: participant?.revealFinishedAt,
+    });
 
     if (redirectTo) {
       router.replace(redirectTo);
     }
-  }, [guardPathSuffix, hangout, isLoading, leavingApp, pathname, router, slug]);
+  }, [
+    guardPathSuffix,
+    hangout,
+    isLoading,
+    leavingApp,
+    participant?.revealFinishedAt,
+    pathname,
+    router,
+    slug,
+  ]);
 }
