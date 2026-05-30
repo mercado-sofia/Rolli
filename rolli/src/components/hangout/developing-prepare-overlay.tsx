@@ -9,7 +9,10 @@ import { RevealCountdownOverlay } from "@/components/hangout/reveal-countdown-ov
 import { Button } from "@/components/ui/button";
 import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
 import type { useRevealPrepare } from "@/hooks/use-reveal-prepare";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import {
+  APP_PRIMARY_BUTTON_CLASS,
+  DEVELOPING_MOBILE_OVERLAY_CLASS,
+} from "@/lib/app-page-layout";
 import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
 import {
   getRevealPreload,
@@ -272,7 +275,10 @@ export function DevelopingPrepareOverlay({
             <DevelopingOverlayPanel
               revealStarting={revealStarting}
               prepare={prepare}
-              className="fixed inset-0 z-30 min-h-dvh supports-[height:100dvh]:min-h-dvh md:hidden"
+              className={cn(
+                DEVELOPING_MOBILE_OVERLAY_CLASS,
+                "min-h-dvh supports-[height:100dvh]:min-h-dvh",
+              )}
             />,
             document.body,
           )

@@ -146,8 +146,33 @@ export const HANGOUT_PINK_GRADIENT_BUTTON_CLASS = cn(
 /** Multi-column photo grids (gallery, etc.) */
 export const APP_PHOTO_GRID_CLASS = "grid grid-cols-2 gap-3 sm:gap-4";
 
+/** Perspective folder grid — 2 cols when ≤2 folders, 3 cols when 3+. */
+export function galleryFolderGridClass(folderCount: number) {
+  return cn(
+    "grid gap-3 sm:gap-4",
+    folderCount >= 3 ? "grid-cols-3" : "grid-cols-2",
+  );
+}
+
 /** Min height for gallery loading spinners (page shell + experience). */
 export const GALLERY_LOADING_MIN_HEIGHT_CLASS = "min-h-[40vh] md:min-h-112";
+
+/** Header/footer above the developing overlay on mobile (title + CTAs stay readable). */
+export const DEVELOPING_FLOW_CHROME_CLASS = cn(
+  "relative z-40 bg-white",
+  "md:relative md:z-auto md:bg-transparent",
+);
+
+/**
+ * Full-screen white developing backdrop (mobile portal).
+ * Top/bottom inset keeps centered content clear of page header and footer.
+ */
+export const DEVELOPING_MOBILE_OVERLAY_CLASS = cn(
+  "fixed inset-0 z-30 flex flex-col bg-white md:hidden",
+  "justify-center",
+  "pt-[max(7.25rem,calc(env(safe-area-inset-top)+5.25rem))]",
+  "pb-[max(11rem,calc(env(safe-area-inset-bottom)+8.5rem))]",
+);
 
 /** White (#FFF) app container with 1px #FFEDF5 border */
 export const APP_CONTAINER_SURFACE = "border border-container-border bg-white";

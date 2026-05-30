@@ -9,6 +9,7 @@ import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import {
   APP_PHOTO_GRID_CLASS,
   GALLERY_LOADING_MIN_HEIGHT_CLASS,
+  galleryFolderGridClass,
 } from "@/lib/app-page-layout";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
@@ -143,6 +144,8 @@ export function GalleryExperience({
     0,
   );
 
+  const useCompactFolderCards = folderCards.length >= 3;
+
   async function handleDownloadPack(
     packId: string,
     zipName: string,
@@ -217,13 +220,14 @@ export function GalleryExperience({
         </p>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+      <div className={galleryFolderGridClass(folderCards.length)}>
         {folderCards.map(({ perspective, theme }) => (
           <GalleryFolderCard
             key={perspective.participantId}
             nickname={perspective.nickname}
             realName={perspective.realName}
             theme={theme}
+            compact={useCompactFolderCards}
             selected={activeParticipantId === perspective.participantId}
             onSelect={() => setSelectedParticipantId(perspective.participantId)}
           />

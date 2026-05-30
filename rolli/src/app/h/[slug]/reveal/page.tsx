@@ -24,6 +24,7 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
+import { DEVELOPING_FLOW_CHROME_CLASS } from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
@@ -120,7 +121,12 @@ export default function RevealPage() {
 
   return (
     <SetupFlowShell compact>
-      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
+      <header
+        className={cn(
+          SETUP_FLOW_HEADER_COMPACT_CLASS,
+          isDeveloping && DEVELOPING_FLOW_CHROME_CLASS,
+        )}
+      >
         <SetupFlowHeader
           compact
           showProgress={false}
@@ -166,7 +172,10 @@ export default function RevealPage() {
         </div>
       </main>
 
-      <SetupFlowFooter hint={activeFooter.hint}>
+      <SetupFlowFooter
+        className={cn(isDeveloping && DEVELOPING_FLOW_CHROME_CLASS)}
+        hint={activeFooter.hint}
+      >
         {activeFooter.children}
       </SetupFlowFooter>
     </SetupFlowShell>
