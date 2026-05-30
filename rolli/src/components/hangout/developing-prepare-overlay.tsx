@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { LuFilm } from "react-icons/lu";
 
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
@@ -21,6 +22,7 @@ import {
 import { signalRevealPending, startReveal } from "@/lib/hangout/reveal";
 import { playRevealAmbientAudio } from "@/lib/hangout/reveal-ambient-audio-controller";
 import type { Hangout } from "@/types/hangout";
+import { cn } from "@/lib/utils";
 
 function DevelopingStatusMessage({
   revealStarting,
@@ -78,6 +80,47 @@ function DevelopingStatusMessage({
         ? `${photoCount} photo${photoCount === 1 ? "" : "s"} from ${perspectiveCount} perspective${perspectiveCount === 1 ? "" : "s"} ready.`
         : "Memories ready — no photos were captured, but you can still reveal."}
     </p>
+  );
+}
+
+const DEVELOPING_OVERLAY_PANEL_CLASS = cn(
+  "flex flex-col items-center justify-center bg-white px-6 text-center sm:px-8",
+);
+
+type DevelopingOverlayPanelProps = {
+  className?: string;
+  revealStarting: boolean;
+  prepare: ReturnType<typeof useRevealPrepare>;
+};
+
+function DevelopingOverlayPanel({
+  className,
+  revealStarting,
+  prepare,
+}: DevelopingOverlayPanelProps) {
+  return (
+    <div
+      className={cn(DEVELOPING_OVERLAY_PANEL_CLASS, className)}
+      role="dialog"
+      aria-label="Preparing reveal"
+    >
+      <HangoutCardIcon
+        icon={LuFilm}
+        borderTone="ink"
+        iconClassName="text-ink"
+      />
+      <p className="font-display mt-4 max-w-md text-2xl leading-snug">
+        {revealStarting ? "Reveal starting" : "Memories in the darkroom"}
+      </p>
+      <DevelopingStatusMessage
+        revealStarting={revealStarting}
+        prepareStatus={prepare.status}
+        prepareError={prepare.error}
+        photoCount={prepare.photoCount}
+        perspectiveCount={prepare.perspectiveCount}
+        onRetry={prepare.retry}
+      />
+    </div>
   );
 }
 
@@ -224,28 +267,22 @@ export function DevelopingPrepareOverlay({
         <RevealCountdownOverlay seconds={displaySeconds} />
       ) : null}
 
-      <div
-        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background px-6 text-center sm:px-8"
-        role="dialog"
-        aria-label="Preparing reveal"
-      >
-        <HangoutCardIcon
-          icon={LuFilm}
-          borderTone="ink"
-          iconClassName="text-ink"
-        />
-        <p className="font-display mt-4 max-w-md text-2xl leading-snug">
-          {revealStarting ? "Reveal starting" : "Memories in the darkroom"}
-        </p>
-        <DevelopingStatusMessage
-          revealStarting={revealStarting}
-          prepareStatus={prepare.status}
-          prepareError={prepare.error}
-          photoCount={prepare.photoCount}
-          perspectiveCount={prepare.perspectiveCount}
-          onRetry={prepare.retry}
-        />
-      </div>
+      {typeof document !== "undefined"
+        ? createPortal(
+            <DevelopingOverlayPanel
+              revealStarting={revealStarting}
+              prepare={prepare}
+              className="fixed inset-0 z-30 min-h-dvh supports-[height:100dvh]:min-h-dvh md:hidden"
+            />,
+            document.body,
+          )
+        : null}
+
+      <DevelopingOverlayPanel
+        revealStarting={revealStarting}
+        prepare={prepare}
+        className="absolute inset-0 z-20 hidden md:flex"
+      />
     </>
   );
 }
