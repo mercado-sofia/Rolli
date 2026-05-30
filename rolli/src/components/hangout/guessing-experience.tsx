@@ -397,7 +397,7 @@ export function GuessingExperience({
       <div className="space-y-6 pt-5 sm:pt-8">
         <Card border="neutral" className="text-center">
           <p className="text-sm text-muted">Your score</p>
-          <p className="font-display mt-1 text-4xl">
+          <p className="font-display mt-1 text-3xl">
             {results.myScore.correct}/{results.myScore.total}
           </p>
           <p className="mt-2 text-sm text-muted">

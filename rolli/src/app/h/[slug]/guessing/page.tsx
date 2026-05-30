@@ -18,7 +18,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
   SETUP_FLOW_MAIN_UPPER_CLASS,
 } from "@/components/layout/setup-flow-shell";
-import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
@@ -38,13 +38,29 @@ import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
+/** Scroll the full page (header + content + actions) instead of pinning CTAs to the viewport. */
+const RESULTS_SHELL_CLASS =
+  "!max-h-none overflow-y-auto overscroll-y-contain supports-[height:100dvh]:!max-h-none";
+
+const RESULTS_MAIN_CLASS = cn(
+  SETUP_FLOW_MAIN_CLASS,
+  SETUP_FLOW_MAIN_UPPER_CLASS,
+  "!min-h-0 !flex-none !overflow-visible md:!overflow-visible",
+  "md:rounded-b-[1.75rem] md:border-b md:pb-8 lg:pb-9",
+);
+
+const RESULTS_FOOTER_CLASS = cn(
+  "mt-8 md:col-auto md:row-auto",
+  "md:mx-0 md:rounded-none md:border-0 md:border-t md:border-container-border/60 md:px-0 md:pb-0 md:pt-8 lg:pt-9",
+);
+
 export default function GuessingPage() {
   const params = useParams<{ slug: string }>();
   const slug = params.slug;
   const router = useRouter();
 
   const setHangout = useSessionStore((state) => state.setHangout);
-  const { displayHangout, isLoading } = useDisplayHangout(slug);
+  const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [footer, setFooter] = useState<SetupFlowFooterState>({});
 
   useHangoutRouteGuard({
@@ -105,34 +121,55 @@ export default function GuessingPage() {
     [setHangout, slug],
   );
 
-  if (isLoading || !hasValidSession || !participant || !displayHangout || !isGuessingPhase) {
-    return (
-      <SetupFlowShell>
-        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
-            <div className="h-9 w-9 rounded-full bg-black/10" />
-            <div className="h-10 w-52 rounded-lg bg-black/10" />
-            <div className="h-3 w-28 rounded-full bg-black/10" />
-          </div>
-        </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
-          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <MobileLoadingSpinner />
-            <div className="hidden animate-pulse space-y-6 md:block">
-              <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-              <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
-            </div>
-          </div>
-        </main>
-        <SetupFlowFooter className="hidden md:block" hint="Loading…">
-          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
-        </SetupFlowFooter>
-      </SetupFlowShell>
-    );
-  }
+  const guessingReady =
+    hasValidSession && participant && displayHangout && isGuessingPhase;
+
+  const footerActions = footer.showGalleryButton ? (
+    <>
+      <Button
+        type="button"
+        className={HANGOUT_PINK_GRADIENT_BUTTON_CLASS}
+        onClick={openMemoryGallery}
+      >
+        View memory gallery
+      </Button>
+      <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+    </>
+  ) : isCompleted ? (
+    <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+  ) : (
+    footer.children
+  );
+
+  const pageFooter = (
+    <SetupFlowFooter
+      className={isCompleted ? RESULTS_FOOTER_CLASS : undefined}
+      hint={footer.hint}
+    >
+      {footerActions}
+    </SetupFlowFooter>
+  );
 
   return (
-    <SetupFlowShell compact>
+    <HangoutPageLoadGate
+      loadingHint="Loading guessing…"
+      loadError={loadError}
+      isLoading={isLoading}
+      displayHangout={displayHangout}
+      forceLoading={!guessingReady}
+      onRetry={retry}
+      loadingSkeleton={
+        <div className="animate-pulse space-y-6">
+          <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
+          <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
+        </div>
+      }
+    >
+      {guessingReady ? (
+    <SetupFlowShell
+      compact
+      className={isCompleted ? RESULTS_SHELL_CLASS : undefined}
+    >
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           compact
@@ -143,7 +180,13 @@ export default function GuessingPage() {
         />
       </header>
 
-      <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)}>
+      <main
+        className={
+          isCompleted
+            ? RESULTS_MAIN_CLASS
+            : cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_UPPER_CLASS)
+        }
+      >
         <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, "flex flex-col gap-4")}>
           <FilmKeeperPromotionBanner
             visible={showPromotion}
@@ -156,27 +199,13 @@ export default function GuessingPage() {
             onHangoutCompleted={handleHangoutCompleted}
             onFooterChange={setFooter}
           />
+          {isCompleted ? pageFooter : null}
         </div>
       </main>
 
-      <SetupFlowFooter hint={footer.hint}>
-        {footer.showGalleryButton ? (
-          <>
-            <Button
-              type="button"
-              className={HANGOUT_PINK_GRADIENT_BUTTON_CLASS}
-              onClick={openMemoryGallery}
-            >
-              View memory gallery
-            </Button>
-            <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
-          </>
-        ) : isCompleted ? (
-          <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
-        ) : (
-          footer.children
-        )}
-      </SetupFlowFooter>
+      {!isCompleted ? pageFooter : null}
     </SetupFlowShell>
+      ) : null}
+    </HangoutPageLoadGate>
   );
 }

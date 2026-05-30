@@ -6,17 +6,16 @@ For product overview, features, and full setup instructions, see the **[reposito
 
 ## Quick start
 
-From this directory (`rolli/`):
+From this directory (`rolli/`), create `rolli/.env.local` with your Supabase keys (see root README), then:
 
 ```bash
-cp .env.local.example .env.local   # add Supabase keys + NEXT_PUBLIC_APP_URL
 npm install
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Supabase migrations live in [`supabase/migrations/`](supabase/migrations/). Run **001–029** in order — see [`supabase/README.md`](supabase/README.md).
+Supabase migrations live in [`supabase/migrations/`](supabase/migrations/). Run **001–031** in order — see [`supabase/README.md`](supabase/README.md).
 
 ## Scripts
 

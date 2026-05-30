@@ -9,23 +9,29 @@ import {
 
 type UseRevealCountdownOptions = {
   enabled?: boolean;
+  countdownMs?: number;
   onComplete?: () => void;
 };
 
 export function useRevealCountdown(
   countdownStartedAt: number | null | undefined,
-  { enabled = true, onComplete }: UseRevealCountdownOptions = {},
+  { enabled = true, countdownMs, onComplete }: UseRevealCountdownOptions = {},
 ) {
   const [, setTick] = useState(0);
   const completedRef = useRef(false);
 
   const endsAt =
     enabled && countdownStartedAt != null
-      ? getRevealCountdownEndsAt(countdownStartedAt)
+      ? getRevealCountdownEndsAt(countdownStartedAt, countdownMs)
       : null;
 
   const displaySeconds =
-    endsAt !== null ? getRevealCountdownDisplaySeconds(endsAt) : null;
+    endsAt !== null
+      ? getRevealCountdownDisplaySeconds(
+          endsAt,
+          countdownMs ? Math.ceil(countdownMs / 1000) : undefined,
+        )
+      : null;
 
   const isActive = displaySeconds !== null;
 

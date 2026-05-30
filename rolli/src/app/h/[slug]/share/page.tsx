@@ -13,7 +13,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
-import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
@@ -27,7 +27,7 @@ export default function HangoutSharePage() {
   const router = useRouter();
   const slug = params.slug;
 
-  const { displayHangout, isLoading } = useDisplayHangout(slug);
+  const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { hasValidSession } = useHangoutSessionGuard({
@@ -36,37 +36,26 @@ export default function HangoutSharePage() {
     isLoading,
   });
 
-  if (
-    isLoading ||
-    !hasValidSession ||
-    !displayHangout ||
-    displayHangout.status !== "waiting"
-  ) {
-    return (
-      <SetupFlowShell>
-        <header className={SETUP_FLOW_HEADER_CLASS}>
-          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
-            <div className="h-9 w-9 rounded-full bg-black/10" />
-            <div className="h-3 w-24 rounded-full bg-black/10" />
-            <div className="h-10 w-48 rounded-lg bg-black/10" />
-          </div>
-        </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
-          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <MobileLoadingSpinner />
-            <div className="hidden h-48 w-full animate-pulse rounded-3xl border border-container-border bg-white md:block" />
-          </div>
-        </main>
-        <SetupFlowFooter className="hidden md:block" hint="Preparing your invite link…">
-          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
-        </SetupFlowFooter>
-      </SetupFlowShell>
-    );
-  }
+  const shareReady =
+    hasValidSession &&
+    displayHangout &&
+    displayHangout.status === "waiting";
 
   const waitingPath = `/h/${slug}/waiting`;
 
   return (
+    <HangoutPageLoadGate
+      loadingHint="Preparing your invite link…"
+      loadError={loadError}
+      isLoading={isLoading}
+      displayHangout={displayHangout}
+      forceLoading={!shareReady}
+      onRetry={retry}
+      loadingSkeleton={
+        <div className="h-48 w-full animate-pulse rounded-3xl border border-container-border bg-white" />
+      }
+    >
+      {shareReady && displayHangout ? (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_CLASS}>
         <SetupFlowHeader
@@ -103,5 +92,7 @@ export default function HangoutSharePage() {
         </Button>
       </SetupFlowFooter>
     </SetupFlowShell>
+      ) : null}
+    </HangoutPageLoadGate>
   );
 }

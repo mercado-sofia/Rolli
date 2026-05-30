@@ -13,7 +13,10 @@ import {
   APP_PRIMARY_BUTTON_CLASS,
   DEVELOPING_MOBILE_OVERLAY_CLASS,
 } from "@/lib/app-page-layout";
-import { isRevealCountdownActive } from "@/lib/hangout/reveal-countdown";
+import {
+  getRevealCountdownMs,
+  isRevealCountdownActive,
+} from "@/lib/hangout/reveal-countdown";
 import {
   getRevealPreload,
   isRevealPreloadUsable,
@@ -23,26 +26,51 @@ import {
   preloadRevealState,
 } from "@/lib/hangout/reveal-preload";
 import { signalRevealPending, startReveal } from "@/lib/hangout/reveal";
-import { playRevealAmbientAudio } from "@/lib/hangout/reveal-ambient-audio-controller";
+import { unlockRevealAmbientAudioForAutoplay } from "@/lib/hangout/reveal-ambient-audio-controller";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 
 function DevelopingStatusMessage({
   revealStarting,
+  isFilmKeeper,
   prepareStatus,
   prepareError,
-  photoCount,
-  perspectiveCount,
   onRetry,
 }: {
   revealStarting: boolean;
+  isFilmKeeper: boolean;
   prepareStatus: ReturnType<typeof useRevealPrepare>["status"];
   prepareError: string | null;
-  photoCount: number;
-  perspectiveCount: number;
   onRetry: () => void;
 }) {
   if (revealStarting) {
+    if (prepareStatus === "loading" || prepareStatus === "idle") {
+      return (
+        <div className="mt-4 flex flex-col items-center gap-3">
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight"
+            aria-hidden
+          />
+          <p className="text-sm leading-relaxed text-muted">
+            Preparing memories…
+          </p>
+        </div>
+      );
+    }
+
+    if (prepareStatus === "error") {
+      return (
+        <div className="mt-3 space-y-3">
+          <p className="text-sm leading-relaxed text-pink">
+            {prepareError ?? "Could not prepare memories."}
+          </p>
+          <Button type="button" variant="secondary" onClick={onRetry}>
+            Try again
+          </Button>
+        </div>
+      );
+    }
+
     return (
       <p className="mt-3 text-sm font-medium leading-relaxed text-pink-highlight">
         Reveal starting…
@@ -50,38 +78,17 @@ function DevelopingStatusMessage({
     );
   }
 
-  if (prepareStatus === "loading" || prepareStatus === "idle") {
+  if (isFilmKeeper) {
     return (
-      <div className="mt-4 flex flex-col items-center gap-3">
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-4 border-pink-highlight/25 border-t-pink-highlight"
-          aria-hidden
-        />
-        <p className="text-sm leading-relaxed text-muted">
-          Preparing memories…
-        </p>
-      </div>
-    );
-  }
-
-  if (prepareStatus === "error") {
-    return (
-      <div className="mt-3 space-y-3">
-        <p className="text-sm leading-relaxed text-pink">
-          {prepareError ?? "Could not prepare memories."}
-        </p>
-        <Button type="button" variant="secondary" onClick={onRetry}>
-          Try again
-        </Button>
-      </div>
+      <p className="mt-3 text-sm leading-relaxed text-muted">
+        Tap Start reveal when everyone is ready.
+      </p>
     );
   }
 
   return (
     <p className="mt-3 text-sm leading-relaxed text-muted">
-      {photoCount > 0
-        ? `${photoCount} photo${photoCount === 1 ? "" : "s"} from ${perspectiveCount} perspective${perspectiveCount === 1 ? "" : "s"} ready.`
-        : "Memories ready — no photos were captured, but you can still reveal."}
+      Waiting for the Film Keeper to start the reveal…
     </p>
   );
 }
@@ -93,12 +100,14 @@ const DEVELOPING_OVERLAY_PANEL_CLASS = cn(
 type DevelopingOverlayPanelProps = {
   className?: string;
   revealStarting: boolean;
+  isFilmKeeper: boolean;
   prepare: ReturnType<typeof useRevealPrepare>;
 };
 
 function DevelopingOverlayPanel({
   className,
   revealStarting,
+  isFilmKeeper,
   prepare,
 }: DevelopingOverlayPanelProps) {
   return (
@@ -117,10 +126,9 @@ function DevelopingOverlayPanel({
       </p>
       <DevelopingStatusMessage
         revealStarting={revealStarting}
+        isFilmKeeper={isFilmKeeper}
         prepareStatus={prepare.status}
         prepareError={prepare.error}
-        photoCount={prepare.photoCount}
-        perspectiveCount={prepare.perspectiveCount}
         onRetry={prepare.retry}
       />
     </div>
@@ -157,7 +165,11 @@ export function DevelopingPrepareOverlay({
   );
   const finishingRevealRef = useRef(false);
 
-  const countdownActive = isRevealCountdownActive(countdownStartedAt);
+  const countdownMs = getRevealCountdownMs(prepare.photoCount);
+  const countdownActive = isRevealCountdownActive(
+    countdownStartedAt,
+    countdownMs,
+  );
   const revealStarting = Boolean(hangout.revealPendingAt);
 
   const handleCountdownComplete = useCallback(async () => {
@@ -167,7 +179,17 @@ export function DevelopingPrepareOverlay({
     setStarting(true);
     setStartError(null);
 
-    void playRevealAmbientAudio();
+    const cached = getRevealPreload(hangoutId);
+    if (!isRevealPreloadUsable(cached)) {
+      const ok = await preloadRevealState(hangoutId, sessionToken);
+      if (!ok) {
+        finishingRevealRef.current = false;
+        setStarting(false);
+        setCountdownStartedAt(null);
+        setStartError("Could not prepare memories. Check your connection and try again.");
+        return;
+      }
+    }
 
     const { data, error } = await startReveal(hangoutId, sessionToken);
 
@@ -179,22 +201,18 @@ export function DevelopingPrepareOverlay({
       return;
     }
 
-    const cached = getRevealPreload(hangoutId);
-    if (!isRevealPreloadUsable(cached)) {
-      await preloadRevealState(hangoutId, sessionToken);
-    }
-
     onHangoutUpdate(data);
     setStarting(false);
   }, [hangoutId, onHangoutUpdate, sessionToken]);
 
   const { displaySeconds } = useRevealCountdown(countdownStartedAt, {
     enabled: isFilmKeeper && hangout.status === "developing",
+    countdownMs,
     onComplete: handleCountdownComplete,
   });
 
   const handleBeginCountdown = useCallback(async () => {
-    if (countdownActive || !prepare.isReady) return;
+    if (countdownActive) return;
 
     setStartError(null);
     setSignaling(true);
@@ -210,12 +228,12 @@ export function DevelopingPrepareOverlay({
 
     onHangoutUpdate(data);
     preloadRevealAmbientAudio();
+    void unlockRevealAmbientAudioForAutoplay();
     setCountdownStartedAt(Date.now());
   }, [
     countdownActive,
     hangoutId,
     onHangoutUpdate,
-    prepare.isReady,
     sessionToken,
   ]);
 
@@ -233,9 +251,7 @@ export function DevelopingPrepareOverlay({
           )}
           <Button
             type="button"
-            disabled={
-              starting || signaling || countdownActive || !prepare.isReady
-            }
+            disabled={starting || signaling || countdownActive}
             className={APP_PRIMARY_BUTTON_CLASS}
             onClick={() => void handleBeginCountdown()}
           >
@@ -245,9 +261,7 @@ export function DevelopingPrepareOverlay({
                 ? "Starting…"
                 : starting
                   ? "Opening reveal…"
-                  : !prepare.isReady
-                    ? "Preparing…"
-                    : "Start reveal"}
+                  : "Start reveal"}
           </Button>
         </>
       ) : null,
@@ -258,7 +272,6 @@ export function DevelopingPrepareOverlay({
     handleBeginCountdown,
     isFilmKeeper,
     onFooterChange,
-    prepare.isReady,
     signaling,
     startError,
     starting,
@@ -274,6 +287,7 @@ export function DevelopingPrepareOverlay({
         ? createPortal(
             <DevelopingOverlayPanel
               revealStarting={revealStarting}
+              isFilmKeeper={isFilmKeeper}
               prepare={prepare}
               className={cn(
                 DEVELOPING_MOBILE_OVERLAY_CLASS,
@@ -286,6 +300,7 @@ export function DevelopingPrepareOverlay({
 
       <DevelopingOverlayPanel
         revealStarting={revealStarting}
+        isFilmKeeper={isFilmKeeper}
         prepare={prepare}
         className="absolute inset-0 z-20 hidden md:flex"
       />

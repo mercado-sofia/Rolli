@@ -28,6 +28,12 @@ type AppSelectProps = {
   "aria-label"?: string;
 };
 
+function getEnabledOptionIndices(options: AppSelectOption[]): number[] {
+  return options
+    .map((option, index) => (option.disabled ? -1 : index))
+    .filter((index) => index >= 0);
+}
+
 export function AppSelect({
   value,
   onChange,
@@ -38,16 +44,41 @@ export function AppSelect({
   "aria-label": ariaLabel,
 }: AppSelectProps) {
   const [open, setOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
   const rootRef = useRef<HTMLDivElement>(null);
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const listboxId = useId();
   const labelId = useId();
 
   const selectedOption = options.find((option) => option.value === value);
+  const enabledIndices = getEnabledOptionIndices(options);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    setFocusedIndex(-1);
+  }, []);
+
+  const focusOptionAt = useCallback(
+    (index: number) => {
+      if (!enabledIndices.includes(index)) return;
+      setFocusedIndex(index);
+      optionRefs.current[index]?.focus();
+    },
+    [enabledIndices],
+  );
 
   useEffect(() => {
     if (!open) return;
+
+    const selectedIndex = options.findIndex((option) => option.value === value);
+    const initialIndex =
+      selectedIndex >= 0 && !options[selectedIndex]?.disabled
+        ? selectedIndex
+        : enabledIndices[0] ?? -1;
+
+    if (initialIndex >= 0) {
+      focusOptionAt(initialIndex);
+    }
 
     function handlePointerDown(event: MouseEvent) {
       if (!rootRef.current?.contains(event.target as Node)) {
@@ -67,7 +98,7 @@ export function AppSelect({
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [close, open]);
+  }, [close, enabledIndices, focusOptionAt, open, options, value]);
 
   function handleSelect(option: AppSelectOption) {
     if (option.disabled) return;
@@ -84,6 +115,48 @@ export function AppSelect({
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setOpen(true);
+    }
+  }
+
+  function handleListKeyDown(event: KeyboardEvent<HTMLUListElement>) {
+    if (enabledIndices.length === 0) return;
+
+    const currentEnabledPos = enabledIndices.indexOf(focusedIndex);
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      const nextPos =
+        currentEnabledPos < 0
+          ? 0
+          : (currentEnabledPos + 1) % enabledIndices.length;
+      focusOptionAt(enabledIndices[nextPos]!);
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      const nextPos =
+        currentEnabledPos <= 0
+          ? enabledIndices.length - 1
+          : currentEnabledPos - 1;
+      focusOptionAt(enabledIndices[nextPos]!);
+    }
+
+    if (event.key === "Home") {
+      event.preventDefault();
+      focusOptionAt(enabledIndices[0]!);
+    }
+
+    if (event.key === "End") {
+      event.preventDefault();
+      focusOptionAt(enabledIndices[enabledIndices.length - 1]!);
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      const option = options[focusedIndex];
+      if (option && !option.disabled) {
+        handleSelect(option);
+      }
     }
   }
 
@@ -134,28 +207,38 @@ export function AppSelect({
           id={listboxId}
           role="listbox"
           aria-labelledby={labelId}
+          tabIndex={-1}
+          onKeyDown={handleListKeyDown}
           className={cn(
             "absolute z-50 mt-2 max-h-56 w-full overflow-y-auto overscroll-contain",
             "rounded-2xl border border-container-border bg-white py-1.5 shadow-soft",
           )}
         >
-          {options.map((option) => {
+          {options.map((option, optionIndex) => {
             const isSelected = option.value === value;
 
             return (
               <li key={option.value} role="presentation">
                 <button
+                  ref={(node) => {
+                    optionRefs.current[optionIndex] = node;
+                  }}
                   type="button"
                   role="option"
                   aria-selected={isSelected}
                   disabled={option.disabled}
+                  tabIndex={-1}
                   onClick={() => handleSelect(option)}
                   className={cn(
                     "flex w-full items-center px-4 py-3 text-left text-sm transition-colors",
+                    "outline-none focus-visible:bg-pink/15",
                     option.disabled
                       ? "cursor-not-allowed text-muted/50"
                       : "text-ink hover:bg-pink/15 active:bg-pink/20",
                     isSelected && !option.disabled && "bg-pink/10 font-medium",
+                    focusedIndex === optionIndex &&
+                      !option.disabled &&
+                      "bg-pink/15",
                   )}
                 >
                   {option.label}

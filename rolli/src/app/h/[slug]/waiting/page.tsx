@@ -26,7 +26,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
-import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { Card } from "@/components/ui/card";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
@@ -59,7 +59,7 @@ export default function WaitingRoomPage() {
   const [startError, setStartError] = useState<string | null>(null);
   const [abandonUiState, setAbandonUiState] = useState<AbandonHangoutUiState>("idle");
 
-  const { displayHangout, loadError, isLoading } = useDisplayHangout(slug);
+  const { displayHangout, loadError, isLoading, retry } = useDisplayHangout(slug);
   const isCancelled = displayHangout?.status === "cancelled";
   const pauseGuards = abandonUiState !== "idle";
   const guardIsLoading = isLoading || pauseGuards;
@@ -111,41 +111,32 @@ export default function WaitingRoomPage() {
     router.replace(`/h/${slug}/session`);
   }
 
-  if (
-    isLoading ||
-    !displayHangout ||
-    (!isCancelled &&
-      (!hasValidSession || !participant || displayHangout.status !== "waiting"))
-  ) {
-    return (
-      <SetupFlowShell>
-        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
-            <div className="h-9 w-9 rounded-full bg-black/10" />
-            <div className="h-10 w-52 rounded-lg bg-black/10" />
-            <div className="h-3 w-28 rounded-full bg-black/10" />
-          </div>
-        </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
-          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <MobileLoadingSpinner />
-            <div className="hidden animate-pulse space-y-6 md:block">
-              <div className="h-40 w-full rounded-3xl border border-container-border bg-white" />
-              <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
-            </div>
-          </div>
-        </main>
-        <SetupFlowFooter className="hidden md:block" hint="Loading waiting room…">
-          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
-        </SetupFlowFooter>
-      </SetupFlowShell>
-    );
-  }
+  const waitingReady =
+    Boolean(displayHangout) &&
+    (isCancelled ||
+      (hasValidSession &&
+        participant &&
+        displayHangout!.status === "waiting"));
 
   const waitingHint = getWaitingHint(isFilmKeeper, canStart);
   const footerHint = isCancelled ? HANGOUT_CANCELLED_FOOTER_HINT : waitingHint;
 
   return (
+    <HangoutPageLoadGate
+      loadingHint="Loading waiting room…"
+      loadError={loadError}
+      isLoading={isLoading}
+      displayHangout={displayHangout}
+      forceLoading={!waitingReady}
+      onRetry={retry}
+      loadingSkeleton={
+        <div className="animate-pulse space-y-6">
+          <div className="h-40 w-full rounded-3xl border border-container-border bg-white" />
+          <div className="h-36 w-full rounded-3xl border border-container-border bg-white" />
+        </div>
+      }
+    >
+      {waitingReady && displayHangout ? (
     <SetupFlowShell>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         {isCancelled ? (
@@ -188,10 +179,6 @@ export default function WaitingRoomPage() {
             />
           ) : (
             <div className="flex flex-col gap-6">
-              {loadError && (
-                <p className="text-center text-sm text-pink">{loadError}</p>
-              )}
-
               <FilmKeeperPromotionBanner
                 visible={showPromotion}
                 onDismiss={dismissPromotion}
@@ -279,5 +266,7 @@ export default function WaitingRoomPage() {
         ) : null}
       </SetupFlowFooter>
     </SetupFlowShell>
+      ) : null}
+    </HangoutPageLoadGate>
   );
 }

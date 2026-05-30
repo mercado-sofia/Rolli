@@ -15,11 +15,16 @@ export default function HangoutSlugLayout({
   const slug = params.slug;
   const { displayHangout } = useDisplayHangout(slug);
 
-  const revealMusicActive = shouldPlayRevealAmbientMusic(displayHangout?.status);
+  const status = displayHangout?.status;
+  const revealMusicActive = shouldPlayRevealAmbientMusic(status);
+  const revealMusicPreparing = status === "developing";
 
   return (
     <>
-      <RevealAmbientAudio active={revealMusicActive} />
+      <RevealAmbientAudio
+        active={revealMusicActive}
+        preparing={revealMusicPreparing}
+      />
       {children}
     </>
   );

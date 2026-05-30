@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
@@ -26,6 +26,13 @@ export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) 
   );
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const retry = useCallback(() => {
+    setLoadError(null);
+    setIsLoading(true);
+    setReloadKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
     if (!enabled || !slug || sessionHangout?.slug !== slug) return;
@@ -118,7 +125,7 @@ export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) 
       }
       removeChannel?.();
     };
-  }, [enabled, setHangout, slug]);
+  }, [enabled, reloadKey, setHangout, slug]);
 
-  return { hangout, loadError, isLoading };
+  return { hangout, loadError, isLoading, retry };
 }

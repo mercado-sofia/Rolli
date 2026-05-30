@@ -15,7 +15,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
   SETUP_FLOW_MAIN_UPPER_CLASS,
 } from "@/components/layout/setup-flow-shell";
-import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { HANGOUT_GALLERY_PATH_SUFFIX } from "@/lib/hangout/routes";
@@ -48,7 +48,7 @@ export default function GalleryPage() {
   const slug = params.slug;
 
   const sessionHydrated = useSessionHydrated();
-  const { displayHangout, isLoading, loadError } = useDisplayHangout(slug);
+  const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [galleryLoading, setGalleryLoading] = useState(true);
 
   useHangoutRouteGuard({
@@ -71,43 +71,27 @@ export default function GalleryPage() {
     setGalleryLoading(true);
   }, [slug, displayHangout?.id]);
 
-  const sessionPending =
-    !sessionHydrated ||
-    isLoading ||
-    !hasValidSession ||
-    !participant ||
-    !displayHangout;
-
-  const hangoutLoadFailed =
-    sessionHydrated && !isLoading && Boolean(loadError) && !displayHangout;
-
-  if (sessionPending || hangoutLoadFailed) {
-    return (
-      <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
-        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
-            <div className="h-9 w-9 rounded-full bg-black/10" />
-            <div className="h-10 w-52 rounded-lg bg-black/10" />
-            <div className="h-3 w-28 rounded-full bg-black/10" />
-          </div>
-        </header>
-        <main className={GALLERY_MAIN_CLASS}>
-          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            {hangoutLoadFailed ? (
-              <p className="text-center text-sm text-pink">{loadError}</p>
-            ) : (
-              <MobileLoadingSpinner
-                inline
-                className={GALLERY_LOADING_MIN_HEIGHT_CLASS}
-              />
-            )}
-          </div>
-        </main>
-      </SetupFlowShell>
-    );
-  }
+  const galleryReady =
+    sessionHydrated &&
+    hasValidSession &&
+    participant &&
+    displayHangout;
 
   return (
+    <HangoutPageLoadGate
+      loadingHint="Loading gallery…"
+      loadError={loadError}
+      isLoading={isLoading}
+      displayHangout={displayHangout}
+      sessionHydrated={sessionHydrated}
+      forceLoading={!galleryReady}
+      onRetry={retry}
+      mainClassName={GALLERY_MAIN_CLASS}
+      loadingSkeleton={
+        <div className={cn("animate-pulse rounded-3xl bg-black/10", GALLERY_LOADING_MIN_HEIGHT_CLASS)} />
+      }
+    >
+      {galleryReady ? (
     <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
@@ -144,5 +128,7 @@ export default function GalleryPage() {
         </div>
       </main>
     </SetupFlowShell>
+      ) : null}
+    </HangoutPageLoadGate>
   );
 }

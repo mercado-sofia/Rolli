@@ -1,8 +1,11 @@
 "use client";
 
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useId,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -467,17 +470,21 @@ function CameraTriggerButton({
   );
 }
 
-function ShutterButton({
-  disabled,
-  isCapturing,
-  onClick,
-}: {
-  disabled?: boolean;
-  isCapturing?: boolean;
-  onClick: () => void;
-}) {
+const ShutterButton = forwardRef(function ShutterButton(
+  {
+    disabled,
+    isCapturing,
+    onClick,
+  }: {
+    disabled?: boolean;
+    isCapturing?: boolean;
+    onClick: () => void;
+  },
+  ref: React.ForwardedRef<HTMLButtonElement>,
+) {
   return (
     <button
+      ref={ref}
       type="button"
       disabled={disabled}
       onClick={onClick}
@@ -507,7 +514,7 @@ function ShutterButton({
       </span>
     </button>
   );
-}
+});
 
 function CaptureOverlay({
   videoRef,
@@ -528,7 +535,58 @@ function CaptureOverlay({
   onClose: () => void;
   onCapture: () => void;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const shutterRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const helpId = useId();
   const shutterDisabled = isOpening || isCapturing;
+
+  useLayoutEffect(() => {
+    previousFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+
+    const focusTarget = shutterRef.current ?? panelRef.current;
+    focusTarget?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab" || !panelRef.current) return;
+
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   return (
     <div
@@ -536,8 +594,10 @@ function CaptureOverlay({
       role="dialog"
       aria-modal="true"
       aria-label="Capture memory"
+      aria-describedby={helpId}
     >
       <div
+        ref={panelRef}
         className={cn(
           "relative flex h-full w-full min-h-0 max-w-full flex-col overflow-hidden bg-canvas text-ink",
           "md:max-h-[min(92dvh,840px)] md:max-w-2xl md:rounded-[1.75rem] md:border md:border-container-border md:bg-white md:shadow-soft",
@@ -614,10 +674,11 @@ function CaptureOverlay({
               Saving {pendingUploads === 1 ? "photo" : `${pendingUploads} photos`}…
             </p>
           )}
-          <p className="hidden text-center text-xs text-muted md:block">
-            Press Esc to close · Click the shutter to capture
+          <p id={helpId} className="text-center text-xs text-muted">
+            Tap the shutter to capture · Use the back control or Esc to close
           </p>
           <ShutterButton
+            ref={shutterRef}
             disabled={shutterDisabled}
             isCapturing={isCapturing}
             onClick={onCapture}

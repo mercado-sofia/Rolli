@@ -5,16 +5,43 @@ import { useEffect } from "react";
 import {
   pauseRevealAmbientAudio,
   playRevealAmbientAudio,
+  preloadRevealAmbientAudio,
+  unlockRevealAmbientAudioForAutoplay,
 } from "@/lib/hangout/reveal-ambient-audio-controller";
 
 type RevealAmbientAudioProps = {
   active: boolean;
+  /** Preload and unlock during developing so autoplay works once the overlay closes. */
+  preparing?: boolean;
 };
 
-export function RevealAmbientAudio({ active }: RevealAmbientAudioProps) {
+export function RevealAmbientAudio({
+  active,
+  preparing = false,
+}: RevealAmbientAudioProps) {
+  useEffect(() => {
+    if (!preparing) return;
+
+    preloadRevealAmbientAudio();
+
+    function handleUnlockInteraction() {
+      void unlockRevealAmbientAudioForAutoplay();
+    }
+
+    document.addEventListener("pointerdown", handleUnlockInteraction, { once: true });
+    document.addEventListener("keydown", handleUnlockInteraction, { once: true });
+
+    return () => {
+      document.removeEventListener("pointerdown", handleUnlockInteraction);
+      document.removeEventListener("keydown", handleUnlockInteraction);
+    };
+  }, [preparing]);
+
   useEffect(() => {
     if (!active) {
-      pauseRevealAmbientAudio();
+      if (!preparing) {
+        pauseRevealAmbientAudio();
+      }
       return;
     }
 
@@ -43,7 +70,7 @@ export function RevealAmbientAudio({ active }: RevealAmbientAudioProps) {
       document.removeEventListener("keydown", handleFirstInteraction);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [active]);
+  }, [active, preparing]);
 
   return null;
 }

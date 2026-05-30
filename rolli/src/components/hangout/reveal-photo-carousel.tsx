@@ -9,6 +9,7 @@ import {
   useReducedMotion,
   useTransform,
 } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -201,6 +202,20 @@ export function RevealPhotoCarousel({
 
   if (photos.length === 0) return null;
 
+  const canGoPrev = index > 0;
+  const canGoNext = index < photos.length - 1;
+
+  function handleCarouselKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === "ArrowLeft" && canGoPrev) {
+      event.preventDefault();
+      void advance("prev");
+    }
+    if (event.key === "ArrowRight" && canGoNext) {
+      event.preventDefault();
+      void advance("next");
+    }
+  }
+
   const dragEnabled =
     photos.length > 1 && !prefersReducedMotion && !isAnimating;
   const dragLimit = Math.max(deckWidth * 0.94, 160);
@@ -210,8 +225,40 @@ export function RevealPhotoCarousel({
       className="w-full min-w-0 shrink-0 touch-manipulation select-none"
       aria-roledescription="carousel"
       aria-label={`Photos from ${perspectiveLabel}`}
+      tabIndex={0}
+      onKeyDown={handleCarouselKeyDown}
     >
       <div className="relative mx-auto w-full max-w-76 px-5 sm:max-w-80 sm:px-6">
+        {photos.length > 1 ? (
+          <>
+            <button
+              type="button"
+              aria-label="Previous photo"
+              disabled={!canGoPrev || isAnimating}
+              onClick={() => void advance("prev")}
+              className={cn(
+                "absolute left-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full",
+                "border border-container-border bg-white/95 text-ink shadow-soft",
+                "disabled:pointer-events-none disabled:opacity-40",
+              )}
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden />
+            </button>
+            <button
+              type="button"
+              aria-label="Next photo"
+              disabled={!canGoNext || isAnimating}
+              onClick={() => void advance("next")}
+              className={cn(
+                "absolute right-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full",
+                "border border-container-border bg-white/95 text-ink shadow-soft",
+                "disabled:pointer-events-none disabled:opacity-40",
+              )}
+            >
+              <ChevronRight className="h-5 w-5" aria-hidden />
+            </button>
+          </>
+        ) : null}
         <div
           ref={deckRef}
           className="relative aspect-3/4 w-full min-h-48 overflow-visible"
@@ -280,7 +327,7 @@ export function RevealPhotoCarousel({
           </div>
           <p className="text-xs tabular-nums text-muted">
             {index + 1} of {photos.length}
-            <span className="sr-only"> — swipe to see more</span>
+            <span className="sr-only"> — swipe or use arrow keys to see more</span>
           </p>
         </div>
       ) : null}

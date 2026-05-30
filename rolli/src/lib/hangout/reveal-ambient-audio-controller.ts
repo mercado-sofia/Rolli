@@ -2,7 +2,7 @@ import { REVEAL_AMBIENT_MUSIC_SRC } from "@/lib/hangout/reveal-music";
 
 export const REVEAL_MUSIC_VOLUME = 0.55;
 /** Skip the intro — playback begins here on each fresh start. */
-export const REVEAL_MUSIC_START_SECONDS = 1;
+export const REVEAL_MUSIC_START_SECONDS = 2;
 
 let audio: HTMLAudioElement | null = null;
 
@@ -24,6 +24,23 @@ export function getRevealAmbientAudioElement(): HTMLAudioElement {
 export function preloadRevealAmbientAudio(): void {
   if (typeof window === "undefined") return;
   getRevealAmbientAudioElement().load();
+}
+
+/** Prime autoplay during a user gesture so playback can start later without one. */
+export async function unlockRevealAmbientAudioForAutoplay(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  const element = getRevealAmbientAudioElement();
+  try {
+    if (element.currentTime < REVEAL_MUSIC_START_SECONDS) {
+      element.currentTime = REVEAL_MUSIC_START_SECONDS;
+    }
+    await element.play();
+    element.pause();
+    element.currentTime = REVEAL_MUSIC_START_SECONDS;
+  } catch {
+    // Browser blocked — playback may still require a gesture when reveal starts.
+  }
 }
 
 export async function playRevealAmbientAudio(): Promise<boolean> {

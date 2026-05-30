@@ -18,7 +18,7 @@ import {
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
-import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
@@ -41,7 +41,7 @@ export default function RevealPage() {
     {},
   );
 
-  const { displayHangout, isLoading } = useDisplayHangout(slug);
+  const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
 
   useHangoutRouteGuard({ slug, hangout: displayHangout, isLoading });
   const { participant, hasValidSession } = useHangoutSessionGuard({
@@ -59,12 +59,14 @@ export default function RevealPage() {
   const isDeveloping = displayHangout?.status === "developing";
   const isRevealing = displayHangout?.status === "revealing";
   const onRevealPhase = isDeveloping || isRevealing;
+  const revealPending = Boolean(displayHangout?.revealPendingAt);
 
   const prepare = useRevealPrepare({
     hangoutId: displayHangout?.id ?? "",
     sessionToken: participant?.sessionToken ?? "",
     enabled:
-      Boolean(displayHangout?.id && participant?.sessionToken) && isDeveloping,
+      Boolean(displayHangout?.id && participant?.sessionToken) &&
+      ((isDeveloping && revealPending) || isRevealing),
   });
 
   const handleHangoutUpdate = useCallback(
@@ -82,44 +84,33 @@ export default function RevealPage() {
     [router, setHangout, slug],
   );
 
-  if (
-    isLoading ||
-    !hasValidSession ||
-    !participant ||
-    !displayHangout ||
-    !onRevealPhase
-  ) {
-    return (
-      <SetupFlowShell>
-        <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
-          <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
-            <div className="h-9 w-9 rounded-full bg-black/10" />
-            <div className="h-10 w-52 rounded-lg bg-black/10" />
-            <div className="h-3 w-28 rounded-full bg-black/10" />
-          </div>
-        </header>
-        <main className={cn(SETUP_FLOW_MAIN_CLASS, SETUP_FLOW_MAIN_CENTER_CLASS)}>
-          <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <MobileLoadingSpinner />
-            <div className="hidden animate-pulse space-y-6 md:block">
-              <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                <div className="aspect-3/4 rounded-2xl bg-black/10" />
-                <div className="aspect-3/4 rounded-2xl bg-black/10" />
-              </div>
-            </div>
-          </div>
-        </main>
-        <SetupFlowFooter className="hidden md:block" hint="Loading reveal…">
-          <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
-        </SetupFlowFooter>
-      </SetupFlowShell>
-    );
-  }
+  const revealReady =
+    hasValidSession &&
+    participant &&
+    displayHangout &&
+    onRevealPhase;
 
   const activeFooter = isDeveloping ? developingFooter : revealFooter;
 
   return (
+    <HangoutPageLoadGate
+      loadingHint="Loading reveal…"
+      loadError={loadError}
+      isLoading={isLoading}
+      displayHangout={displayHangout}
+      forceLoading={!revealReady}
+      onRetry={retry}
+      loadingSkeleton={
+        <div className="animate-pulse space-y-6">
+          <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="aspect-3/4 rounded-2xl bg-black/10" />
+            <div className="aspect-3/4 rounded-2xl bg-black/10" />
+          </div>
+        </div>
+      }
+    >
+      {revealReady ? (
     <SetupFlowShell compact>
       <header
         className={cn(
@@ -179,5 +170,7 @@ export default function RevealPage() {
         {activeFooter.children}
       </SetupFlowFooter>
     </SetupFlowShell>
+      ) : null}
+    </HangoutPageLoadGate>
   );
 }
