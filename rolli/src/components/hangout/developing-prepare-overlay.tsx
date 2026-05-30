@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { createPortal } from "react-dom";
 import { LuFilm } from "react-icons/lu";
 
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
@@ -11,7 +10,6 @@ import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
 import type { useRevealPrepare } from "@/hooks/use-reveal-prepare";
 import {
   APP_PRIMARY_BUTTON_CLASS,
-  DEVELOPING_MOBILE_OVERLAY_CLASS,
 } from "@/lib/app-page-layout";
 import { signalRevealPending, startReveal } from "@/lib/hangout/hangout-api";
 import {
@@ -90,28 +88,22 @@ function DevelopingStatusMessage({
 }
 
 const DEVELOPING_OVERLAY_PANEL_CLASS = cn(
-  "flex flex-col items-center justify-center bg-white px-6 text-center sm:px-8",
+  "flex w-full flex-col items-center justify-center px-4 text-center sm:px-6",
 );
 
 type DevelopingOverlayPanelProps = {
-  className?: string;
   revealStarting: boolean;
   isFilmKeeper: boolean;
   prepare: ReturnType<typeof useRevealPrepare>;
 };
 
 function DevelopingOverlayPanel({
-  className,
   revealStarting,
   isFilmKeeper,
   prepare,
 }: DevelopingOverlayPanelProps) {
   return (
-    <div
-      className={cn(DEVELOPING_OVERLAY_PANEL_CLASS, className)}
-      role="dialog"
-      aria-label="Preparing reveal"
-    >
+    <div className={DEVELOPING_OVERLAY_PANEL_CLASS}>
       <HangoutCardIcon
         icon={LuFilm}
         borderTone="ink"
@@ -279,23 +271,10 @@ export function DevelopingPrepareOverlay({
         <RevealCountdownOverlay seconds={displaySeconds} />
       ) : null}
 
-      {typeof document !== "undefined"
-        ? createPortal(
-            <DevelopingOverlayPanel
-              revealStarting={revealStarting}
-              isFilmKeeper={isFilmKeeper}
-              prepare={prepare}
-              className={DEVELOPING_MOBILE_OVERLAY_CLASS}
-            />,
-            document.body,
-          )
-        : null}
-
       <DevelopingOverlayPanel
         revealStarting={revealStarting}
         isFilmKeeper={isFilmKeeper}
         prepare={prepare}
-        className="absolute inset-0 z-20 hidden md:flex"
       />
     </>
   );

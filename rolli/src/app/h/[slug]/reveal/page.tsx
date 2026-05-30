@@ -27,10 +27,6 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
-import {
-  DEVELOPING_FLOW_CHROME_CLASS,
-  DEVELOPING_FLOW_FOOTER_CHROME_CLASS,
-} from "@/lib/app-page-layout";
 import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
 import type { MarkReadyForGuessingResult } from "@/types/reveal";
 import type { Participant } from "@/types/participant";
@@ -161,12 +157,7 @@ export default function RevealPage() {
         />
       ) : null}
 
-      <header
-        className={cn(
-          SETUP_FLOW_HEADER_COMPACT_CLASS,
-          isDeveloping && DEVELOPING_FLOW_CHROME_CLASS,
-        )}
-      >
+      <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           compact
           showProgress={false}
@@ -181,7 +172,7 @@ export default function RevealPage() {
         <div
           className={cn(
             SETUP_FLOW_MAIN_INNER_CLASS,
-            "relative flex min-h-0 flex-1 flex-col justify-center gap-4",
+            "flex min-h-0 w-full flex-1 flex-col justify-center gap-4",
           )}
         >
           <FilmKeeperPromotionBanner
@@ -189,15 +180,17 @@ export default function RevealPage() {
             onDismiss={dismissPromotion}
           />
 
-          <RevealExperience
-            hangoutId={displayHangout.id}
-            sessionToken={participant.sessionToken}
-            onMarkReadyForGuessing={handleMarkReadyForGuessing}
-            onSessionSync={handleSessionSync}
-            onFooterChange={setRevealFooter}
-            footerEnabled={isRevealing}
-            prepareReady={prepare.isReady}
-          />
+          {isRevealing ? (
+            <RevealExperience
+              hangoutId={displayHangout.id}
+              sessionToken={participant.sessionToken}
+              onMarkReadyForGuessing={handleMarkReadyForGuessing}
+              onSessionSync={handleSessionSync}
+              onFooterChange={setRevealFooter}
+              footerEnabled
+              prepareReady={prepare.isReady}
+            />
+          ) : null}
 
           {isDeveloping ? (
             <DevelopingPrepareOverlay
@@ -213,12 +206,7 @@ export default function RevealPage() {
         </div>
       </main>
 
-      <SetupFlowFooter
-        className={cn(
-          isDeveloping && DEVELOPING_FLOW_FOOTER_CHROME_CLASS,
-        )}
-        hint={activeFooter.hint}
-      >
+      <SetupFlowFooter hint={activeFooter.hint}>
         {activeFooter.children}
       </SetupFlowFooter>
     </SetupFlowShell>
