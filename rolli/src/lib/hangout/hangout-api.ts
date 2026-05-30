@@ -29,3 +29,9 @@ export {
 
 // Photos
 export { captureMemory } from "@/lib/services/photos";
+
+// Roster / keeper kick
+export {
+  getHangoutParticipants,
+  removeParticipantByKeeper,
+} from "@/lib/services/hangout-roster";

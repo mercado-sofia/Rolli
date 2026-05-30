@@ -2,7 +2,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { TfiMenuAlt } from "react-icons/tfi";
 import { TbPhoto } from "react-icons/tb";
 
 import { AbandonHangoutControl } from "@/components/hangout/abandon-hangout-control";
@@ -10,7 +9,9 @@ import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
-import { RolliGuideModal, SessionGuideModal } from "@/components/hangout/guide-modals";
+import { SessionGuideModal } from "@/components/hangout/guide-modals";
+import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
+import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -80,7 +81,7 @@ export default function SessionPage() {
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
   const [endConfirmOpen, setEndConfirmOpen] = useState(false);
-  const [rolliGuideOpen, setRolliGuideOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
 
@@ -139,19 +140,7 @@ export default function SessionPage() {
     displayHangout &&
     displayHangout.status === "active";
 
-  const guideMenuButton = (
-    <button
-      type="button"
-      onClick={() => setRolliGuideOpen(true)}
-      className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-full bg-[#F8F8F8]",
-        "text-ink outline-none transition-colors hover:bg-[#F0F0F0] active:scale-95",
-      )}
-      aria-label="Open Rolli guide"
-    >
-      <TfiMenuAlt size={20} strokeWidth={0.25} aria-hidden />
-    </button>
-  );
+  const menuButton = <HangoutMenuButton onClick={() => setMenuOpen(true)} />;
 
   return (
     <HangoutPageLoadGate
@@ -171,10 +160,16 @@ export default function SessionPage() {
       {sessionReady ? (
     <SetupFlowShell>
       <AutoOpenSessionGuide slug={slug} hangoutId={displayHangout.id} />
-      <RolliGuideModal
-        open={rolliGuideOpen}
+      <HangoutMenuModal
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        mode="lobby"
+        hangoutId={displayHangout.id}
+        sessionToken={participant.sessionToken}
+        hangout={displayHangout}
+        participant={participant}
         nickname={participant.nickname}
-        onClose={() => setRolliGuideOpen(false)}
+        onHangoutUpdate={setHangout}
       />
 
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
@@ -182,7 +177,7 @@ export default function SessionPage() {
           showProgress={false}
           title={displayHangout.title}
           sublabel="auto-ends in a day"
-          trailingAction={guideMenuButton}
+          trailingAction={menuButton}
         />
       </header>
 

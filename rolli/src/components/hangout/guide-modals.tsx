@@ -255,6 +255,26 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
   );
 }
 
+export function RolliGuideContent({ nickname }: { nickname: string }) {
+  const content = ROLLI_SESSION_GUIDE_CONTENT;
+
+  return (
+    <div className="space-y-5">
+      {content.sections.map((section) => (
+        <section key={section.title}>
+          <h3 className="text-sm font-semibold text-ink">{section.title}</h3>
+          <GuideBulletList items={section.bullets} className="mt-2.5" />
+        </section>
+      ))}
+
+      <div className="border-t border-black/6 pt-5">
+        <p className="text-xs text-muted">Your nickname</p>
+        <p className="mt-1 text-sm font-medium text-ink">{nickname}</p>
+      </div>
+    </div>
+  );
+}
+
 type RolliGuideModalProps = {
   open: boolean;
   nickname: string;
@@ -274,19 +294,7 @@ export function RolliGuideModal({ open, nickname, onClose }: RolliGuideModalProp
       bodyClassName="px-8 pb-8 sm:px-10 sm:pb-9"
       panelClassName="w-[min(100%,26rem)]"
     >
-      <div className="space-y-5">
-        {content.sections.map((section) => (
-          <section key={section.title}>
-            <h3 className="text-sm font-semibold text-ink">{section.title}</h3>
-            <GuideBulletList items={section.bullets} className="mt-2.5" />
-          </section>
-        ))}
-
-        <div className="border-t border-black/6 pt-5">
-          <p className="text-xs text-muted">Your nickname</p>
-          <p className="mt-1 text-sm font-medium text-ink">{nickname}</p>
-        </div>
-      </div>
+      <RolliGuideContent nickname={nickname} />
     </GuideModalShell>
   );
 }

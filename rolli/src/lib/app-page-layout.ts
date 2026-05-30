@@ -146,31 +146,38 @@ export function galleryFolderGridClass(folderCount: number) {
 export const GALLERY_LOADING_MIN_HEIGHT_CLASS = "min-h-[40vh] md:min-h-112";
 
 /**
+ * Minimum bleed above/below the layout viewport when safe-area env vars are 0
+ * (common in mobile browser chrome). ~44px matches iOS status bar height.
+ */
+const MOBILE_STATUS_BAR_BLEED = "2.75rem";
+const MOBILE_HOME_INDICATOR_BLEED = "1.25rem";
+
+/**
  * Fixed layer that fills the full device viewport, including status bar and home
  * indicator regions when viewport-fit=cover is enabled (iOS Safari).
  */
 export const FIXED_VIEWPORT_BLEED_CLASS = cn(
-  "fixed",
-  "top-[calc(-1*env(safe-area-inset-top,0px))]",
-  "right-[calc(-1*env(safe-area-inset-right,0px))]",
-  "bottom-[calc(-1*env(safe-area-inset-bottom,0px))]",
-  "left-[calc(-1*env(safe-area-inset-left,0px))]",
-  "min-h-[calc(100dvh+env(safe-area-inset-top,0px)+env(safe-area-inset-bottom,0px))]",
-  "supports-[height:100dvh]:min-h-[calc(100dvh+env(safe-area-inset-top,0px)+env(safe-area-inset-bottom,0px))]",
+  "fixed inset-x-0 w-full",
+  `top-[calc(-1*max(env(safe-area-inset-top,0px),${MOBILE_STATUS_BAR_BLEED}))]`,
+  "right-[calc(-1*max(env(safe-area-inset-right,0px),0px))]",
+  `bottom-[calc(-1*max(env(safe-area-inset-bottom,0px),${MOBILE_HOME_INDICATOR_BLEED}))]`,
+  "left-[calc(-1*max(env(safe-area-inset-left,0px),0px))]",
+  `min-h-[calc(100dvh+max(env(safe-area-inset-top,0px),${MOBILE_STATUS_BAR_BLEED})+max(env(safe-area-inset-bottom,0px),${MOBILE_HOME_INDICATOR_BLEED}))]`,
+  `supports-[height:100dvh]:min-h-[calc(100dvh+max(env(safe-area-inset-top,0px),${MOBILE_STATUS_BAR_BLEED})+max(env(safe-area-inset-bottom,0px),${MOBILE_HOME_INDICATOR_BLEED}))]`,
 );
 
 /** Header/footer above the developing overlay on mobile (title + CTAs stay readable). */
 export const DEVELOPING_FLOW_CHROME_CLASS = cn(
   "relative z-40 bg-white",
   // Parent shell adds safe-area top padding — bleed white into the status bar gap.
-  "before:pointer-events-none before:absolute before:-top-[max(0.75rem,env(safe-area-inset-top))] before:-left-[100vw] before:-right-[100vw] before:h-[max(0.75rem,env(safe-area-inset-top))] before:bg-white before:content-['']",
+  `before:pointer-events-none before:absolute before:-top-[max(${MOBILE_STATUS_BAR_BLEED},env(safe-area-inset-top,0px))] before:-left-[100vw] before:-right-[100vw] before:h-[max(${MOBILE_STATUS_BAR_BLEED},env(safe-area-inset-top,0px))] before:bg-white before:content-['']`,
   "md:relative md:z-auto md:bg-transparent md:before:hidden",
 );
 
 /** Footer variant — bleed white into the home-indicator safe area. */
 export const DEVELOPING_FLOW_FOOTER_CHROME_CLASS = cn(
   DEVELOPING_FLOW_CHROME_CLASS,
-  "after:pointer-events-none after:absolute after:-bottom-[max(1.25rem,env(safe-area-inset-bottom))] after:-left-[100vw] after:-right-[100vw] after:h-[max(1.25rem,env(safe-area-inset-bottom))] after:bg-white after:content-['']",
+  `after:pointer-events-none after:absolute after:-bottom-[max(${MOBILE_HOME_INDICATOR_BLEED},env(safe-area-inset-bottom,0px))] after:-left-[100vw] after:-right-[100vw] after:h-[max(${MOBILE_HOME_INDICATOR_BLEED},env(safe-area-inset-bottom,0px))] after:bg-white after:content-['']`,
   "md:after:hidden",
 );
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { type ReactNode, useMemo, useState } from "react";
 import { TbDoorExit } from "react-icons/tb";
 
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
@@ -20,6 +20,7 @@ type GuestWaitingRoomBackProps = {
   sessionToken: string;
   title: string;
   sublabel?: string;
+  trailingAction?: ReactNode;
 };
 
 export function GuestWaitingRoomBack({
@@ -28,6 +29,7 @@ export function GuestWaitingRoomBack({
   sessionToken,
   title,
   sublabel = "Waiting room",
+  trailingAction,
 }: GuestWaitingRoomBackProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
@@ -81,6 +83,7 @@ export function GuestWaitingRoomBack({
         sublabel={sublabel}
         onBack={handleOpenBack}
         backLabel={backLabel}
+        trailingAction={trailingAction}
       />
       <ConfirmDialog
         open={confirmOpen}

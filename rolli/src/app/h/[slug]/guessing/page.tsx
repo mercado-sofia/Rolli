@@ -4,6 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
+import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
+import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   GuessingExperience,
@@ -62,6 +64,7 @@ export default function GuessingPage() {
   const setHangout = useSessionStore((state) => state.setHangout);
   const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [footer, setFooter] = useState<SetupFlowFooterState>({});
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useHangoutRouteGuard({
     slug,
@@ -104,6 +107,11 @@ export default function GuessingPage() {
     (displayHangout?.status === "revealing" && participantReadyForGuessing);
 
   const isCompleted = displayHangout?.status === "completed";
+  const isGuessing = displayHangout?.status === "guessing";
+  const showMenu = isGuessing && !isCompleted;
+  const menuButton = showMenu ? (
+    <HangoutMenuButton onClick={() => setMenuOpen(true)} />
+  ) : undefined;
   const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
     participant,
     hangout: displayHangout,
@@ -173,6 +181,21 @@ export default function GuessingPage() {
       compact
       className={isCompleted ? RESULTS_SHELL_CLASS : undefined}
     >
+      {showMenu ? (
+        <HangoutMenuModal
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          mode="guessing"
+          hangoutId={displayHangout.id}
+          sessionToken={participant.sessionToken}
+          hangout={displayHangout}
+          participant={participant}
+          nickname={participant.nickname}
+          onHangoutUpdate={setHangout}
+          onHangoutCompleted={handleHangoutCompleted}
+        />
+      ) : null}
+
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           compact
@@ -180,6 +203,7 @@ export default function GuessingPage() {
           title={displayHangout.title}
           sublabel={isCompleted ? "Results" : "Guessing phase"}
           titleTone="ink"
+          trailingAction={menuButton}
         />
       </header>
 
