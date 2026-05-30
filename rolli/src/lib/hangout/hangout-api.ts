@@ -35,3 +35,6 @@ export {
   getHangoutParticipants,
   removeParticipantByKeeper,
 } from "@/lib/services/hangout-roster";
+
+// Session status (kicked detection)
+export { getParticipantSessionStatus } from "@/lib/services/participant-session";

@@ -100,7 +100,7 @@ export function GuideModalCloseButton({ onClose }: { onClose: () => void }) {
         onClose();
       }}
       className={cn(
-        "absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full",
+        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
         "border border-black/8 bg-white text-ink",
         "outline-none transition-colors hover:bg-black/5 active:scale-95",
       )}
@@ -121,7 +121,7 @@ type GuideModalShellProps = {
   panelClassName?: string;
   /** Horizontal padding for body (and footer). */
   bodyClassName?: string;
-  /** Center title in the panel; close button floats over the corner. */
+  /** Center title in the panel header row. */
   centerTitle?: boolean;
   /** Top-right × control — off when footer has a dismiss CTA (e.g. session start guide). */
   showHeaderClose?: boolean;
@@ -182,26 +182,53 @@ export function GuideModalShell({
           )}
           onClick={handlePanelClick}
         >
-          {showHeaderClose ? (
-            <GuideModalCloseButton onClose={requestClose} />
-          ) : null}
-
           <div
             className={cn(
               "min-h-0 flex-1 overflow-y-auto overscroll-y-contain pb-5 pt-5 sm:pt-6",
               bodyClassName ?? "px-5 sm:px-6",
             )}
           >
-            <h2
-              id={titleId}
-              className={cn(
-                "font-display text-xl leading-snug text-ink",
-                centerTitle && "text-center",
-                showHeaderClose && !centerTitle && "pr-10",
-              )}
-            >
-              {title}
-            </h2>
+            {showHeaderClose ? (
+              <div
+                className={cn(
+                  "mb-4",
+                  centerTitle
+                    ? "grid grid-cols-[1fr_auto_1fr] items-start gap-x-2"
+                    : "flex items-start justify-between gap-3",
+                )}
+              >
+                {centerTitle ? <div className="h-9 w-9 shrink-0" aria-hidden /> : null}
+                <h2
+                  id={titleId}
+                  className={cn(
+                    "font-display min-w-0 text-xl leading-snug text-ink",
+                    centerTitle
+                      ? "col-start-2 text-center"
+                      : "flex-1",
+                  )}
+                >
+                  {title}
+                </h2>
+                <div
+                  className={cn(
+                    "shrink-0",
+                    centerTitle && "col-start-3 flex justify-end",
+                  )}
+                >
+                  <GuideModalCloseButton onClose={requestClose} />
+                </div>
+              </div>
+            ) : (
+              <h2
+                id={titleId}
+                className={cn(
+                  "font-display mb-4 text-xl leading-snug text-ink",
+                  centerTitle && "text-center",
+                )}
+              >
+                {title}
+              </h2>
+            )}
             <div className="mt-4">{children}</div>
           </div>
 
@@ -255,7 +282,7 @@ export function SessionGuideModal({ open, onClose }: SessionGuideModalProps) {
   );
 }
 
-export function RolliGuideContent({ nickname }: { nickname: string }) {
+export function RolliGuideContent() {
   const content = ROLLI_SESSION_GUIDE_CONTENT;
 
   return (
@@ -266,22 +293,16 @@ export function RolliGuideContent({ nickname }: { nickname: string }) {
           <GuideBulletList items={section.bullets} className="mt-2.5" />
         </section>
       ))}
-
-      <div className="border-t border-black/6 pt-5">
-        <p className="text-xs text-muted">Your nickname</p>
-        <p className="mt-1 text-sm font-medium text-ink">{nickname}</p>
-      </div>
     </div>
   );
 }
 
 type RolliGuideModalProps = {
   open: boolean;
-  nickname: string;
   onClose: () => void;
 };
 
-export function RolliGuideModal({ open, nickname, onClose }: RolliGuideModalProps) {
+export function RolliGuideModal({ open, onClose }: RolliGuideModalProps) {
   const content = ROLLI_SESSION_GUIDE_CONTENT;
 
   return (
@@ -294,7 +315,7 @@ export function RolliGuideModal({ open, nickname, onClose }: RolliGuideModalProp
       bodyClassName="px-8 pb-8 sm:px-10 sm:pb-9"
       panelClassName="w-[min(100%,26rem)]"
     >
-      <RolliGuideContent nickname={nickname} />
+      <RolliGuideContent />
     </GuideModalShell>
   );
 }

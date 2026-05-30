@@ -12,6 +12,7 @@ import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-prom
 import { SessionGuideModal } from "@/components/hangout/guide-modals";
 import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
 import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
+import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -158,6 +159,12 @@ export default function SessionPage() {
       }
     >
       {sessionReady ? (
+    <HangoutParticipantSessionGate
+      slug={slug}
+      hangoutId={displayHangout.id}
+      sessionToken={participant.sessionToken}
+      hangoutTitle={displayHangout.title}
+    >
     <SetupFlowShell>
       <AutoOpenSessionGuide slug={slug} hangoutId={displayHangout.id} />
       <HangoutMenuModal
@@ -168,7 +175,6 @@ export default function SessionPage() {
         sessionToken={participant.sessionToken}
         hangout={displayHangout}
         participant={participant}
-        nickname={participant.nickname}
         onHangoutUpdate={setHangout}
       />
 
@@ -285,6 +291,7 @@ export default function SessionPage() {
         onCancel={handleCancelEndConfirm}
       />
     </SetupFlowShell>
+    </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
   );

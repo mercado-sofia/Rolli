@@ -6,6 +6,7 @@ import { useCallback, useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
+import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -25,6 +26,7 @@ import {
   APP_PRIMARY_BUTTON_CLASS,
   GALLERY_LOADING_MIN_HEIGHT_CLASS,
 } from "@/lib/app-page-layout";
+import { HANGOUT_LIMITS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 /** Scroll the full page (header + content + actions) instead of pinning CTAs to the viewport. */
@@ -98,6 +100,12 @@ export default function GalleryPage() {
       }
     >
       {galleryReady ? (
+    <HangoutParticipantSessionGate
+      slug={slug}
+      hangoutId={displayHangout.id}
+      sessionToken={participant.sessionToken}
+      hangoutTitle={displayHangout.title}
+    >
     <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
@@ -120,7 +128,7 @@ export default function GalleryPage() {
           {!galleryLoading ? (
             <SetupFlowFooter
               className={GALLERY_FOOTER_CLASS}
-              hint="Save your favorite memories or head back home."
+              hint={`Save your favorite memories or head back home. Memories are kept for ${HANGOUT_LIMITS.retentionDays} days.`}
             >
               <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
               <Link
@@ -134,6 +142,7 @@ export default function GalleryPage() {
         </div>
       </main>
     </SetupFlowShell>
+    </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
   );

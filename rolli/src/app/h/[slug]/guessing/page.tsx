@@ -3,9 +3,13 @@
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { BackHomeButton } from "@/components/hangout/back-home-button";
+import {
+  BackHomeButton,
+  LeaveRoomButton,
+} from "@/components/hangout/back-home-button";
 import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
 import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
+import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   GuessingExperience,
@@ -107,8 +111,10 @@ export default function GuessingPage() {
     (displayHangout?.status === "revealing" && participantReadyForGuessing);
 
   const isCompleted = displayHangout?.status === "completed";
-  const isGuessing = displayHangout?.status === "guessing";
-  const showMenu = isGuessing && !isCompleted;
+  const showMenu =
+    !isCompleted &&
+    (displayHangout?.status === "guessing" ||
+      (displayHangout?.status === "revealing" && participantReadyForGuessing));
   const menuButton = showMenu ? (
     <HangoutMenuButton onClick={() => setMenuOpen(true)} />
   ) : undefined;
@@ -148,6 +154,15 @@ export default function GuessingPage() {
     </>
   ) : isCompleted ? (
     <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+  ) : showMenu ? (
+    <>
+      {footer.children}
+      <LeaveRoomButton
+        hangoutId={displayHangout!.id}
+        sessionToken={participant!.sessionToken}
+        className={APP_PRIMARY_BUTTON_CLASS}
+      />
+    </>
   ) : (
     footer.children
   );
@@ -177,6 +192,12 @@ export default function GuessingPage() {
       }
     >
       {guessingReady ? (
+    <HangoutParticipantSessionGate
+      slug={slug}
+      hangoutId={displayHangout.id}
+      sessionToken={participant.sessionToken}
+      hangoutTitle={displayHangout.title}
+    >
     <SetupFlowShell
       compact
       className={isCompleted ? RESULTS_SHELL_CLASS : undefined}
@@ -190,7 +211,6 @@ export default function GuessingPage() {
           sessionToken={participant.sessionToken}
           hangout={displayHangout}
           participant={participant}
-          nickname={participant.nickname}
           onHangoutUpdate={setHangout}
           onHangoutCompleted={handleHangoutCompleted}
         />
@@ -233,6 +253,7 @@ export default function GuessingPage() {
 
       {!isCompleted ? pageFooter : null}
     </SetupFlowShell>
+    </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
   );

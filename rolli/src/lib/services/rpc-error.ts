@@ -27,7 +27,15 @@ export function parseRpcError(error: RpcError): string {
     return "The participant list is not available right now.";
   }
 
+  if (message.includes("You were removed from this hangout by the Film Keeper")) {
+    return "You were removed from this hangout by the Film Keeper.";
+  }
+
   return message;
+}
+
+export function isRemovedByKeeperError(message: string): boolean {
+  return message.includes("removed from this hangout by the Film Keeper");
 }
 
 export function parseRevealRpcError(error: RpcError): string {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { FaArrowRightFromBracket } from "react-icons/fa6";
 import { PiSignOutBold } from "react-icons/pi";
 
 import {
@@ -27,7 +28,6 @@ type HangoutMenuModalProps = {
   sessionToken: string;
   hangout: Hangout;
   participant: Participant;
-  nickname: string;
   onHangoutUpdate: (hangout: Hangout) => void;
   onHangoutCompleted?: (hangout: Hangout) => void;
 };
@@ -58,8 +58,8 @@ function RosterRow({
             ) : null}
           </span>
           {row.isFilmKeeper ? (
-            <span className="shrink-0 rounded-full bg-pink/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-pink-highlight">
-              Film Keeper
+            <span className="shrink-0 rounded-full bg-pink/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-pink-highlight">
+              film keeper
             </span>
           ) : null}
         </div>
@@ -79,16 +79,56 @@ function RosterRow({
           type="button"
           onClick={() => onKick(row.id, row.nickname)}
           className={cn(
-            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
-            "border border-black/8 text-ink outline-none transition-colors",
-            "hover:bg-black/5 active:scale-95",
+            "shrink-0 p-1 text-muted outline-none transition-colors",
+            "hover:text-ink active:scale-95",
           )}
           aria-label={`Remove ${row.nickname} from hangout`}
         >
-          <PiSignOutBold size={18} aria-hidden />
+          <FaArrowRightFromBracket size={18} aria-hidden />
         </button>
       ) : null}
     </li>
+  );
+}
+
+function ParticipantsTabPanel({
+  loading,
+  error,
+  participants,
+  participant,
+  isFilmKeeper,
+  onKick,
+}: {
+  loading: boolean;
+  error: string | null;
+  participants: HangoutRosterParticipant[];
+  participant: Participant;
+  isFilmKeeper: boolean;
+  onKick: (id: string, nickname: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      {loading && participants.length === 0 ? (
+        <p className="text-center text-sm text-muted">Loading participants…</p>
+      ) : null}
+      {error ? <p className="text-center text-sm text-pink">{error}</p> : null}
+      {!loading && !error && participants.length === 0 ? (
+        <p className="text-center text-sm text-muted">No one in the room yet.</p>
+      ) : null}
+      {participants.length > 0 ? (
+        <ul className="space-y-2">
+          {participants.map((row) => (
+            <RosterRow
+              key={row.id}
+              row={row}
+              isSelf={row.id === participant.id}
+              canKick={isFilmKeeper}
+              onKick={onKick}
+            />
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }
 
@@ -100,7 +140,6 @@ export function HangoutMenuModal({
   sessionToken,
   hangout,
   participant,
-  nickname,
   onHangoutUpdate,
   onHangoutCompleted,
 }: HangoutMenuModalProps) {
@@ -222,33 +261,35 @@ export function HangoutMenuModal({
           </div>
         ) : null}
 
-        {activeTab === "guide" ? (
-          <RolliGuideContent nickname={nickname} />
-        ) : (
-          <div className="space-y-3">
-            {loading && participants.length === 0 ? (
-              <p className="text-center text-sm text-muted">Loading participants…</p>
-            ) : null}
-            {error ? (
-              <p className="text-center text-sm text-pink">{error}</p>
-            ) : null}
-            {!loading && !error && participants.length === 0 ? (
-              <p className="text-center text-sm text-muted">No one in the room yet.</p>
-            ) : null}
-            {participants.length > 0 ? (
-              <ul className="space-y-2">
-                {participants.map((row) => (
-                  <RosterRow
-                    key={row.id}
-                    row={row}
-                    isSelf={row.id === participant.id}
-                    canKick={isFilmKeeper}
-                    onKick={handleKickRequest}
-                  />
-                ))}
-              </ul>
-            ) : null}
+        {mode === "lobby" ? (
+          <div className="relative">
+            <div className="invisible pointer-events-none" aria-hidden>
+              <RolliGuideContent />
+            </div>
+            <div className="absolute inset-0 min-h-0 overflow-y-auto overscroll-y-contain">
+              {activeTab === "guide" ? (
+                <RolliGuideContent />
+              ) : (
+                <ParticipantsTabPanel
+                  loading={loading}
+                  error={error}
+                  participants={participants}
+                  participant={participant}
+                  isFilmKeeper={isFilmKeeper}
+                  onKick={handleKickRequest}
+                />
+              )}
+            </div>
           </div>
+        ) : (
+          <ParticipantsTabPanel
+            loading={loading}
+            error={error}
+            participants={participants}
+            participant={participant}
+            isFilmKeeper={isFilmKeeper}
+            onKick={handleKickRequest}
+          />
         )}
       </GuideModalShell>
 
@@ -264,7 +305,7 @@ export function HangoutMenuModal({
         description={
           <>
             They will be removed from this hangout and will not block the room. They
-            can rejoin with the invite link if the hangout is still open.
+            will not be able to rejoin this session.
           </>
         }
         confirmLabel="Yes, remove"

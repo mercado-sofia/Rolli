@@ -4,6 +4,9 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
 import { DevelopingPrepareOverlay } from "@/components/hangout/developing-prepare-overlay";
+import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
+import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
+import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
   RevealExperience,
@@ -42,6 +45,7 @@ export default function RevealPage() {
 
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [revealFooter, setRevealFooter] = useState<SetupFlowFooterState>({});
   const [developingFooter, setDevelopingFooter] = useState<SetupFlowFooterState>(
     {},
@@ -110,6 +114,10 @@ export default function RevealPage() {
     onRevealPhase;
 
   const activeFooter = isDeveloping ? developingFooter : revealFooter;
+  const showMenu = isRevealing;
+  const menuButton = showMenu ? (
+    <HangoutMenuButton onClick={() => setMenuOpen(true)} />
+  ) : undefined;
 
   return (
     <HangoutPageLoadGate
@@ -130,10 +138,29 @@ export default function RevealPage() {
       }
     >
       {revealReady ? (
+    <HangoutParticipantSessionGate
+      slug={slug}
+      hangoutId={displayHangout.id}
+      sessionToken={participant.sessionToken}
+      hangoutTitle={displayHangout.title}
+    >
     <SetupFlowShell
       compact
       backgroundClassName={isDeveloping ? "bg-white md:bg-canvas" : undefined}
     >
+      {showMenu ? (
+        <HangoutMenuModal
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          mode="guessing"
+          hangoutId={displayHangout.id}
+          sessionToken={participant.sessionToken}
+          hangout={displayHangout}
+          participant={participant}
+          onHangoutUpdate={setHangout}
+        />
+      ) : null}
+
       <header
         className={cn(
           SETUP_FLOW_HEADER_COMPACT_CLASS,
@@ -146,6 +173,7 @@ export default function RevealPage() {
           title={displayHangout.title}
           titleTone="ink"
           sublabel={isDeveloping ? "Developing memories" : undefined}
+          trailingAction={menuButton}
         />
       </header>
 
@@ -194,6 +222,7 @@ export default function RevealPage() {
         {activeFooter.children}
       </SetupFlowFooter>
     </SetupFlowShell>
+    </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
   );

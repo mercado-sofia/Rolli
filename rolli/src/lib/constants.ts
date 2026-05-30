@@ -33,6 +33,8 @@ export const HANGOUT_LIMITS = {
   maxToStart: 10,
   maxPhotosPerUser: 10,
   autoEndHours: 24,
+  /** Hangouts and photos are removed from the database and storage after this many days. */
+  retentionDays: 7,
   hangoutPollMs: 2000,
 } as const;
 

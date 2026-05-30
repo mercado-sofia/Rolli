@@ -17,6 +17,7 @@ import {
 import { GuestWaitingRoomBack } from "@/components/hangout/guest-waiting-room-back";
 import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
 import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
+import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { WaitingRoomNickname } from "@/components/hangout/waiting-room-nickname";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
@@ -139,7 +140,14 @@ export default function WaitingRoomPage() {
         </div>
       }
     >
-      {waitingReady && displayHangout ? (
+      {waitingReady && displayHangout && participant ? (
+    <HangoutParticipantSessionGate
+      slug={slug}
+      hangoutId={displayHangout.id}
+      sessionToken={participant.sessionToken}
+      hangoutTitle={displayHangout.title}
+      enabled={!isCancelled}
+    >
     <SetupFlowShell>
       {!isCancelled && participant ? (
         <HangoutMenuModal
@@ -150,7 +158,6 @@ export default function WaitingRoomPage() {
           sessionToken={participant.sessionToken}
           hangout={displayHangout}
           participant={participant}
-          nickname={participant.nickname}
           onHangoutUpdate={setHangout}
         />
       ) : null}
@@ -285,6 +292,7 @@ export default function WaitingRoomPage() {
         ) : null}
       </SetupFlowFooter>
     </SetupFlowShell>
+    </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
   );

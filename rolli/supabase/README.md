@@ -46,8 +46,11 @@ In the Supabase Dashboard, open **SQL Editor** and run each file **in order**:
 | 31 | `migrations/031_security_and_hardening.sql` |
 | 32 | `migrations/032_per_participant_reveal_ready.sql` |
 | 33 | `migrations/033_hangout_roster_and_keeper_kick.sql` |
+| 34 | `migrations/034_participant_removed_by_keeper.sql` |
+| 35 | `migrations/035_kicked_rejoin_and_nickname.sql` |
+| 36 | `migrations/036_hangout_retention_purge.sql` |
 
-**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join while active), **020** (`transfer_film_keeper`, `leave_hangout` keeper handoff, keeper RPCs use `film_keeper_id`), **021–023** (synced reveal countdown + preload — superseded by **025–026**), **024** (2-character nicknames), **025** (removes server countdown; countdown is client-side only), **026** (`signal_reveal_pending`, `reveal_pending_at`, preload after signal), **027** (gallery payload includes participant identity), **028** (`maybe_complete_guessing_if_ready`, any participant may call `finish_guessing` once all votes are in), **029** (`get_guessing_state` exposes hangout-wide vote progress), **030** (block new guests after capture ends — join only in `waiting`/`active`), **031** (security hardening: revoke public `transfer_film_keeper`, gate photo reads until `reveal_pending_at`, grant `signal_reveal_pending`, fix guessing completion when participants leave, block inactive-nickname rejoin via join, RPC rate limits), **032** (per-participant reveal ready; early guessing while `revealing`), **033** (`get_hangout_participants` nickname roster; `remove_participant_by_keeper` for Film Keeper kick).
+**Migration overrides:** `003_rpc_functions.sql` is the historical baseline. Later files replace key RPCs — especially **005** (slug), **011** (start rules), **012** (storage RLS), **013** (reveal), **014** (leave/rejoin/join), **016** (`end_hangout`, slot cleanup), **018** (`abandon_hangout`), **019** (`join_hangout` / `rejoin_hangout` — guests can join while active), **020** (`transfer_film_keeper`, `leave_hangout` keeper handoff, keeper RPCs use `film_keeper_id`), **021–023** (synced reveal countdown + preload — superseded by **025–026**), **024** (2-character nicknames), **025** (removes server countdown; countdown is client-side only), **026** (`signal_reveal_pending`, `reveal_pending_at`, preload after signal), **027** (gallery payload includes participant identity), **028** (`maybe_complete_guessing_if_ready`, any participant may call `finish_guessing` once all votes are in), **029** (`get_guessing_state` exposes hangout-wide vote progress), **030** (block new guests once the hangout leaves the in-progress join window — superseded by **035** for `revealing`/`guessing`), **031** (security hardening: revoke public `transfer_film_keeper`, gate photo reads until `reveal_pending_at`, grant `signal_reveal_pending`, fix guessing completion when participants leave, block inactive-nickname rejoin via join, RPC rate limits), **032** (per-participant reveal ready; early guessing while `revealing`), **033** (`get_hangout_participants` nickname roster; `remove_participant_by_keeper` for Film Keeper kick), **034** (`removed_by_keeper_at`, `get_participant_session_status`, block rejoin after kick), **035** (partial unique nickname for active participants only; kicked guests may `join_hangout` as a new row with same nickname; join allowed through `guessing`), **036** (7-day retention purge: `purge_stale_hangouts`, storage cleanup, optional cron).
 
 Or with the [Supabase CLI](https://supabase.com/docs/guides/cli), from the **`rolli/`** directory (parent of this folder):
 
@@ -104,6 +107,41 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 - **Optional background jobs:** enable the `pg_cron` extension in **Database → Extensions**, then schedule jobs in the SQL Editor. Do not enable cron unless you want background maintenance.
   - Auto-end expired hangouts every 15 minutes — SQL at the bottom of `010_auto_end_hangout.sql`.
   - Clean up expired photo upload slots — `cleanup_expired_photo_upload_slots()` from `016_hardening_misc.sql` (schedule as needed).
+  - Purge hangouts older than the retention window — `purge_stale_hangouts()` from `036_hangout_retention_purge.sql` (see §6).
+
+## 6. Data retention (7 days)
+
+Migration `036_hangout_retention_purge.sql` removes eligible hangouts and their files in `hangout-photos`. Child rows (`participants`, `photos`, `votes`, `photo_upload_slots`) are removed via `ON DELETE CASCADE`.
+
+| Status | Purged when |
+|--------|-------------|
+| `completed`, `cancelled` | `updated_at` is more than 7 days ago |
+| `waiting` | `created_at` is more than 7 days ago (abandoned lobby) |
+| `developing`, `revealing`, `guessing`, `active` | Last activity timestamp (`ended_at`, `started_at`, etc.) is more than 7 days ago |
+
+**Not callable from the app** — only `postgres` / `service_role` (same pattern as `auto_end_expired_hangouts` after **031**).
+
+1. Run migration **036** in the SQL Editor.
+2. Enable **pg_cron** (Database → Extensions) if you want automatic cleanup.
+3. Schedule a daily job (example runs at 03:00 UTC, up to 50 hangouts per run):
+
+```sql
+SELECT cron.schedule(
+  'rolli-purge-stale-hangouts',
+  '0 3 * * *',
+  $$ SELECT public.purge_stale_hangouts(50); $$
+);
+```
+
+4. **One-off test** (SQL Editor):
+
+```sql
+SELECT public.purge_stale_hangouts(10);
+```
+
+Returns JSON, e.g. `{"hangouts_deleted": 2, "storage_objects_deleted": 14, "retention_days": 7}`.
+
+To change the window, edit `hangout_purge_retention_days()` in the migration (or replace it in a follow-up migration) and keep `HANGOUT_LIMITS.retentionDays` in `src/lib/constants.ts` in sync for UI copy.
 
 ## Abandon hangout (017–018)
 
@@ -117,13 +155,19 @@ Migration `010_auto_end_hangout.sql` ends active hangouts automatically when `st
 - Migration **032** — **`mark_ready_for_guessing`** (any participant) sets `reveal_finished_at` and moves the hangout to `guessing` only when every active participant is ready; early finishers can guess while status is still `revealing`.
 - Solo Film Keeper in `waiting` still cannot leave (use **Abandon**). Solo active session can leave with no successor until someone rejoins or 24h auto-end.
 
-## Leave / rejoin / join (014, 019, 020, 030, 031)
+## Leave / rejoin / join (014, 019, 020, 030, 031, 035)
 
 - **`leave_hangout`** — marks participant inactive; transfers Film Keeper first when others are in the room (see **020**). Solo Keeper in `waiting` cannot leave.
-- **`rejoin_hangout`** — reactivates a participant who left, using the same `session_token`. Allowed for any status except `completed` and `cancelled` (subject to the 10-participant cap).
-- **`join_hangout`** — new guest only while status is `waiting` or `active` (**030**). Inactive nicknames cannot be reclaimed via join (**031**); use **`rejoin_hangout`** with a saved session token instead.
+- **`rejoin_hangout`** — reactivates a participant who left voluntarily, using the same `session_token`. Allowed for any status except `completed` and `cancelled` (subject to the 10-participant cap). **Blocked after a Film Keeper kick** (**034**).
+- **`join_hangout`** — creates a **new** participant row. Allowed while status is `waiting`, `active`, `revealing`, or `guessing` (**035**). Active nicknames must be unique; a kicked guest may reuse their nickname because only **active** rows are unique (**035**). Voluntary leavers should use **`rejoin_hangout`** with a saved session token instead of joining again.
 
 If a user clears browser storage without leaving, they cannot recover their session (MVP limitation).
+
+## Film Keeper roster & kick (033–034)
+
+- **`get_hangout_participants`** — nickname-only roster for the hangout menu (`waiting`, `active`, `revealing`, `guessing`). During `revealing`/`guessing`, includes ready-for-guessing chips when applicable.
+- **`remove_participant_by_keeper`** — Film Keeper deactivates a guest and sets `removed_by_keeper_at`. Kicked guests see a dedicated screen and may **`join_hangout`** again as a new participant (**035**); their old session token cannot **`rejoin_hangout`** (**034**).
+- **`get_participant_session_status`** — polled by the app to detect keeper removal without Realtime on `participants`.
 
 ## Reveal flow (025–026)
 
@@ -133,7 +177,7 @@ If a user clears browser storage without leaving, they cannot recover their sess
 
 ## Security hardening (031)
 
-- Revokes public execute on **`transfer_film_keeper`** and maintenance RPCs (`auto_end_*`, `cleanup_expired_photo_upload_slots`, `generate_hangout_slug`).
+- Revokes public execute on **`transfer_film_keeper`** and maintenance RPCs (`auto_end_*`, `cleanup_expired_photo_upload_slots`, `purge_stale_hangouts`, `generate_hangout_slug`).
 - Grants execute on **`signal_reveal_pending`** to `anon` / `authenticated`.
 - **`maybe_complete_guessing_if_ready`** requires every **active** participant to submit all required votes (fixes early completion when someone leaves).
 - **`assert_rate_limit`** on `create_hangout_with_keeper`, `join_hangout`, `get_hangout_public`, and `prepare_photo_upload`.
@@ -152,7 +196,7 @@ If a user clears browser storage without leaving, they cannot recover their sess
 
 ## Verify migrations (optional)
 
-Run in the SQL Editor after applying **001–032**:
+Run in the SQL Editor after applying **001–035**:
 
 ```sql
 -- Core RPCs should exist
@@ -163,7 +207,9 @@ WHERE n.nspname = 'public'
     'join_hangout', 'rejoin_hangout', 'leave_hangout',
     'abandon_hangout', 'end_hangout', 'get_hangout_public',
     'transfer_film_keeper', 'signal_reveal_pending',
-    'maybe_complete_guessing_if_ready', 'get_guessing_state'
+    'maybe_complete_guessing_if_ready', 'get_guessing_state',
+    'get_hangout_participants', 'remove_participant_by_keeper',
+    'get_participant_session_status'
   )
 ORDER BY proname;
 

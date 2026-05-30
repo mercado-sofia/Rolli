@@ -22,8 +22,13 @@ export function extractSlugFromInviteLink(link: string): string {
   return parts[parts.length - 1] ?? trimmed;
 }
 
-/** New guests may join via invite link only before capture ends. */
-const NEW_GUEST_JOINABLE_STATUSES: HangoutStatus[] = ["waiting", "active"];
+/** New guests may join via invite link while the hangout is still in progress. */
+const NEW_GUEST_JOINABLE_STATUSES: HangoutStatus[] = [
+  "waiting",
+  "active",
+  "revealing",
+  "guessing",
+];
 
 /** Prior participants may rejoin with a saved session token until the hangout completes. */
 const REJOINABLE_STATUSES: HangoutStatus[] = [
@@ -50,6 +55,12 @@ export function isHangoutInProgress(status: HangoutStatus): boolean {
 export function getLateJoinHint(status: HangoutStatus): string | null {
   if (status === "active") {
     return "You can still capture photos after joining.";
+  }
+  if (status === "revealing") {
+    return "The group is viewing photos — you can catch up after joining.";
+  }
+  if (status === "guessing") {
+    return "Guessing is in progress — you can vote after joining.";
   }
   return null;
 }
