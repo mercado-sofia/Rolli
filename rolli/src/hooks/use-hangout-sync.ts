@@ -53,11 +53,13 @@ export function useHangoutSync({ slug, enabled = true }: UseHangoutSyncOptions) 
     function applyHangout(data: Hangout) {
       if (cancelled) return;
 
-      const current = useSessionStore.getState().hangout;
+      const { hangout: current, participant } = useSessionStore.getState();
       const merged = mergeHangoutUpdate(current, data);
 
       setLocalHangout(merged);
-      setHangout(merged);
+      if (participant && participant.hangoutId === data.id) {
+        setHangout(merged);
+      }
       setLoadError(null);
       setIsLoading(false);
     }

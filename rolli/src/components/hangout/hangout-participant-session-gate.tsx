@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 
 import { HangoutKickedOut } from "@/components/hangout/hangout-kicked-out";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
@@ -14,6 +14,7 @@ import {
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
+import { pauseRevealAmbientAudio } from "@/lib/hangout/reveal-audio";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 
@@ -36,6 +37,7 @@ export function HangoutParticipantSessionGate({
 }: HangoutParticipantSessionGateProps) {
   const router = useRouter();
   const resetSession = useSessionStore((state) => state.resetSession);
+  const evictFromHangout = useSessionStore((state) => state.evictFromHangout);
   const { removedByKeeper, isActive, isReady, isChecking } =
     useParticipantSessionStatus({
       hangoutId,
@@ -44,6 +46,17 @@ export function HangoutParticipantSessionGate({
     });
 
   const redirectedInactiveRef = useRef(false);
+  const evictedRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!removedByKeeper || evictedRef.current) {
+      return;
+    }
+
+    evictedRef.current = true;
+    pauseRevealAmbientAudio();
+    evictFromHangout(slug);
+  }, [evictFromHangout, removedByKeeper, slug]);
 
   useEffect(() => {
     if (!enabled || !isReady || removedByKeeper || isActive) {

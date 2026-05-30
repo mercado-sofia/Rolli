@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
+import { useHangoutGateBinding } from "@/hooks/use-hangout-gate-binding";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import {
@@ -78,6 +79,7 @@ export default function SessionPage() {
 
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
+  const storeParticipant = useSessionStore((state) => state.participant);
 
   const [ending, setEnding] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
@@ -92,6 +94,7 @@ export default function SessionPage() {
     hangout: displayHangout,
     isLoading,
   });
+  const gateBinding = useHangoutGateBinding(slug, displayHangout, storeParticipant);
 
   const photosTaken = participant?.photosTaken ?? 0;
   const maxPhotos = HANGOUT_LIMITS.maxPhotosPerUser;
@@ -149,7 +152,7 @@ export default function SessionPage() {
       loadError={loadError}
       isLoading={isLoading}
       displayHangout={displayHangout}
-      forceLoading={!sessionReady}
+      forceLoading={!sessionReady && !gateBinding}
       onRetry={retry}
       loadingSkeleton={
         <div className="animate-pulse space-y-6">
@@ -158,13 +161,14 @@ export default function SessionPage() {
         </div>
       }
     >
-      {sessionReady ? (
+      {gateBinding ? (
     <HangoutParticipantSessionGate
       slug={slug}
-      hangoutId={displayHangout.id}
-      sessionToken={participant.sessionToken}
-      hangoutTitle={displayHangout.title}
+      hangoutId={gateBinding.hangoutId}
+      sessionToken={gateBinding.sessionToken}
+      hangoutTitle={gateBinding.hangoutTitle}
     >
+      {sessionReady && participant && displayHangout ? (
     <SetupFlowShell>
       <AutoOpenSessionGuide slug={slug} hangoutId={displayHangout.id} />
       <HangoutMenuModal
@@ -291,6 +295,7 @@ export default function SessionPage() {
         onCancel={handleCancelEndConfirm}
       />
     </SetupFlowShell>
+      ) : null}
     </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>

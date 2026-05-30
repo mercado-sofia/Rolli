@@ -18,6 +18,7 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
+import { useHangoutGateBinding } from "@/hooks/use-hangout-gate-binding";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { HANGOUT_GALLERY_PATH_SUFFIX } from "@/lib/hangout/routes";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
@@ -28,6 +29,7 @@ import {
 } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
+import { useSessionStore } from "@/store/session-store";
 
 /** Scroll the full page (header + content + actions) instead of pinning CTAs to the viewport. */
 const GALLERY_SHELL_CLASS =
@@ -50,6 +52,7 @@ export default function GalleryPage() {
   const slug = params.slug;
 
   const sessionHydrated = useSessionHydrated();
+  const storeParticipant = useSessionStore((state) => state.participant);
   const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [galleryLoading, setGalleryLoading] = useState(true);
   const [galleryLoadingHangoutId, setGalleryLoadingHangoutId] = useState<
@@ -75,6 +78,7 @@ export default function GalleryPage() {
     hangout: displayHangout,
     isLoading,
   });
+  const gateBinding = useHangoutGateBinding(slug, displayHangout, storeParticipant);
 
   const handleGalleryLoadingChange = useCallback((loading: boolean) => {
     setGalleryLoading(loading);
@@ -92,20 +96,21 @@ export default function GalleryPage() {
       isLoading={isLoading}
       displayHangout={displayHangout}
       sessionHydrated={sessionHydrated}
-      forceLoading={!galleryReady}
+      forceLoading={!galleryReady && !gateBinding}
       onRetry={retry}
       mainClassName={GALLERY_MAIN_CLASS}
       loadingSkeleton={
         <div className={cn("animate-pulse rounded-3xl bg-black/10", GALLERY_LOADING_MIN_HEIGHT_CLASS)} />
       }
     >
-      {galleryReady ? (
+      {gateBinding ? (
     <HangoutParticipantSessionGate
       slug={slug}
-      hangoutId={displayHangout.id}
-      sessionToken={participant.sessionToken}
-      hangoutTitle={displayHangout.title}
+      hangoutId={gateBinding.hangoutId}
+      sessionToken={gateBinding.sessionToken}
+      hangoutTitle={gateBinding.hangoutTitle}
     >
+      {galleryReady && participant && displayHangout ? (
     <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
@@ -142,6 +147,7 @@ export default function GalleryPage() {
         </div>
       </main>
     </SetupFlowShell>
+      ) : null}
     </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>

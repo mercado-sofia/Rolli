@@ -51,8 +51,10 @@ export function useParticipantSessionStatus({
   }, [hangoutId, sessionToken]);
 
   useEffect(() => {
-    if (!enabled) {
-      setIsReady(true);
+    if (!enabled || removedByKeeper) {
+      if (!enabled) {
+        setIsReady(true);
+      }
       hasResolvedOnceRef.current = false;
       return;
     }
@@ -90,7 +92,7 @@ export function useParticipantSessionStatus({
       document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
       window.removeEventListener("focus", handleVisibilityOrFocus);
     };
-  }, [check, enabled]);
+  }, [check, enabled, removedByKeeper]);
 
   return {
     removedByKeeper,

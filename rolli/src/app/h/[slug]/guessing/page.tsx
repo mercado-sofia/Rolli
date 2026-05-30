@@ -27,6 +27,7 @@ import {
 import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
+import { useHangoutGateBinding } from "@/hooks/use-hangout-gate-binding";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ export default function GuessingPage() {
   const router = useRouter();
 
   const setHangout = useSessionStore((state) => state.setHangout);
+  const storeParticipant = useSessionStore((state) => state.participant);
   const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [footer, setFooter] = useState<SetupFlowFooterState>({});
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,6 +84,7 @@ export default function GuessingPage() {
     hangout: displayHangout,
     isLoading,
   });
+  const gateBinding = useHangoutGateBinding(slug, displayHangout, storeParticipant);
 
   const openMemoryGallery = useCallback(async () => {
     if (displayHangout?.status === "guessing" && participant) {
@@ -182,7 +185,7 @@ export default function GuessingPage() {
       loadError={loadError}
       isLoading={isLoading}
       displayHangout={displayHangout}
-      forceLoading={!guessingReady}
+      forceLoading={!guessingReady && !gateBinding}
       onRetry={retry}
       loadingSkeleton={
         <div className="animate-pulse space-y-6">
@@ -191,13 +194,14 @@ export default function GuessingPage() {
         </div>
       }
     >
-      {guessingReady ? (
+      {gateBinding ? (
     <HangoutParticipantSessionGate
       slug={slug}
-      hangoutId={displayHangout.id}
-      sessionToken={participant.sessionToken}
-      hangoutTitle={displayHangout.title}
+      hangoutId={gateBinding.hangoutId}
+      sessionToken={gateBinding.sessionToken}
+      hangoutTitle={gateBinding.hangoutTitle}
     >
+      {guessingReady && participant && displayHangout ? (
     <SetupFlowShell
       compact
       className={isCompleted ? RESULTS_SHELL_CLASS : undefined}
@@ -253,6 +257,7 @@ export default function GuessingPage() {
 
       {!isCompleted ? pageFooter : null}
     </SetupFlowShell>
+      ) : null}
     </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>

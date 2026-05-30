@@ -34,6 +34,7 @@ import { Card } from "@/components/ui/card";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
+import { useHangoutGateBinding } from "@/hooks/use-hangout-gate-binding";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
@@ -55,6 +56,7 @@ export default function WaitingRoomPage() {
   const slug = params.slug;
 
   const setHangout = useSessionStore((state) => state.setHangout);
+  const storeParticipant = useSessionStore((state) => state.participant);
   const leaveForHomeFromStore = useSessionStore((state) => state.leaveForHome);
 
   const [starting, setStarting] = useState(false);
@@ -80,6 +82,7 @@ export default function WaitingRoomPage() {
     hangout: displayHangout,
     isLoading: guardIsLoading,
   });
+  const gateBinding = useHangoutGateBinding(slug, displayHangout, storeParticipant);
 
   const participantCount = displayHangout?.participantCount ?? 0;
   const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
@@ -120,6 +123,12 @@ export default function WaitingRoomPage() {
       (hasValidSession &&
         participant &&
         displayHangout!.status === "waiting"));
+  const showWaitingGate =
+    Boolean(gateBinding) &&
+    (isCancelled ||
+      (hasValidSession &&
+        participant &&
+        displayHangout?.status === "waiting"));
 
   const waitingHint = getWaitingHint(isFilmKeeper, canStart);
   const footerHint = isCancelled ? HANGOUT_CANCELLED_FOOTER_HINT : waitingHint;
@@ -131,7 +140,7 @@ export default function WaitingRoomPage() {
       loadError={loadError}
       isLoading={isLoading}
       displayHangout={displayHangout}
-      forceLoading={!waitingReady}
+      forceLoading={!waitingReady && !gateBinding}
       onRetry={retry}
       loadingSkeleton={
         <div className="animate-pulse space-y-6">
@@ -140,14 +149,15 @@ export default function WaitingRoomPage() {
         </div>
       }
     >
-      {waitingReady && displayHangout && participant ? (
+      {gateBinding && displayHangout ? (
     <HangoutParticipantSessionGate
       slug={slug}
-      hangoutId={displayHangout.id}
-      sessionToken={participant.sessionToken}
-      hangoutTitle={displayHangout.title}
+      hangoutId={gateBinding.hangoutId}
+      sessionToken={gateBinding.sessionToken}
+      hangoutTitle={gateBinding.hangoutTitle}
       enabled={!isCancelled}
     >
+      {showWaitingGate && participant ? (
     <SetupFlowShell>
       {!isCancelled && participant ? (
         <HangoutMenuModal
@@ -292,6 +302,7 @@ export default function WaitingRoomPage() {
         ) : null}
       </SetupFlowFooter>
     </SetupFlowShell>
+      ) : null}
     </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>

@@ -24,8 +24,10 @@ import {
 import { HangoutPageLoadGate } from "@/components/hangout/hangout-page-load-gate";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
+import { useHangoutGateBinding } from "@/hooks/use-hangout-gate-binding";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
+import { useInHangoutSession } from "@/hooks/use-in-hangout-session";
 import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
 import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
 import type { MarkReadyForGuessingResult } from "@/types/reveal";
@@ -41,6 +43,7 @@ export default function RevealPage() {
 
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
+  const storeParticipant = useSessionStore((state) => state.participant);
   const [menuOpen, setMenuOpen] = useState(false);
   const [revealFooter, setRevealFooter] = useState<SetupFlowFooterState>({});
   const [developingFooter, setDevelopingFooter] = useState<SetupFlowFooterState>(
@@ -55,6 +58,8 @@ export default function RevealPage() {
     hangout: displayHangout,
     isLoading,
   });
+  const gateBinding = useHangoutGateBinding(slug, displayHangout, storeParticipant);
+  const inHangoutSession = useInHangoutSession(slug);
 
   const isFilmKeeper = isCurrentFilmKeeper(participant, displayHangout);
   const { showPromotion, dismissPromotion } = useFilmKeeperPromotion({
@@ -71,6 +76,7 @@ export default function RevealPage() {
     hangoutId: displayHangout?.id ?? "",
     sessionToken: participant?.sessionToken ?? "",
     enabled:
+      inHangoutSession &&
       Boolean(displayHangout?.id && participant?.sessionToken) &&
       ((isDeveloping && revealPending) || isRevealing),
   });
@@ -121,7 +127,7 @@ export default function RevealPage() {
       loadError={loadError}
       isLoading={isLoading}
       displayHangout={displayHangout}
-      forceLoading={!revealReady}
+      forceLoading={!revealReady && !gateBinding}
       onRetry={retry}
       loadingSkeleton={
         <div className="animate-pulse space-y-6">
@@ -133,13 +139,14 @@ export default function RevealPage() {
         </div>
       }
     >
-      {revealReady ? (
+      {gateBinding ? (
     <HangoutParticipantSessionGate
       slug={slug}
-      hangoutId={displayHangout.id}
-      sessionToken={participant.sessionToken}
-      hangoutTitle={displayHangout.title}
+      hangoutId={gateBinding.hangoutId}
+      sessionToken={gateBinding.sessionToken}
+      hangoutTitle={gateBinding.hangoutTitle}
     >
+      {revealReady && participant && displayHangout ? (
     <SetupFlowShell
       compact
       backgroundClassName={isDeveloping ? "bg-white md:bg-canvas" : undefined}
@@ -210,6 +217,7 @@ export default function RevealPage() {
         {activeFooter.children}
       </SetupFlowFooter>
     </SetupFlowShell>
+      ) : null}
     </HangoutParticipantSessionGate>
       ) : null}
     </HangoutPageLoadGate>
