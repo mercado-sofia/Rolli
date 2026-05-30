@@ -69,7 +69,7 @@ export function LandingNavbar() {
     <header
       id={LANDING_NAVBAR_ID}
       className={cn(
-        "fixed inset-x-0 top-0 z-50 border-b border-lavender/50 bg-white/85 pt-[env(safe-area-inset-top)] backdrop-blur-md transition-shadow duration-300",
+        "fixed inset-x-0 top-0 z-50 border-b border-lavender/50 bg-white/85 pt-[env(safe-area-inset-top,0px)] backdrop-blur-md transition-shadow duration-300",
         isScrolled && "shadow-navbar",
       )}
     >
@@ -129,7 +129,7 @@ export function LandingNavbar() {
           <>
             <motion.button
               type="button"
-              className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-40 bg-ink/20 sm:hidden"
+              className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-40 bg-ink/20 sm:hidden"
               aria-label="Close menu"
               onClick={() => setMenuOpen(false)}
               initial={{ opacity: 0 }}

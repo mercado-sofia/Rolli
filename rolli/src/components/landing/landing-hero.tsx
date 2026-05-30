@@ -194,7 +194,7 @@ export function LandingHero() {
   return (
     <section id="hero" className={`${LANDING_SECTION_SCROLL_MT} overflow-x-hidden`}>
       {/* Mobile hero — full viewport height; content clears fixed navbar inside */}
-      <div className="relative h-dvh min-h-dvh overflow-hidden supports-[height:100svh]:h-svh supports-[height:100svh]:min-h-svh md:hidden">
+      <div className="relative min-h-dvh overflow-hidden supports-[height:100dvh]:min-h-dvh md:hidden">
         <HeroBackgroundEllipses mobile />
         <MobileShell
           ambient={false}

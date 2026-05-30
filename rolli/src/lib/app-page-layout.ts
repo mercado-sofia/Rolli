@@ -21,8 +21,12 @@ export const APP_CONTENT_INSET_X = APP_CONTENT_PADDING_X;
 /** Extra margin on flow content inside MobileShell (pairs with APP_SHELL_PADDING_X). */
 export const APP_CONTENT_MARGIN_X = "mx-0 min-w-0 sm:mx-1 md:mx-0";
 
-/** Bottom safe-area padding for scrollable app shells */
-export const APP_SAFE_BOTTOM = "pb-[max(1.5rem,env(safe-area-inset-bottom))]";
+/** Top/bottom insets — apply once on the viewport-filling shell (MobileShell outer). */
+export const APP_SAFE_TOP = "pt-[env(safe-area-inset-top,0px)]";
+export const APP_SAFE_BOTTOM = "pb-[env(safe-area-inset-bottom,0px)]";
+
+/** Extra content spacing below the home-indicator inset on scrollable app pages. */
+export const APP_SHELL_CONTENT_BOTTOM = "pb-6 md:pb-8";
 
 /** Vertical shell padding for app pages */
 export const APP_SHELL_PY = "pt-6 sm:pt-8 md:pt-9";
@@ -41,8 +45,8 @@ export const APP_ACTION_MAX_WIDTH = "mx-auto w-full max-w-md md:max-w-lg";
 /** Outer MobileShell classes for setup / wizard pages */
 export const SETUP_FLOW_SHELL_CLASS = cn(
   APP_SETUP_SHELL_MAX_WIDTH,
-  "flex min-h-dvh max-h-dvh flex-col overflow-hidden py-0! supports-[height:100dvh]:min-h-dvh supports-[height:100dvh]:max-h-dvh",
-  "md:h-auto md:max-h-none md:min-h-[calc(100dvh-3rem)] md:overflow-visible",
+  "flex min-h-0 flex-1 flex-col overflow-hidden py-0!",
+  "md:h-auto md:min-h-[calc(100dvh-3rem)] md:overflow-visible",
   "lg:min-h-[calc(100dvh-4rem)]",
 );
 
@@ -53,8 +57,8 @@ export const SETUP_FLOW_SHELL_CLASS = cn(
 export const SETUP_FLOW_INNER_CLASS = cn(
   "flex min-h-0 flex-1 flex-col",
   APP_CONTENT_PADDING_X,
-  "pt-[max(1.5rem,env(safe-area-inset-top))] sm:pt-6 md:pt-8",
-  "pb-[max(1.25rem,env(safe-area-inset-bottom))] md:pb-8",
+  "pt-4 sm:pt-6 md:pt-8",
+  "pb-4 md:pb-8",
   "md:grid md:grid-cols-[minmax(13rem,38%)_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto]",
   "md:items-stretch md:gap-x-8 lg:gap-x-12 xl:gap-x-14",
   "md:px-6 md:pb-8 lg:px-8",
@@ -63,7 +67,7 @@ export const SETUP_FLOW_INNER_CLASS = cn(
 /** Less top padding for reveal / guessing / gallery after the hangout ends. */
 export const SETUP_FLOW_INNER_COMPACT_CLASS = cn(
   SETUP_FLOW_INNER_CLASS,
-  "pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-4 md:pt-5",
+  "pt-3 sm:pt-4 md:pt-5",
 );
 
 /** White card surface for the right panel only (desktop) */
@@ -160,6 +164,9 @@ export const GALLERY_LOADING_MIN_HEIGHT_CLASS = "min-h-[40vh] md:min-h-112";
 /** Header/footer above the developing overlay on mobile (title + CTAs stay readable). */
 export const DEVELOPING_FLOW_CHROME_CLASS = cn(
   "relative z-40 bg-white",
+  "before:pointer-events-none before:absolute before:inset-x-0",
+  "before:-top-[calc(env(safe-area-inset-top,0px)+0.75rem)] before:h-[calc(env(safe-area-inset-top,0px)+0.75rem)] before:bg-white",
+  "md:before:hidden",
   "md:relative md:z-auto md:bg-transparent",
 );
 

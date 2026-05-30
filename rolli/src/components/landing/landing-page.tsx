@@ -7,7 +7,7 @@ import { LandingPerfectFor } from "@/components/landing/landing-perfect-for";
 
 export function LandingPage() {
   return (
-    <div className="overflow-x-hidden bg-canvas text-ink">
+    <div className="min-h-dvh overflow-x-hidden bg-canvas text-ink supports-[height:100dvh]:min-h-dvh">
       <LandingNavbar />
       <LandingHero />
       <LandingGuide />

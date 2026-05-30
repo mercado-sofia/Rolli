@@ -11,6 +11,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#f9f9f9",
 };
 
 const sans = Inter({
@@ -45,6 +46,10 @@ export const metadata: Metadata = {
     icon: PUBLIC_ASSETS.images.logo,
     apple: PUBLIC_ASSETS.images.logo,
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
@@ -58,7 +63,9 @@ export default function RootLayout({
       className={`${sans.variable} h-full`}
       data-scroll-behavior="smooth"
     >
-      <body className="min-h-full overflow-x-hidden antialiased">{children}</body>
+      <body className="min-h-dvh overflow-x-hidden antialiased supports-[height:100dvh]:min-h-dvh">
+        {children}
+      </body>
     </html>
   );
 }

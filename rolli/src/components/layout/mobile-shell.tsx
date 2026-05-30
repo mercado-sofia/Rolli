@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 
 import {
   APP_SAFE_BOTTOM,
+  APP_SAFE_TOP,
+  APP_SHELL_CONTENT_BOTTOM,
   APP_SHELL_DESKTOP_FRAME,
   APP_SHELL_DESKTOP_INSET,
   APP_SHELL_MAX_WIDTH,
@@ -36,8 +38,14 @@ export function MobileShell({
   desktopFrame = true,
 }: MobileShellProps) {
   const isApp = variant === "app";
+  const appViewportInsets =
+    isApp && fillViewport ? cn(APP_SAFE_TOP, APP_SAFE_BOTTOM, "box-border") : null;
   const shellPadding = isApp
-    ? cn(APP_SHELL_PADDING_X, APP_SHELL_PY, APP_SAFE_BOTTOM)
+    ? cn(
+        APP_SHELL_PADDING_X,
+        APP_SHELL_PY,
+        scrollable ? APP_SHELL_CONTENT_BOTTOM : null,
+      )
     : "px-4 py-8 sm:px-5";
   const contentMaxWidth = isApp ? APP_SHELL_MAX_WIDTH : "max-w-md";
   const desktopPanel =
@@ -54,7 +62,10 @@ export function MobileShell({
         "relative overflow-x-hidden text-ink",
         backgroundClassName,
         fillViewport
-          ? "min-h-dvh supports-[height:100dvh]:min-h-dvh"
+          ? cn(
+              "flex min-h-dvh flex-col supports-[height:100dvh]:min-h-dvh",
+              appViewportInsets,
+            )
           : "h-full min-h-0",
       )}
     >
@@ -77,7 +88,7 @@ export function MobileShell({
           desktopPanel,
           fillViewport
             ? cn(
-                "min-h-dvh supports-[height:100dvh]:min-h-dvh",
+                isApp ? "min-h-0 flex-1" : "min-h-dvh supports-[height:100dvh]:min-h-dvh",
                 shellPadding,
                 scrollable && "overflow-y-auto overscroll-y-contain",
               )
