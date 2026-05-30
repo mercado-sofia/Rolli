@@ -3,6 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { forwardRef, useImperativeHandle, useMemo, useState } from "react";
+
+import { usePreventAutoKeyboard } from "@/hooks/use-prevent-auto-keyboard";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -50,7 +52,9 @@ type JoinHangoutFormProps = {
 };
 
 export type JoinHangoutFormHandle = {
-  validateLinkStep: () => Promise<boolean>;
+  /** Resolves the slug from the pasted link; returns null when invalid. */
+  validateLinkStep: () => Promise<string | null>;
+  setInviteLinkError: (message: string) => void;
 };
 
 export const JoinHangoutForm = forwardRef<
@@ -97,20 +101,26 @@ export const JoinHangoutForm = forwardRef<
   useImperativeHandle(ref, () => ({
     async validateLinkStep() {
       const isValid = await trigger("inviteLink");
-      if (!isValid) return false;
+      if (!isValid) return null;
 
-      const slug = slugFromUrl ?? extractSlugFromInviteLink(getValues("inviteLink") ?? "");
+      const slug =
+        slugFromUrl ?? extractSlugFromInviteLink(getValues("inviteLink") ?? "");
       if (!slug) {
         setError("inviteLink", { message: "Invalid invitation link" });
-        return false;
+        return null;
       }
 
-      return true;
+      return slug;
+    },
+    setInviteLinkError(message: string) {
+      setError("inviteLink", { message });
     },
   }));
 
   const showLinkStep = showInviteLinkField && step === 1;
   const showIdentityStep = !showInviteLinkField || step === 2;
+
+  usePreventAutoKeyboard(showIdentityStep);
 
   async function onSubmit(values: JoinFormValues) {
     setSubmitError(null);
@@ -182,6 +192,7 @@ export const JoinHangoutForm = forwardRef<
               label="Anonymous nickname"
               placeholder="Enter nickname here"
               error={errors.nickname?.message}
+              autoComplete="off"
               {...register("nickname")}
             />
             <Field
@@ -189,6 +200,7 @@ export const JoinHangoutForm = forwardRef<
               label="Real name (hidden)"
               placeholder="Enter real name here"
               error={errors.realName?.message}
+              autoComplete="off"
               {...register("realName")}
             />
           </>

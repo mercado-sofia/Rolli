@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import {
   JoinHangoutForm,
@@ -19,8 +19,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-page-layout";
-import { cn } from "@/lib/utils";
+import { fetchHangoutBySlug } from "@/lib/hangout/hangout-api";
+import {
+  getLateJoinHint,
+  isHangoutInProgress,
+} from "@/lib/hangout/join";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
+import { cn } from "@/lib/utils";
+import type { HangoutStatus } from "@/types/hangout";
 
 const JOIN_FORM_ID = "join-hangout-form";
 
@@ -49,18 +55,95 @@ function JoinPageSkeleton() {
 
 function JoinPageContent() {
   const searchParams = useSearchParams();
-  const slug = searchParams.get("slug") ?? undefined;
+  const slugFromQuery = searchParams.get("slug") ?? undefined;
   const formRef = useRef<JoinHangoutFormHandle>(null);
-  const [step, setStep] = useState<1 | 2>(slug ? 2 : 1);
+  const [step, setStep] = useState<1 | 2>(slugFromQuery ? 2 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resolvedSlug, setResolvedSlug] = useState<string | undefined>(
+    slugFromQuery,
+  );
+  const [hangoutTitle, setHangoutTitle] = useState<string | undefined>();
+  const [hangoutStatus, setHangoutStatus] = useState<HangoutStatus | undefined>();
+  const [resolvingHangout, setResolvingHangout] = useState(false);
+  const [loadingHangoutMeta, setLoadingHangoutMeta] = useState(
+    Boolean(slugFromQuery),
+  );
+
+  const activeSlug = resolvedSlug ?? slugFromQuery;
+  const loadingIdentityStep =
+    step === 2 && Boolean(activeSlug) && !hangoutTitle && loadingHangoutMeta;
 
   const currentStep =
     step === 1 ? setupFlowSteps.joinLink : setupFlowSteps.joinIdentity;
 
+  const hangoutInProgress =
+    hangoutStatus !== undefined && isHangoutInProgress(hangoutStatus);
+
+  useEffect(() => {
+    if (!slugFromQuery) return;
+
+    let cancelled = false;
+
+    async function loadHangoutFromQuery() {
+      setLoadingHangoutMeta(true);
+
+      const { data, error } = await fetchHangoutBySlug(slugFromQuery);
+      if (cancelled) return;
+
+      setLoadingHangoutMeta(false);
+
+      if (data) {
+        setHangoutTitle(data.title);
+        setHangoutStatus(data.status);
+        setResolvedSlug(slugFromQuery);
+      } else {
+        formRef.current?.setInviteLinkError(error ?? "Hangout not found");
+        setStep(1);
+        setResolvedSlug(undefined);
+      }
+    }
+
+    void loadHangoutFromQuery();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [slugFromQuery]);
+
+  async function resolveHangoutForSlug(slug: string): Promise<boolean> {
+    setResolvingHangout(true);
+
+    const { data, error } = await fetchHangoutBySlug(slug);
+
+    setResolvingHangout(false);
+
+    if (error || !data) {
+      formRef.current?.setInviteLinkError(error ?? "Hangout not found");
+      return false;
+    }
+
+    setResolvedSlug(slug);
+    setHangoutTitle(data.title);
+    setHangoutStatus(data.status);
+    return true;
+  }
+
   async function handleProceedToIdentityStep() {
-    const isLinkValid = await formRef.current?.validateLinkStep();
-    if (!isLinkValid) return;
+    const slug = await formRef.current?.validateLinkStep();
+    if (!slug) return;
+
+    const resolved = await resolveHangoutForSlug(slug);
+    if (!resolved) return;
+
+    (document.activeElement as HTMLElement | null)?.blur();
     setStep(2);
+  }
+
+  function handleBackToLinkStep() {
+    setStep(1);
+    setHangoutTitle(undefined);
+    setHangoutStatus(undefined);
+    setResolvedSlug(undefined);
   }
 
   return (
@@ -70,11 +153,23 @@ function JoinPageContent() {
           currentStep={currentStep}
           totalSteps={SETUP_FLOW_TOTAL_STEPS}
           backHref={step === 1 ? "/start" : undefined}
-          onBack={step === 2 && !slug ? () => setStep(1) : undefined}
+          onBack={
+            step === 2 && !slugFromQuery ? handleBackToLinkStep : undefined
+          }
           backLabel={step === 1 ? "Back to start" : "Back to link"}
-          title={step === 1 ? "Enter the room" : "Your identity"}
+          title={
+            step === 1
+              ? "Enter the room"
+              : (hangoutTitle ?? "Your identity")
+          }
           sublabel={
-            step === 1 ? "Paste your invitation link" : "Set your anonymous identity"
+            step === 1
+              ? "Paste your invitation link"
+              : hangoutTitle
+                ? hangoutInProgress
+                  ? "Hangout in progress"
+                  : "You're invited"
+                : "Set your anonymous identity"
           }
         />
       </header>
@@ -86,14 +181,19 @@ function JoinPageContent() {
         )}
       >
         <div className={cn(SETUP_FLOW_MAIN_INNER_CLASS, APP_SETUP_FORM_MAX_WIDTH)}>
-          <JoinHangoutForm
-            ref={formRef}
-            slug={slug}
-            showInviteLinkField
-            step={step}
-            formId={JOIN_FORM_ID}
-            onSubmittingChange={setIsSubmitting}
-          />
+          {loadingIdentityStep ? (
+            <MobileLoadingSpinner />
+          ) : (
+            <JoinHangoutForm
+              ref={formRef}
+              slug={activeSlug}
+              hangoutTitle={step === 2 ? hangoutTitle : undefined}
+              showInviteLinkField
+              step={step}
+              formId={JOIN_FORM_ID}
+              onSubmittingChange={setIsSubmitting}
+            />
+          )}
         </div>
       </main>
 
@@ -101,23 +201,26 @@ function JoinPageContent() {
         hint={
           step === 1
             ? "Paste the full link your friend sent you."
-            : "Your real name stays hidden until the hangout ends."
+            : hangoutInProgress && hangoutStatus
+              ? (getLateJoinHint(hangoutStatus) ??
+                "This hangout is already underway — you'll land in the room with everyone else.")
+              : "Your real name stays hidden until the hangout ends."
         }
       >
         {step === 1 ? (
           <Button
             type="button"
             onClick={() => void handleProceedToIdentityStep()}
-            disabled={isSubmitting}
+            disabled={isSubmitting || resolvingHangout}
             className={APP_PRIMARY_BUTTON_CLASS}
           >
-            Proceed
+            {resolvingHangout ? "Checking link…" : "Proceed"}
           </Button>
         ) : (
           <Button
             type="submit"
             form={JOIN_FORM_ID}
-            disabled={isSubmitting}
+            disabled={isSubmitting || loadingIdentityStep}
             className={APP_PRIMARY_BUTTON_CLASS}
           >
             {isSubmitting ? "Joining…" : "Join hangout"}

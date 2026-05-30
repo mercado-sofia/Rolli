@@ -25,6 +25,7 @@ import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-pa
 import { NICKNAME_MIN_LENGTH } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
+import { usePreventAutoKeyboard } from "@/hooks/use-prevent-auto-keyboard";
 import { useSessionStore } from "@/store/session-store";
 
 const schema = z.object({
@@ -66,6 +67,8 @@ export default function CreatePage() {
     defaultValues: { title: "", nickname: "", realName: "" },
   });
 
+  usePreventAutoKeyboard(step === 2);
+
   async function onSubmit(values: FormValues) {
     setSubmitError(null);
 
@@ -98,6 +101,7 @@ export default function CreatePage() {
   async function handleProceedToIdentityStep() {
     const isTitleValid = await trigger("title");
     if (!isTitleValid) return;
+    (document.activeElement as HTMLElement | null)?.blur();
     setStep(2);
     setSubmitError(null);
   }
@@ -194,7 +198,7 @@ export default function CreatePage() {
                 <Field
                   id="title"
                   label="Hangout title"
-                  placeholder="2AM McDo Recovery"
+                  placeholder="sponty gala"
                   error={errors.title?.message}
                   {...register("title")}
                 />
@@ -205,6 +209,7 @@ export default function CreatePage() {
                     label="Anonymous nickname"
                     placeholder="Enter nickname here"
                     error={errors.nickname?.message}
+                    autoComplete="off"
                     {...register("nickname")}
                   />
                   <Field
@@ -212,6 +217,7 @@ export default function CreatePage() {
                     label="Real name (hidden)"
                     placeholder="Enter real name here"
                     error={errors.realName?.message}
+                    autoComplete="off"
                     {...register("realName")}
                   />
                 </>
