@@ -251,7 +251,7 @@ export function RevealPhotoCarousel({
               disabled={!canGoPrev || isAnimating}
               onClick={() => void advance("prev")}
               className={cn(
-                "absolute left-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full",
+                "absolute left-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full md:flex",
                 "border border-container-border bg-white/95 text-ink shadow-soft",
                 "disabled:pointer-events-none disabled:opacity-40",
               )}
@@ -264,7 +264,7 @@ export function RevealPhotoCarousel({
               disabled={!canGoNext || isAnimating}
               onClick={() => void advance("next")}
               className={cn(
-                "absolute right-0 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full",
+                "absolute right-0 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full md:flex",
                 "border border-container-border bg-white/95 text-ink shadow-soft",
                 "disabled:pointer-events-none disabled:opacity-40",
               )}
