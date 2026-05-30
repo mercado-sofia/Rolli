@@ -80,14 +80,15 @@ function JoinPageContent() {
     hangoutStatus !== undefined && isHangoutInProgress(hangoutStatus);
 
   useEffect(() => {
-    if (!slugFromQuery) return;
+    const slug = slugFromQuery;
+    if (!slug) return;
 
     let cancelled = false;
 
     async function loadHangoutFromQuery() {
       setLoadingHangoutMeta(true);
 
-      const { data, error } = await fetchHangoutBySlug(slugFromQuery);
+      const { data, error } = await fetchHangoutBySlug(slug);
       if (cancelled) return;
 
       setLoadingHangoutMeta(false);
@@ -95,7 +96,7 @@ function JoinPageContent() {
       if (data) {
         setHangoutTitle(data.title);
         setHangoutStatus(data.status);
-        setResolvedSlug(slugFromQuery);
+        setResolvedSlug(slug);
       } else {
         formRef.current?.setInviteLinkError(error ?? "Hangout not found");
         setStep(1);
