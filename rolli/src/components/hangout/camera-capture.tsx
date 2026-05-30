@@ -38,16 +38,10 @@ type CameraCaptureProps = {
 
 type CameraPhase = "idle" | "opening" | "ready" | "capturing";
 
-function waitForNextFrame(): Promise<void> {
-  return new Promise((resolve) => {
-    requestAnimationFrame(() => resolve());
-  });
-}
-
-/** Portal-mounted <video> may not be ref-attached after a single frame on mobile. */
+/** Portal-mounted <video> is only ref-attached after React commits the overlay. */
 function waitForVideoElement(
   videoRef: RefObject<HTMLVideoElement | null>,
-  maxFrames = 8,
+  maxFrames = 48,
 ): Promise<HTMLVideoElement> {
   return new Promise((resolve, reject) => {
     let frames = 0;
@@ -118,7 +112,6 @@ export function CameraCapture({
   const isDisabled =
     photosRemaining <= 0 || phase === "capturing" || isOpening;
   const isOverlayOpen = phase !== "idle";
-  const openInFlightRef = useRef(false);
 
   useEffect(() => {
     serverPhotosTakenRef.current = photosTaken;
@@ -208,33 +201,53 @@ export function CameraCapture({
     };
   }, [isOverlayOpen, closeCamera]);
 
-  const openCamera = useCallback(async () => {
-    if (photosRemaining <= 0 || openInFlightRef.current) return;
-
-    openInFlightRef.current = true;
+  const openCamera = useCallback(() => {
+    if (photosRemaining <= 0 || phase !== "idle") return;
     setError(null);
     setPhase("opening");
+  }, [photosRemaining, phase]);
 
-    await waitForNextFrame();
+  useEffect(() => {
+    if (phase !== "opening") return;
 
-    try {
-      const stream = await ensureStream();
-      await attachStreamToVideo(stream);
-      setPhase("ready");
-    } catch (openError) {
-      stopCamera();
-      setPhase("idle");
-      const message =
-        openError instanceof Error ? openError.message : "";
-      setError(
-        message === "Camera not ready"
-          ? "Camera is still loading. Tap again."
-          : "Camera access denied. Allow camera permission and try again.",
-      );
-    } finally {
-      openInFlightRef.current = false;
+    let cancelled = false;
+
+    async function bootCamera() {
+      try {
+        const stream = await ensureStream();
+        if (cancelled) {
+          stopCamera();
+          return;
+        }
+
+        await attachStreamToVideo(stream);
+        if (cancelled) {
+          stopCamera();
+          return;
+        }
+
+        setPhase("ready");
+      } catch (openError) {
+        if (cancelled) return;
+
+        stopCamera();
+        setPhase("idle");
+        const message =
+          openError instanceof Error ? openError.message : "";
+        setError(
+          message === "Camera not ready"
+            ? "Camera is still loading. Tap again."
+            : "Camera access denied. Allow camera permission and try again.",
+        );
+      }
     }
-  }, [attachStreamToVideo, ensureStream, photosRemaining, stopCamera]);
+
+    void bootCamera();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [attachStreamToVideo, ensureStream, phase, stopCamera]);
 
   const applyOptimisticPhotosTaken = useCallback(() => {
     if (!participant) return;
@@ -373,7 +386,7 @@ export function CameraCapture({
         )}
         <CameraTriggerButton
           disabled={isDisabled}
-          onClick={() => void openCamera()}
+          onClick={openCamera}
           aria-label={
             photosRemaining <= 0 ? "No photos left" : "Capture memory"
           }
