@@ -73,23 +73,22 @@ export function PerspectivePhotosOverlay({
           onClick={(event) => event.stopPropagation()}
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-5 py-4 sm:px-6 sm:py-5">
-            <div className="mb-4 flex items-start justify-end">
+            <div className="mb-4 flex items-start justify-between gap-3 border-b border-container-border/70 pb-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium uppercase tracking-overline text-muted">
+                  POV PHOTOS
+                </p>
+                <h2
+                  id="perspective-photos-title"
+                  className="font-display mt-1 text-xl leading-snug text-ink"
+                >
+                  {nickname}
+                </h2>
+              </div>
               <GuideModalCloseButton onClose={requestClose} />
             </div>
 
-            <div className="border-b border-container-border/70 pb-4">
-              <p className="text-xs font-medium uppercase tracking-overline text-muted">
-                Perspective photos
-              </p>
-              <h2
-                id="perspective-photos-title"
-                className="font-display mt-1 text-xl leading-snug text-ink"
-              >
-                {nickname}
-              </h2>
-            </div>
-
-            <div className="mt-4">
+            <div>
             {loading ? (
               <p className="py-8 text-center text-sm text-muted">Loading photos…</p>
             ) : null}

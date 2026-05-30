@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { FaArrowRightFromBracket } from "react-icons/fa6";
+import { MdOutlinePersonOutline } from "react-icons/md";
 import { PiSignOutBold } from "react-icons/pi";
 
 import {
@@ -51,11 +52,18 @@ function RosterRow({
     <li className="flex items-center gap-2 rounded-2xl border border-container-border bg-white px-3 py-2.5">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-sm font-medium text-ink">
-            {row.nickname}
-            {isSelf ? (
-              <span className="font-normal text-muted"> (you)</span>
-            ) : null}
+          <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-ink">
+            <MdOutlinePersonOutline
+              className="shrink-0"
+              size={14}
+              aria-hidden
+            />
+            <span className="truncate">
+              {row.nickname}
+              {isSelf ? (
+                <span className="font-normal text-muted"> (you)</span>
+              ) : null}
+            </span>
           </span>
           {row.isFilmKeeper ? (
             <span className="shrink-0 rounded-full bg-pink/10 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-pink-highlight">
