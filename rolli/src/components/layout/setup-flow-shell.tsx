@@ -8,6 +8,7 @@ import {
   SETUP_FLOW_HEADER_CLASS,
   SETUP_FLOW_HEADER_COMPACT_CLASS,
   SETUP_FLOW_INNER_CLASS,
+  SETUP_FLOW_INNER_COMPACT_CLASS,
   SETUP_FLOW_MAIN_CENTER_CLASS,
   SETUP_FLOW_MAIN_CLASS,
   SETUP_FLOW_MAIN_INNER_CLASS,
@@ -29,17 +30,27 @@ export {
 type SetupFlowShellProps = {
   children: ReactNode;
   className?: string;
+  /** Tighter top padding for post-hangout flows. */
+  compact?: boolean;
 };
 
 /** Full-height setup page canvas — place header, main, and footer as normal siblings. */
-export function SetupFlowShell({ children, className }: SetupFlowShellProps) {
+export function SetupFlowShell({
+  children,
+  className,
+  compact = false,
+}: SetupFlowShellProps) {
   return (
     <MobileShell
       variant="app"
       desktopFrame={false}
       className={cn(SETUP_FLOW_SHELL_CLASS, className)}
     >
-      <div className={SETUP_FLOW_INNER_CLASS}>{children}</div>
+      <div
+        className={compact ? SETUP_FLOW_INNER_COMPACT_CLASS : SETUP_FLOW_INNER_CLASS}
+      >
+        {children}
+      </div>
     </MobileShell>
   );
 }

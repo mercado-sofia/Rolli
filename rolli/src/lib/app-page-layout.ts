@@ -60,6 +60,12 @@ export const SETUP_FLOW_INNER_CLASS = cn(
   "md:px-6 md:pb-8 lg:px-8",
 );
 
+/** Less top padding for reveal / guessing / gallery after the hangout ends. */
+export const SETUP_FLOW_INNER_COMPACT_CLASS = cn(
+  SETUP_FLOW_INNER_CLASS,
+  "pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-4 md:pt-5",
+);
+
 /** White card surface for the right panel only (desktop) */
 export const SETUP_FLOW_RIGHT_PANEL_SURFACE =
   "md:bg-white md:shadow-soft";
@@ -139,6 +145,9 @@ export const HANGOUT_PINK_GRADIENT_BUTTON_CLASS = cn(
 
 /** Multi-column photo grids (gallery, etc.) */
 export const APP_PHOTO_GRID_CLASS = "grid grid-cols-2 gap-3 sm:gap-4";
+
+/** Min height for gallery loading spinners (page shell + experience). */
+export const GALLERY_LOADING_MIN_HEIGHT_CLASS = "min-h-[40vh] md:min-h-112";
 
 /** White (#FFF) app container with 1px #FFEDF5 border */
 export const APP_CONTAINER_SURFACE = "border border-container-border bg-white";

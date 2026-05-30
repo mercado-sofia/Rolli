@@ -119,9 +119,10 @@ export default function RevealPage() {
   const activeFooter = isDeveloping ? developingFooter : revealFooter;
 
   return (
-    <SetupFlowShell>
+    <SetupFlowShell compact>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
+          compact
           showProgress={false}
           title={displayHangout.title}
           titleTone="ink"

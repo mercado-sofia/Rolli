@@ -24,7 +24,10 @@ import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { Button } from "@/components/ui/button";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import {
+  APP_PRIMARY_BUTTON_CLASS,
+  HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
+} from "@/lib/app-page-layout";
 import {
   HANGOUT_GUESSING_PATH_SUFFIX,
   hangoutGalleryPath,
@@ -129,9 +132,10 @@ export default function GuessingPage() {
   }
 
   return (
-    <SetupFlowShell>
+    <SetupFlowShell compact>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
+          compact
           showProgress={false}
           title={displayHangout.title}
           sublabel={isCompleted ? "Results" : "Guessing phase"}
@@ -160,7 +164,7 @@ export default function GuessingPage() {
           <>
             <Button
               type="button"
-              className={APP_PRIMARY_BUTTON_CLASS}
+              className={HANGOUT_PINK_GRADIENT_BUTTON_CLASS}
               onClick={openMemoryGallery}
             >
               View memory gallery

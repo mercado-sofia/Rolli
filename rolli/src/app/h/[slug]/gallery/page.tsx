@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
@@ -20,7 +21,10 @@ import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { HANGOUT_GALLERY_PATH_SUFFIX } from "@/lib/hangout/routes";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useSessionHydrated } from "@/hooks/use-session-hydrated";
-import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
+import {
+  APP_PRIMARY_BUTTON_CLASS,
+  GALLERY_LOADING_MIN_HEIGHT_CLASS,
+} from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 
 /** Scroll the full page (header + content + actions) instead of pinning CTAs to the viewport. */
@@ -45,6 +49,7 @@ export default function GalleryPage() {
 
   const sessionHydrated = useSessionHydrated();
   const { displayHangout, isLoading, loadError } = useDisplayHangout(slug);
+  const [galleryLoading, setGalleryLoading] = useState(true);
 
   useHangoutRouteGuard({
     slug,
@@ -58,16 +63,27 @@ export default function GalleryPage() {
     isLoading,
   });
 
-  const showLoadingShell =
+  const handleGalleryLoadingChange = useCallback((loading: boolean) => {
+    setGalleryLoading(loading);
+  }, []);
+
+  useEffect(() => {
+    setGalleryLoading(true);
+  }, [slug, displayHangout?.id]);
+
+  const sessionPending =
     !sessionHydrated ||
     isLoading ||
     !hasValidSession ||
     !participant ||
     !displayHangout;
 
-  if (showLoadingShell) {
+  const hangoutLoadFailed =
+    sessionHydrated && !isLoading && Boolean(loadError) && !displayHangout;
+
+  if (sessionPending || hangoutLoadFailed) {
     return (
-      <SetupFlowShell className={GALLERY_SHELL_CLASS}>
+      <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
         <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
           <div className="hidden animate-pulse md:flex md:flex-col md:gap-6">
             <div className="h-9 w-9 rounded-full bg-black/10" />
@@ -77,21 +93,14 @@ export default function GalleryPage() {
         </header>
         <main className={GALLERY_MAIN_CLASS}>
           <div className={SETUP_FLOW_MAIN_INNER_CLASS}>
-            <MobileLoadingSpinner />
-            <div className="hidden animate-pulse space-y-6 md:block">
-              <div className="h-24 w-full rounded-3xl border border-container-border bg-white" />
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="aspect-square rounded-3xl bg-black/10" />
-                <div className="aspect-square rounded-3xl bg-black/10" />
-                <div className="aspect-square rounded-3xl bg-black/10" />
-              </div>
-            </div>
-            <SetupFlowFooter
-              className={GALLERY_FOOTER_CLASS}
-              hint={loadError ? loadError : "Loading gallery…"}
-            >
-              <div className="hidden h-12 w-full animate-pulse rounded-full bg-black/10 md:block" />
-            </SetupFlowFooter>
+            {hangoutLoadFailed ? (
+              <p className="text-center text-sm text-pink">{loadError}</p>
+            ) : (
+              <MobileLoadingSpinner
+                inline
+                className={GALLERY_LOADING_MIN_HEIGHT_CLASS}
+              />
+            )}
           </div>
         </main>
       </SetupFlowShell>
@@ -99,9 +108,10 @@ export default function GalleryPage() {
   }
 
   return (
-    <SetupFlowShell className={GALLERY_SHELL_CLASS}>
+    <SetupFlowShell compact className={GALLERY_SHELL_CLASS}>
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
+          compact
           showProgress={false}
           title={displayHangout.title}
           sublabel="Memory gallery"
@@ -114,20 +124,23 @@ export default function GalleryPage() {
             hangoutId={displayHangout.id}
             sessionToken={participant.sessionToken}
             hangoutTitle={displayHangout.title}
+            onLoadingChange={handleGalleryLoadingChange}
           />
 
-          <SetupFlowFooter
-            className={GALLERY_FOOTER_CLASS}
-            hint="Save your favorite memories or head back home."
-          >
-            <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
-            <Link
-              href={`/h/${slug}/guessing`}
-              className="inline-flex min-h-11 items-center justify-center text-center text-sm text-muted underline underline-offset-4"
+          {!galleryLoading ? (
+            <SetupFlowFooter
+              className={GALLERY_FOOTER_CLASS}
+              hint="Save your favorite memories or head back home."
             >
-              Back to results
-            </Link>
-          </SetupFlowFooter>
+              <BackHomeButton className={APP_PRIMARY_BUTTON_CLASS} />
+              <Link
+                href={`/h/${slug}/guessing`}
+                className="inline-flex min-h-11 items-center justify-center text-center text-sm text-muted underline underline-offset-4"
+              >
+                Back to results
+              </Link>
+            </SetupFlowFooter>
+          ) : null}
         </div>
       </main>
     </SetupFlowShell>

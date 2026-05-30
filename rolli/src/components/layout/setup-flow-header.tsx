@@ -19,6 +19,8 @@ type SetupFlowHeaderProps = {
   titleTone?: "pink" | "ink";
   /** Top-right action (e.g. guide menu on session page). */
   trailingAction?: ReactNode;
+  /** Tighter top spacing for post-hangout flows (reveal, guessing, gallery). */
+  compact?: boolean;
   className?: string;
 };
 
@@ -33,12 +35,26 @@ export function SetupFlowHeader({
   showProgress = true,
   titleTone = "pink",
   trailingAction,
+  compact = false,
   className,
 }: SetupFlowHeaderProps) {
   const progress = Math.min(100, Math.max(0, (currentStep / totalSteps) * 100));
+  const mobileTitleMargin = compact
+    ? showProgress
+      ? "mt-10 sm:mt-11"
+      : "mt-4 sm:mt-5"
+    : showProgress
+      ? "mt-12 sm:mt-14"
+      : "mt-8 sm:mt-10";
 
   return (
-    <header className={cn("md:flex md:flex-col md:gap-8", className)}>
+    <header
+      className={cn(
+        "md:flex md:flex-col",
+        compact ? "md:gap-5" : "md:gap-8",
+        className,
+      )}
+    >
       {/* Mobile: centered toolbar with absolute back */}
       <div className="relative flex items-start justify-center md:hidden">
         <div className="absolute left-0 top-0">
@@ -127,12 +143,7 @@ export function SetupFlowHeader({
       </div>
 
       {/* Mobile title block */}
-      <div
-        className={cn(
-          "text-center md:hidden",
-          showProgress ? "mt-12 sm:mt-14" : "mt-8 sm:mt-10",
-        )}
-      >
+      <div className={cn("text-center md:hidden", mobileTitleMargin)}>
         <h1
           className={cn(
             "font-display text-[clamp(2rem,7vw,2.75rem)] leading-tight tracking-tight",

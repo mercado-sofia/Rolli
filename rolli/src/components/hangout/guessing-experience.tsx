@@ -410,7 +410,7 @@ export function GuessingExperience({
           {results.revealed.map((row) => (
             <Card key={row.participantId} border="neutral">
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-center text-sm sm:justify-between sm:text-left">
-                <span className="font-medium wrap-break-word text-ink">
+                <span className="font-medium wrap-break-word text-pink-highlight">
                   {row.nickname}
                 </span>
                 <span className="text-muted">was</span>

@@ -5,7 +5,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { GalleryFolderCard } from "@/components/hangout/gallery-folder-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { APP_PHOTO_GRID_CLASS } from "@/lib/app-page-layout";
+import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
+import {
+  APP_PHOTO_GRID_CLASS,
+  GALLERY_LOADING_MIN_HEIGHT_CLASS,
+} from "@/lib/app-page-layout";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
 import { getGalleryParticipantTheme } from "@/lib/hangout/gallery-colors";
@@ -16,12 +20,14 @@ type GalleryExperienceProps = {
   hangoutId: string;
   sessionToken: string;
   hangoutTitle: string;
+  onLoadingChange?: (loading: boolean) => void;
 };
 
 export function GalleryExperience({
   hangoutId,
   sessionToken,
   hangoutTitle,
+  onLoadingChange,
 }: GalleryExperienceProps) {
   const [perspectives, setPerspectives] = useState<RevealPerspective[]>([]);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(
@@ -52,6 +58,10 @@ export function GalleryExperience({
     onResign: resignPhotos,
     enabled: !loading && perspectives.length > 0,
   });
+
+  useEffect(() => {
+    onLoadingChange?.(loading);
+  }, [loading, onLoadingChange]);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,7 +183,7 @@ export function GalleryExperience({
 
   if (loading) {
     return (
-      <p className="text-center text-sm text-muted">Loading gallery…</p>
+      <MobileLoadingSpinner inline className={GALLERY_LOADING_MIN_HEIGHT_CLASS} />
     );
   }
 
