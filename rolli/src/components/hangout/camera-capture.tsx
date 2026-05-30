@@ -20,7 +20,6 @@ import {
   encodeVideoFrameToJpeg,
 } from "@/lib/hangout/camera-frame";
 import { captureMemory } from "@/lib/hangout/hangout-api";
-import { FIXED_VIEWPORT_BLEED_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 import type { Participant } from "@/types/participant";
 
@@ -175,12 +174,6 @@ export function CameraCapture({
     return warmStreamPromiseRef.current;
   }, []);
 
-  const attachStreamToVideo = useCallback(async (stream: MediaStream) => {
-    const video = await waitForVideoElement(videoRef);
-    video.srcObject = stream;
-    await video.play();
-  }, []);
-
   useEffect(() => {
     if (!isOverlayOpen) return;
 
@@ -207,20 +200,25 @@ export function CameraCapture({
     setPhase("opening");
   }, [photosRemaining, phase]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (phase !== "opening") return;
 
     let cancelled = false;
 
     async function bootCamera() {
       try {
+        const video = await waitForVideoElement(videoRef);
+        if (cancelled) return;
+
         const stream = await ensureStream();
         if (cancelled) {
           stopCamera();
           return;
         }
 
-        await attachStreamToVideo(stream);
+        video.srcObject = stream;
+        await video.play();
+
         if (cancelled) {
           stopCamera();
           return;
@@ -247,7 +245,7 @@ export function CameraCapture({
     return () => {
       cancelled = true;
     };
-  }, [attachStreamToVideo, ensureStream, phase, stopCamera]);
+  }, [ensureStream, phase, stopCamera]);
 
   const applyOptimisticPhotosTaken = useCallback(() => {
     if (!participant) return;
@@ -604,10 +602,7 @@ function CaptureOverlay({
 
   return (
     <div
-      className={cn(
-        FIXED_VIEWPORT_BLEED_CLASS,
-        "z-200 flex items-stretch justify-center bg-black/55 p-0 md:items-center md:p-6 lg:p-10",
-      )}
+      className="fixed inset-0 z-200 flex items-stretch justify-center bg-black/55 p-0 md:items-center md:p-6 lg:p-10"
       role="dialog"
       aria-modal="true"
       aria-label="Capture memory"
