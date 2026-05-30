@@ -85,10 +85,10 @@ function JoinPageContent() {
 
     let cancelled = false;
 
-    async function loadHangoutFromQuery() {
+    async function loadHangoutFromQuery(querySlug: string) {
       setLoadingHangoutMeta(true);
 
-      const { data, error } = await fetchHangoutBySlug(slug);
+      const { data, error } = await fetchHangoutBySlug(querySlug);
       if (cancelled) return;
 
       setLoadingHangoutMeta(false);
@@ -96,7 +96,7 @@ function JoinPageContent() {
       if (data) {
         setHangoutTitle(data.title);
         setHangoutStatus(data.status);
-        setResolvedSlug(slug);
+        setResolvedSlug(querySlug);
       } else {
         formRef.current?.setInviteLinkError(error ?? "Hangout not found");
         setStep(1);
@@ -104,7 +104,7 @@ function JoinPageContent() {
       }
     }
 
-    void loadHangoutFromQuery();
+    void loadHangoutFromQuery(slug);
 
     return () => {
       cancelled = true;
