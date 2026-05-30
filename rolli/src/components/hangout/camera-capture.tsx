@@ -411,40 +411,6 @@ function CameraAmbientBackground() {
   );
 }
 
-function SessionCameraIcon({
-  size,
-  strokeWidth,
-}: {
-  size: number;
-  strokeWidth: number;
-}) {
-  const gradientId = useId().replace(/:/g, "");
-
-  return (
-    <span className="relative inline-flex shrink-0" aria-hidden>
-      <svg width="0" height="0" className="absolute" aria-hidden>
-        <defs>
-          <linearGradient
-            id={gradientId}
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="100%"
-          >
-            <stop offset="0%" stopColor="var(--pink-highlight-dark)" />
-            <stop offset="100%" stopColor="var(--pink-highlight-light)" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <LuCamera
-        size={size}
-        strokeWidth={strokeWidth}
-        color={`url(#${gradientId})`}
-      />
-    </span>
-  );
-}
-
 function CameraTriggerButton({
   disabled,
   onClick,
@@ -476,7 +442,12 @@ function CameraTriggerButton({
           "h-20 w-20 sm:h-24 sm:w-24",
         )}
       >
-        <SessionCameraIcon size={iconSize} strokeWidth={1.75} />
+        <LuCamera
+          size={iconSize}
+          strokeWidth={1.75}
+          className="text-pink-highlight"
+          aria-hidden
+        />
       </button>
     );
   }

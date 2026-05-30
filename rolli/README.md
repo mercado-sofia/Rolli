@@ -2,11 +2,11 @@
 
 Next.js application for [Rolli](../README.md) — a temporary anonymous disposable camera and social deduction experience for friend groups.
 
-For product overview, features, and full setup instructions, see the **[repository README](../README.md)**.
+For product overview and features, see the **[repository README](../README.md)**.
 
 ## Quick start
 
-From this directory (`rolli/`), create `rolli/.env.local` with your Supabase keys (see root README), then:
+From this directory (`rolli/`), create `.env.local` with your Supabase keys (see [`supabase/README.md`](supabase/README.md)), then:
 
 ```bash
 npm install
@@ -15,7 +15,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-Supabase migrations live in [`supabase/migrations/`](supabase/migrations/). Run **001–031** in order — see [`supabase/README.md`](supabase/README.md).
+Supabase migrations live in [`supabase/migrations/`](supabase/migrations/). Run them in order — see [`supabase/README.md`](supabase/README.md).
 
 ## Scripts
 

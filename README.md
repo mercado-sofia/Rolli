@@ -28,20 +28,23 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 | **Create / Join** | Start a hangout or paste an invitation link |
 | **Waiting Room** | Anonymous hold — only participant count is visible |
 | **Share** | Copy or share the invitation link from the waiting room |
+| **Hangout Menu** | Nickname roster; Film Keeper can remove a guest |
 | **Active Session** | Capture memories (max 10 per user) with no previews |
-| **Developing & Reveal** | Single `/reveal` route: developing overlay with preload, then perspective-by-perspective unlock |
+| **Developing & Reveal** | Developing overlay, then perspective-by-perspective unlock |
 | **Guessing** | Private votes to match nicknames to real names; hangout-wide vote progress |
 | **Gallery** | Final memory grid with participant labels and download options |
 
 ### Roles & rules (high level)
 
-- **Film Keeper** — the room creator; starts and ends the hangout, controls reveal
+- **Film Keeper** — the room creator; starts and ends the hangout, controls reveal, and can remove guests
 - **Film Keeper transfer** — if the Keeper leaves, host duties pass to the next guest
 - **Abandon** — Film Keeper can cancel a hangout still in the waiting room
 - **Max 10 participants** per room
 - **2–10 participants** required to start (Film Keeper cannot start alone)
-- **Mid-session join** — new guests can join while status is `waiting` or `active`; returning participants rejoin with `rejoin_hangout` through post-capture phases
-- **Auto-end** after 24 hours if no one ends the session manually
+- **Mid-session join** — new guests can join while the hangout is still in progress; returning participants rejoin with their saved session
+- **Ready for guessing** — each guest marks when they are done viewing; guessing opens once everyone is ready
+- **Auto-end** — active sessions end automatically after 24 hours if no one ends them manually
+- **Temporary by design** — hangouts and photos are not kept forever
 
 ---
 
@@ -59,100 +62,6 @@ The experience is designed to feel **nostalgic, intimate, cinematic, and playful
 
 ---
 
-## Project status
-
-> **Implemented (MVP)** — full end-to-end hangout flow is live: waiting → active session → developing → reveal → guessing → completed gallery.
-
-### Implemented
-
-- Mobile-responsive pastel UI shell
-- Landing page (how-it-works guide section), start, create, and join flows
-- Supabase schema, RPC functions, and storage bucket migrations (**001–031**)
-- Create hangout (Film Keeper + invitation link), join, waiting room with live participant count
-- Share invitation link page in the waiting room
-- Film Keeper can start hangout (2–10 participants) or abandon while waiting
-- Film Keeper transfer when the host leaves mid-hangout
-- Guests can join during active capture; returning participants rejoin via saved session through later phases
-- RPC rate limiting on create, join, poll, and photo upload (migration **031**)
-- Reveal photos gated until Film Keeper signals start (`reveal_pending_at`; migration **031**)
-- Camera capture + upload to Supabase Storage
-- Developing overlay on `/reveal` with reveal photo preload for all guests
-- Client-side reveal countdown, then perspective-by-perspective unlock
-- Guessing phase with private votes, hangout-wide progress, and score/results
-- Gallery opens once every participant has submitted all guesses (any guest can advance)
-- Final gallery with participant labels, per-photo and zip download actions
-- Automatic end after 24h (poll-based, optional pg_cron background job)
-- Canonical route guard (wrong phase URLs redirect automatically; `/developing` → `/reveal`)
-- Supabase Realtime on `hangouts` with poll fallback
-- Leave room + rejoin via invite (migration **014**)
-- Signed URL refresh on tab focus; download retries
-
-### Planned
-
-- Automated E2E tests
-- Full auth / magic-link rejoin without a prior `leave_hangout`
-
-### Session recovery (MVP)
-
-If browser storage is cleared **without** using **Leave room**, the old `session_token` is lost and the user cannot call `rejoin_hangout`. Inactive nicknames cannot be reclaimed via **Join** (migration **031**) — use **Leave room** before clearing storage, or pick a new nickname. See [rolli/supabase/README.md](rolli/supabase/README.md) (Leave / rejoin / join).
-
----
-
-## Getting started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org) 20+ (LTS recommended)
-- npm (included with Node)
-
-### Supabase setup
-
-1. Create a project at [supabase.com](https://supabase.com).
-2. Run SQL migrations **001–031** in order (see [`rolli/supabase/README.md`](rolli/supabase/README.md)).
-3. Create `rolli/.env.local` with:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `NEXT_PUBLIC_APP_URL` (required for correct invite link previews, e.g. `http://localhost:3000`)
-
-### Install & run
-
-The Next.js app lives in the `rolli/` subdirectory:
-
-```bash
-git clone <your-repo-url>
-cd Rolli/rolli
-# create .env.local — see Supabase setup above
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-### Deploy (Vercel)
-
-Set **Root Directory** to `rolli` in the Vercel project settings. Leave **Output Directory** empty (Next.js default). Add the same env vars as local, with `NEXT_PUBLIC_APP_URL` set to your production URL.
-
-### Other scripts
-
-```bash
-npm run build   # production build
-npm run start   # serve production build
-npm run lint    # ESLint
-```
-
-### Try the flow
-
-1. **Start** → **Create Invitation Link** — enter title, nickname, and real name
-2. Copy the generated link and open it in another browser (or incognito)
-3. **Paste Invitation Link** on the join screen with a different nickname
-4. Both users land in the waiting room; Film Keeper can start when 2+ people are in
-5. Capture photos in session, then Film Keeper taps **Develop Memories**
-6. On `/reveal`, guests see the developing overlay while photos preload; Film Keeper starts the cinematic reveal
-7. Everyone guesses who took each shot; the gallery opens once all votes are in
-8. Browse and download memories from the final gallery
-
----
-
 ## Project structure
 
 ```text
@@ -161,8 +70,8 @@ Rolli/
 └── rolli/                             # Next.js application + Supabase
     ├── README.md                      # App quick start
     ├── supabase/
-    │   ├── README.md                  # Migration setup guide
-    │   └── migrations/                # SQL to run in Supabase (001–031)
+    │   ├── README.md                  # Database setup guide
+    │   └── migrations/                # SQL migrations
     ├── src/
     │   ├── app/                       # Routes (App Router)
     │   ├── components/                # UI, layout, feature components
