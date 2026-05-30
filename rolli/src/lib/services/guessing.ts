@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import type { Hangout } from "@/types/hangout";
-import { parseRpcError } from "@/lib/services/rpc-error";
+import { parseGuessingRpcError } from "@/lib/services/rpc-error";
 import type {
   GuessingResults,
   GuessingState,
@@ -98,7 +98,7 @@ export async function getGuessingState(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseGuessingRpcError(error) };
   }
 
   return { data: mapGuessingState(data as GuessingStateJson) };
@@ -120,7 +120,7 @@ export async function submitVote(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseGuessingRpcError(error) };
   }
 
   return { data: mapGuessingState(data as GuessingStateJson) };
@@ -138,7 +138,7 @@ export async function finishGuessing(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseGuessingRpcError(error) };
   }
 
   return { data: mapHangout(data as HangoutRowJson) };
@@ -156,7 +156,7 @@ export async function getGuessingResults(
   });
 
   if (error) {
-    return { error: parseRpcError(error) };
+    return { error: parseGuessingRpcError(error) };
   }
 
   return { data: mapGuessingResults(data as GuessingResultsJson) };

@@ -46,7 +46,33 @@ export function parseRevealRpcError(error: RpcError): string {
     message.includes("schema cache") ||
     message.includes("Could not find the function")
   ) {
-    return "Reveal is not set up on the database yet. Run migrations 007 and 013 in Supabase SQL Editor, then try again.";
+    return "Reveal is not set up on the database yet. Run migrations 007, 013, and 032 in Supabase SQL Editor, then try again.";
+  }
+
+  if (message.includes("Only the Film Keeper can continue to guessing")) {
+    return "Everyone should be able to continue when they are done viewing. Run migration 032 in Supabase SQL Editor, then try again.";
+  }
+
+  if (message.includes("mark_ready_for_guessing")) {
+    return "Per-participant reveal ready is not set up yet. Run migration 032 in Supabase SQL Editor, then try again.";
+  }
+
+  return message;
+}
+
+export function parseGuessingRpcError(error: RpcError): string {
+  const message = parseRpcError(error);
+
+  if (message.includes("Guessing is not available yet")) {
+    return "Tap Continue to guessing on the reveal screen when you are done viewing the photos.";
+  }
+
+  if (
+    error.code === "PGRST202" ||
+    message.includes("schema cache") ||
+    message.includes("Could not find the function")
+  ) {
+    return "Guessing is not set up on the database yet. Run migrations 008 and 032 in Supabase SQL Editor, then try again.";
   }
 
   return message;

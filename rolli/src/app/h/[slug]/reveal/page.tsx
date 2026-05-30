@@ -2,10 +2,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
+import { flushSync } from "react-dom";
 
 import { DevelopingPrepareOverlay } from "@/components/hangout/developing-prepare-overlay";
-import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
-import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
 import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
 import {
@@ -29,7 +28,7 @@ import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { useInHangoutSession } from "@/hooks/use-in-hangout-session";
 import { useRevealPrepare } from "@/hooks/use-reveal-prepare";
-import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
+import { isCurrentFilmKeeper, isParticipantReadyForGuessing } from "@/lib/hangout/participant";
 import type { MarkReadyForGuessingResult } from "@/types/reveal";
 import type { Participant } from "@/types/participant";
 import { cn } from "@/lib/utils";
@@ -44,7 +43,6 @@ export default function RevealPage() {
   const setHangout = useSessionStore((state) => state.setHangout);
   const setParticipant = useSessionStore((state) => state.setParticipant);
   const storeParticipant = useSessionStore((state) => state.participant);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [revealFooter, setRevealFooter] = useState<SetupFlowFooterState>({});
   const [developingFooter, setDevelopingFooter] = useState<SetupFlowFooterState>(
     {},
@@ -102,12 +100,18 @@ export default function RevealPage() {
 
   const handleMarkReadyForGuessing = useCallback(
     (result: MarkReadyForGuessingResult) => {
-      setHangout(result.hangout);
-      setParticipant(result.participant);
+      flushSync(() => {
+        setHangout(result.hangout);
+        setParticipant(result.participant);
+      });
       router.replace(`/h/${slug}/guessing`);
     },
     [router, setHangout, setParticipant, slug],
   );
+
+  const handleProceedToGuessing = useCallback(() => {
+    router.replace(`/h/${slug}/guessing`);
+  }, [router, slug]);
 
   const revealReady =
     hasValidSession &&
@@ -116,10 +120,6 @@ export default function RevealPage() {
     onRevealPhase;
 
   const activeFooter = isDeveloping ? developingFooter : revealFooter;
-  const showMenu = isRevealing;
-  const menuButton = showMenu ? (
-    <HangoutMenuButton onClick={() => setMenuOpen(true)} />
-  ) : undefined;
 
   return (
     <HangoutPageLoadGate
@@ -151,27 +151,19 @@ export default function RevealPage() {
       compact
       backgroundClassName={isDeveloping ? "bg-white md:bg-canvas" : undefined}
     >
-      {showMenu ? (
-        <HangoutMenuModal
-          open={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          mode="guessing"
-          hangoutId={displayHangout.id}
-          sessionToken={participant.sessionToken}
-          hangout={displayHangout}
-          participant={participant}
-          onHangoutUpdate={setHangout}
-        />
-      ) : null}
-
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         <SetupFlowHeader
           compact
           showProgress={false}
           title={displayHangout.title}
           titleTone="ink"
-          sublabel={isDeveloping ? "Developing memories" : undefined}
-          trailingAction={menuButton}
+          sublabel={
+            isDeveloping
+              ? "Developing memories"
+              : isRevealing
+                ? "Photo reveal"
+                : undefined
+          }
         />
       </header>
 
@@ -191,7 +183,9 @@ export default function RevealPage() {
             <RevealExperience
               hangoutId={displayHangout.id}
               sessionToken={participant.sessionToken}
+              alreadyReadyForGuessing={isParticipantReadyForGuessing(participant)}
               onMarkReadyForGuessing={handleMarkReadyForGuessing}
+              onProceedToGuessing={handleProceedToGuessing}
               onSessionSync={handleSessionSync}
               onFooterChange={setRevealFooter}
               footerEnabled

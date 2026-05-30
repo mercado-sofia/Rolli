@@ -15,8 +15,6 @@ import {
   HangoutInvitationClosedContent,
 } from "@/components/hangout/hangout-invitation-closed";
 import { GuestWaitingRoomBack } from "@/components/hangout/guest-waiting-room-back";
-import { HangoutMenuButton } from "@/components/hangout/hangout-menu-button";
-import { HangoutMenuModal } from "@/components/hangout/hangout-menu-modal";
 import { HangoutParticipantSessionGate } from "@/components/hangout/hangout-participant-session-gate";
 import { WaitingRoomNickname } from "@/components/hangout/waiting-room-nickname";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
@@ -61,7 +59,6 @@ export default function WaitingRoomPage() {
 
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [abandonUiState, setAbandonUiState] = useState<AbandonHangoutUiState>("idle");
 
   const { displayHangout, loadError, isLoading, retry } = useDisplayHangout(slug);
@@ -132,7 +129,6 @@ export default function WaitingRoomPage() {
 
   const waitingHint = getWaitingHint(isFilmKeeper, canStart);
   const footerHint = isCancelled ? HANGOUT_CANCELLED_FOOTER_HINT : waitingHint;
-  const menuButton = <HangoutMenuButton onClick={() => setMenuOpen(true)} />;
 
   return (
     <HangoutPageLoadGate
@@ -159,19 +155,6 @@ export default function WaitingRoomPage() {
     >
       {showWaitingGate && participant ? (
     <SetupFlowShell>
-      {!isCancelled && participant ? (
-        <HangoutMenuModal
-          open={menuOpen}
-          onClose={() => setMenuOpen(false)}
-          mode="lobby"
-          hangoutId={displayHangout.id}
-          sessionToken={participant.sessionToken}
-          hangout={displayHangout}
-          participant={participant}
-          onHangoutUpdate={setHangout}
-        />
-      ) : null}
-
       <header className={SETUP_FLOW_HEADER_COMPACT_CLASS}>
         {isCancelled ? (
           <SetupFlowHeader
@@ -188,7 +171,6 @@ export default function WaitingRoomPage() {
             sublabel="Waiting room"
             backHref={hangoutSharePath(slug)}
             backLabel="Back to invite link"
-            trailingAction={menuButton}
           />
         ) : (
           <GuestWaitingRoomBack
@@ -196,7 +178,6 @@ export default function WaitingRoomPage() {
             hangoutId={displayHangout.id}
             sessionToken={participant!.sessionToken}
             title={displayHangout.title}
-            trailingAction={menuButton}
           />
         )}
       </header>

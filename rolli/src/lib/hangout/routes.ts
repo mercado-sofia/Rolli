@@ -77,6 +77,9 @@ export function getHangoutRouteRedirect(
     if (path === revealPath && !readyForGuessing) {
       return null;
     }
+    if (path === revealPath && readyForGuessing) {
+      return guessingPath;
+    }
     if (path === guessingPath && readyForGuessing) {
       return null;
     }

@@ -114,10 +114,7 @@ export default function GuessingPage() {
     (displayHangout?.status === "revealing" && participantReadyForGuessing);
 
   const isCompleted = displayHangout?.status === "completed";
-  const showMenu =
-    !isCompleted &&
-    (displayHangout?.status === "guessing" ||
-      (displayHangout?.status === "revealing" && participantReadyForGuessing));
+  const showMenu = isGuessingPhase && !isCompleted;
   const menuButton = showMenu ? (
     <HangoutMenuButton onClick={() => setMenuOpen(true)} />
   ) : undefined;

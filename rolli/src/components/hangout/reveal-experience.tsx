@@ -34,7 +34,9 @@ export type SetupFlowFooterState = {
 type RevealExperienceProps = {
   hangoutId: string;
   sessionToken: string;
+  alreadyReadyForGuessing?: boolean;
   onMarkReadyForGuessing: (result: MarkReadyForGuessingResult) => void;
+  onProceedToGuessing?: () => void;
   onSessionSync?: (payload: {
     hangout?: Hangout;
     participant?: Participant;
@@ -49,7 +51,9 @@ type RevealExperienceProps = {
 export function RevealExperience({
   hangoutId,
   sessionToken,
+  alreadyReadyForGuessing = false,
   onMarkReadyForGuessing,
+  onProceedToGuessing,
   onSessionSync,
   onFooterChange,
   footerEnabled = true,
@@ -213,6 +217,19 @@ export function RevealExperience({
     onMarkReadyForGuessing(data);
   }, [hangoutId, onMarkReadyForGuessing, sessionToken]);
 
+  const handleContinueToGuessing = useCallback(() => {
+    if (alreadyReadyForGuessing) {
+      onProceedToGuessing?.();
+      return;
+    }
+
+    void handleMarkReadyForGuessing();
+  }, [
+    alreadyReadyForGuessing,
+    handleMarkReadyForGuessing,
+    onProceedToGuessing,
+  ]);
+
   const continueToGuessingFooter = useCallback(
     (hint: string): SetupFlowFooterState => ({
       hint,
@@ -224,15 +241,22 @@ export function RevealExperience({
           <Button
             type="button"
             className={APP_PRIMARY_BUTTON_CLASS}
-            disabled={finishing}
-            onClick={() => void handleMarkReadyForGuessing()}
+            disabled={finishing && !alreadyReadyForGuessing}
+            onClick={handleContinueToGuessing}
           >
-            {finishing ? "Continuing…" : "Continue to guessing"}
+            {finishing && !alreadyReadyForGuessing
+              ? "Continuing…"
+              : "Continue to guessing"}
           </Button>
         </>
       ),
     }),
-    [finishError, finishing, handleMarkReadyForGuessing],
+    [
+      alreadyReadyForGuessing,
+      finishError,
+      finishing,
+      handleContinueToGuessing,
+    ],
   );
 
   const swipeHint = useCallback(() => {
@@ -251,7 +275,9 @@ export function RevealExperience({
     if (perspectives.length === 0 || totalPhotos === 0) {
       onFooterChange(
         continueToGuessingFooter(
-          "No memories were captured — you can still continue to guessing.",
+          alreadyReadyForGuessing
+            ? "You are ready — continue to guessing when you like."
+            : "No memories were captured — you can still continue to guessing.",
         ),
       );
       return;
@@ -274,9 +300,14 @@ export function RevealExperience({
     }
 
     onFooterChange(
-      continueToGuessingFooter("Continue when you're done viewing."),
+      continueToGuessingFooter(
+        alreadyReadyForGuessing
+          ? "You are ready — continue to guessing when you like."
+          : "Continue when you're done viewing.",
+      ),
     );
   }, [
+    alreadyReadyForGuessing,
     continueToGuessingFooter,
     footerEnabled,
     isLastPerspective,

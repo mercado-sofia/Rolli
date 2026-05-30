@@ -89,43 +89,43 @@ export function PerspectivePhotosOverlay({
             </div>
 
             <div>
-            {loading ? (
-              <p className="py-8 text-center text-sm text-muted">Loading photos…</p>
-            ) : null}
+              {loading ? (
+                <p className="py-8 text-center text-sm text-muted">Loading photos…</p>
+              ) : null}
 
-            {!loading && loadError ? (
-              <p className="py-8 text-center text-sm text-pink">{loadError}</p>
-            ) : null}
+              {!loading && loadError ? (
+                <p className="py-8 text-center text-sm text-pink">{loadError}</p>
+              ) : null}
 
-            {!loading && !loadError && photos.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted">
-                No photos from this perspective.
-              </p>
-            ) : null}
+              {!loading && !loadError && photos.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted">
+                  No photos from this perspective.
+                </p>
+              ) : null}
 
-            {!loading && !loadError && photos.length > 0 ? (
-              <ul className="grid grid-cols-2 gap-3">
-                {photos.map((photo, index) => (
-                  <li
-                    key={photo.id}
-                    className="aspect-3/4 overflow-hidden rounded-2xl border border-container-border bg-[#F8F8F8]"
-                  >
-                    {photo.signedUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={photo.signedUrl}
-                        alt={`${nickname} memory ${index + 1}`}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-xs text-muted">
-                        Unavailable
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            ) : null}
+              {!loading && !loadError && photos.length > 0 ? (
+                <ul className="grid grid-cols-2 gap-3">
+                  {photos.map((photo, index) => (
+                    <li
+                      key={photo.id}
+                      className="aspect-3/4 overflow-hidden rounded-2xl border border-container-border bg-[#F8F8F8]"
+                    >
+                      {photo.signedUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={photo.signedUrl}
+                          alt={`${nickname} memory ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-xs text-muted">
+                          Unavailable
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
           </div>
         </div>

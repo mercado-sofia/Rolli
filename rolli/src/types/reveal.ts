@@ -1,3 +1,6 @@
+import type { Hangout } from "@/types/hangout";
+import type { Participant } from "@/types/participant";
+
 export type RevealPhoto = {
   id: string;
   storagePath: string;
@@ -18,9 +21,6 @@ export type RevealReadyProgress = {
   ready: number;
   total: number;
 };
-
-import type { Hangout } from "@/types/hangout";
-import type { Participant } from "@/types/participant";
 
 export type RevealState = {
   perspectives: RevealPerspective[];

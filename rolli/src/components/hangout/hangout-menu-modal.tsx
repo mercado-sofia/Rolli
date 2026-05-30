@@ -55,7 +55,7 @@ function RosterRow({
           <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-ink">
             <MdOutlinePersonOutline
               className="shrink-0"
-              size={14}
+              size={16}
               aria-hidden
             />
             <span className="truncate">
