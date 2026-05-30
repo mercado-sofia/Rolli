@@ -6,7 +6,6 @@ import { LuFilm } from "react-icons/lu";
 import { HangoutCardIcon } from "@/components/hangout/hangout-card-icon";
 import { RevealCountdownOverlay } from "@/components/hangout/reveal-countdown-overlay";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { useRevealCountdown } from "@/hooks/use-reveal-countdown";
 import type { useRevealPrepare } from "@/hooks/use-reveal-prepare";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
@@ -226,29 +225,26 @@ export function DevelopingPrepareOverlay({
       ) : null}
 
       <div
-        className="absolute inset-0 z-20 flex flex-col items-center justify-center px-1"
-        aria-hidden={false}
+        className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background px-6 text-center sm:px-8"
         role="dialog"
         aria-label="Preparing reveal"
       >
-        <Card border="neutral" className="mx-auto w-full max-w-md text-center">
-          <HangoutCardIcon
-            icon={LuFilm}
-            borderTone="ink"
-            iconClassName="text-ink"
-          />
-          <p className="font-display mt-4 text-2xl leading-snug">
-            {revealStarting ? "Reveal starting" : "Memories in the darkroom"}
-          </p>
-          <DevelopingStatusMessage
-            revealStarting={revealStarting}
-            prepareStatus={prepare.status}
-            prepareError={prepare.error}
-            photoCount={prepare.photoCount}
-            perspectiveCount={prepare.perspectiveCount}
-            onRetry={prepare.retry}
-          />
-        </Card>
+        <HangoutCardIcon
+          icon={LuFilm}
+          borderTone="ink"
+          iconClassName="text-ink"
+        />
+        <p className="font-display mt-4 max-w-md text-2xl leading-snug">
+          {revealStarting ? "Reveal starting" : "Memories in the darkroom"}
+        </p>
+        <DevelopingStatusMessage
+          revealStarting={revealStarting}
+          prepareStatus={prepare.status}
+          prepareError={prepare.error}
+          photoCount={prepare.photoCount}
+          perspectiveCount={prepare.perspectiveCount}
+          onRetry={prepare.retry}
+        />
       </div>
     </>
   );
