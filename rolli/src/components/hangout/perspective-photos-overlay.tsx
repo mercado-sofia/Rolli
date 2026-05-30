@@ -3,8 +3,10 @@
 import { createPortal } from "react-dom";
 import { useSyncExternalStore } from "react";
 
-import { GuideModalCloseButton } from "@/components/hangout/guide-modal-shell";
-import { useGuideDialog } from "@/components/hangout/use-guide-dialog";
+import {
+  GuideModalCloseButton,
+  useGuideDialog,
+} from "@/components/hangout/guide-modals";
 import { cn } from "@/lib/utils";
 import type { RevealPhoto } from "@/types/reveal";
 

@@ -6,7 +6,7 @@ import { TbDoorExit } from "react-icons/tb";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { leaveHangout } from "@/lib/hangout/hangouts";
+import { leaveHangout } from "@/lib/hangout/hangout-api";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 

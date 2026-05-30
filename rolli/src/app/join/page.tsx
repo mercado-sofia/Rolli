@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
 import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 
 const JOIN_FORM_ID = "join-hangout-form";
 

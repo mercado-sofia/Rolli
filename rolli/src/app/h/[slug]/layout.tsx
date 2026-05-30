@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 
 import { RevealAmbientAudio } from "@/components/hangout/reveal-ambient-audio";
 import { useDisplayHangout } from "@/hooks/use-display-hangout";
-import { shouldPlayRevealAmbientMusic } from "@/lib/hangout/reveal-ambient-audio-controller";
+import { shouldPlayRevealAmbientMusic } from "@/lib/hangout/reveal-audio";
 
 export default function HangoutSlugLayout({
   children,

@@ -10,8 +10,7 @@ import { LeaveRoomButton } from "@/components/hangout/back-home-button";
 import { CameraCapture } from "@/components/hangout/camera-capture";
 import { ElapsedTimer } from "@/components/hangout/elapsed-timer";
 import { FilmKeeperPromotionBanner } from "@/components/hangout/film-keeper-promotion-banner";
-import { RolliGuideModal } from "@/components/hangout/rolli-guide-modal";
-import { SessionGuideModal } from "@/components/hangout/session-guide-modal";
+import { RolliGuideModal, SessionGuideModal } from "@/components/hangout/guide-modals";
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import {
   SetupFlowFooter,
@@ -33,13 +32,13 @@ import {
   HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
 } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
-import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
-import { endHangout } from "@/lib/hangout/hangouts";
+import { endHangout } from "@/lib/hangout/hangout-api";
+import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
 import {
   consumeSessionGuidePending,
   hasSeenSessionGuide,
   markSessionGuideSeen,
-} from "@/lib/hangout/session-guide-storage";
+} from "@/lib/hangout/setup";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 

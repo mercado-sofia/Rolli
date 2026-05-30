@@ -28,13 +28,12 @@ import {
   APP_PRIMARY_BUTTON_CLASS,
   HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
 } from "@/lib/app-page-layout";
-import { isParticipantReadyForGuessing } from "@/lib/hangout/participant-ready";
+import { isParticipantReadyForGuessing } from "@/lib/hangout/participant";
 import {
   HANGOUT_GUESSING_PATH_SUFFIX,
   hangoutGalleryPath,
 } from "@/lib/hangout/routes";
-import { finishGuessing } from "@/lib/hangout/guessing";
-import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
+import { fetchHangoutBySlug, finishGuessing } from "@/lib/hangout/hangout-api";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";

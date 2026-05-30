@@ -7,7 +7,7 @@ import {
   playRevealAmbientAudio,
   preloadRevealAmbientAudio,
   unlockRevealAmbientAudioForAutoplay,
-} from "@/lib/hangout/reveal-ambient-audio-controller";
+} from "@/lib/hangout/reveal-audio";
 
 type RevealAmbientAudioProps = {
   active: boolean;

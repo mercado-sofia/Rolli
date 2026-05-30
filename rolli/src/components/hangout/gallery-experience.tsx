@@ -12,9 +12,13 @@ import {
   galleryFolderGridClass,
 } from "@/lib/app-page-layout";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
-import { downloadPhotosAsZip, downloadSinglePhoto } from "@/lib/hangout/download-photos";
-import { getGalleryParticipantTheme } from "@/lib/hangout/gallery-colors";
-import { getGallery, signGalleryPhotoUrls } from "@/lib/hangout/gallery";
+import {
+  downloadPhotosAsZip,
+  downloadSinglePhoto,
+  getGallery,
+  getGalleryParticipantTheme,
+  signGalleryPhotoUrls,
+} from "@/lib/hangout/gallery";
 import type { RevealPerspective } from "@/types/reveal";
 
 type GalleryExperienceProps = {

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   getRevealCountdownDisplaySeconds,
   getRevealCountdownEndsAt,
-} from "@/lib/hangout/reveal-countdown";
+} from "@/lib/hangout/reveal-preload";
 
 type UseRevealCountdownOptions = {
   enabled?: boolean;

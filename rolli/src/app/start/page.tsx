@@ -11,7 +11,7 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { Card } from "@/components/ui/card";
 import { APP_CHOICE_GRID_CLASS } from "@/lib/app-page-layout";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { cn } from "@/lib/utils";
 
 export default function StartPage() {

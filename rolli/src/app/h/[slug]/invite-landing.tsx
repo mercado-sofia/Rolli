@@ -16,21 +16,19 @@ import {
 } from "@/components/layout/setup-flow-shell";
 import { Button } from "@/components/ui/button";
 import { MobileLoadingSpinner } from "@/components/ui/mobile-loading-spinner";
-import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangouts";
+import { fetchHangoutBySlug, rejoinHangout } from "@/lib/hangout/hangout-api";
 import {
   getLateJoinHint,
+  hangoutInviteReturnPath,
   isHangoutInProgress,
   isHangoutJoinable,
   isHangoutRejoinable,
-} from "@/lib/hangout/join-eligibility";
-import { hangoutParticipantPath } from "@/lib/hangout/routes";
-import { isHangoutSessionValid } from "@/lib/hangout/session-validity";
-import {
-  hangoutInviteReturnPath,
   setWaitingReturnPath,
-} from "@/lib/hangout/waiting-return-path";
+} from "@/lib/hangout/join";
+import { isHangoutSessionValid } from "@/lib/hangout/participant";
+import { hangoutParticipantPath } from "@/lib/hangout/routes";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { useSessionHydrated } from "@/hooks/use-session-hydrated";
 import { useSessionStore } from "@/store/session-store";
 import { cn } from "@/lib/utils";

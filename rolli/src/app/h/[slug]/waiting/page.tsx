@@ -33,16 +33,15 @@ import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useFilmKeeperPromotion } from "@/hooks/use-film-keeper-promotion";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
-import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
+import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
 import {
   APP_PRIMARY_BUTTON_CLASS,
   HANGOUT_PINK_GRADIENT_BUTTON_CLASS,
 } from "@/lib/app-page-layout";
 import { HANGOUT_LIMITS } from "@/lib/constants";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { startHangout } from "@/lib/hangout/hangout-api";
 import { hangoutSharePath } from "@/lib/hangout/routes";
-import { startHangout } from "@/lib/hangout/hangouts";
-import { markSessionGuidePending } from "@/lib/hangout/session-guide-storage";
+import { markSessionGuidePending, SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { getWaitingHint } from "@/lib/hangout/waiting-hint";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";

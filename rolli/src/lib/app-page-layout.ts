@@ -12,15 +12,6 @@ export const SETUP_FLOW_FOOTER_BLEED_X = "-mx-4 sm:-mx-7 md:-mx-8";
 /** Horizontal padding for headers, forms, and cards */
 export const APP_CONTENT_PADDING_X = "px-4 sm:px-7 md:px-8";
 
-/** @deprecated Use APP_ACTION_PADDING_X — inset-* only applies to positioned elements */
-export const APP_ACTION_INSET_X = APP_ACTION_PADDING_X;
-
-/** @deprecated Use APP_CONTENT_PADDING_X */
-export const APP_CONTENT_INSET_X = APP_CONTENT_PADDING_X;
-
-/** Extra margin on flow content inside MobileShell (pairs with APP_SHELL_PADDING_X). */
-export const APP_CONTENT_MARGIN_X = "mx-0 min-w-0 sm:mx-1 md:mx-0";
-
 /** Bottom safe-area padding for scrollable app shells */
 export const APP_SAFE_BOTTOM = "pb-[max(1.5rem,env(safe-area-inset-bottom))]";
 
@@ -130,9 +121,6 @@ export const APP_SHELL_DESKTOP_FRAME =
 
 /** Vertical inset on desktop — panel floats on the canvas */
 export const APP_SHELL_DESKTOP_INSET = "md:my-6 lg:my-8";
-
-/** Default vertical gap between sections on scrollable app pages */
-export const APP_PAGE_STACK_GAP = "gap-6 md:gap-8";
 
 /** Primary CTA at the bottom of app / setup flows */
 export const APP_PRIMARY_BUTTON_CLASS = "h-[54px] w-full";

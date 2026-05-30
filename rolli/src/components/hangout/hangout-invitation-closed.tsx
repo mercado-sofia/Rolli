@@ -13,7 +13,7 @@ import {
   SETUP_FLOW_MAIN_INNER_CLASS,
 } from "@/components/layout/setup-flow-shell";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 

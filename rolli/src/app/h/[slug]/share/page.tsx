@@ -18,8 +18,8 @@ import { useDisplayHangout } from "@/hooks/use-display-hangout";
 import { useHangoutRouteGuard } from "@/hooks/use-hangout-route-guard";
 import { useHangoutSessionGuard } from "@/hooks/use-hangout-session-guard";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
-import { buildInviteUrl } from "@/lib/hangout/invite";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { buildInviteUrl } from "@/lib/hangout/join";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { cn } from "@/lib/utils";
 
 export default function HangoutSharePage() {

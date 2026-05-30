@@ -3,7 +3,7 @@
 import { LuFolder } from "react-icons/lu";
 
 import { LANDING_ICON_CLASS } from "@/components/landing/landing-icons";
-import type { GalleryPastelTheme } from "@/lib/hangout/gallery-colors";
+import type { GalleryPastelTheme } from "@/lib/hangout/gallery";
 import { cn } from "@/lib/utils";
 
 type GalleryFolderCardProps = {

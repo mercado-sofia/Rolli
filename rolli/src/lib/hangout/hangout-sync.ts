@@ -1,4 +1,4 @@
-import type { HangoutStatus } from "@/types/hangout";
+import type { Hangout, HangoutStatus } from "@/types/hangout";
 
 /** Higher rank = later phase in the hangout lifecycle. */
 const STATUS_RANK: Record<HangoutStatus, number> = {
@@ -23,4 +23,25 @@ export function pickMoreAdvancedHangoutStatus(
   return hangoutStatusRank(storeStatus) >= hangoutStatusRank(syncedStatus)
     ? storeStatus
     : syncedStatus;
+}
+
+/**
+ * Merge a fetched/realtime hangout into session state without downgrading phase
+ * (e.g. keep `completed` when a stale poll still returns `guessing`).
+ */
+export function mergeHangoutUpdate(
+  current: Hangout | null,
+  incoming: Hangout,
+): Hangout {
+  if (!current || current.id !== incoming.id || current.slug !== incoming.slug) {
+    return incoming;
+  }
+
+  if (current.status === "cancelled" && incoming.status === "waiting") {
+    return current;
+  }
+
+  const status = pickMoreAdvancedHangoutStatus(current.status, incoming.status);
+
+  return { ...current, ...incoming, status };
 }

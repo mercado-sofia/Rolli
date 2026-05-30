@@ -6,7 +6,7 @@ import { TbMoodSad } from "react-icons/tb";
 
 import { HANGOUT_CANCELLED_MESSAGE } from "@/components/hangout/hangout-invitation-closed";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { abandonHangout } from "@/lib/hangout/hangouts";
+import { abandonHangout } from "@/lib/hangout/hangout-api";
 import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";

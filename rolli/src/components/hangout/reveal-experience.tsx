@@ -9,15 +9,15 @@ import { Card } from "@/components/ui/card";
 import { useResignPhotosOnVisibility } from "@/hooks/use-resign-photos-on-visibility";
 import { APP_PRIMARY_BUTTON_CLASS } from "@/lib/app-page-layout";
 import {
-  clearRevealPreload,
-  getRevealPreload,
-  isRevealPreloadUsable,
-} from "@/lib/hangout/reveal-preload-cache";
-import {
   getRevealState,
   markReadyForGuessing,
   signRevealPhotoUrls,
-} from "@/lib/hangout/reveal";
+} from "@/lib/hangout/hangout-api";
+import {
+  clearRevealPreload,
+  getRevealPreload,
+  isRevealPreloadUsable,
+} from "@/lib/hangout/reveal-preload";
 import type { Hangout } from "@/types/hangout";
 import type { Participant } from "@/types/participant";
 import type {

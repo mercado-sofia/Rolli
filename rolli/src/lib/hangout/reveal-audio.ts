@@ -1,4 +1,5 @@
-import { REVEAL_AMBIENT_MUSIC_SRC } from "@/lib/hangout/reveal-music";
+/** Ambient track for the photo reveal phase (file in /public/music). */
+export const REVEAL_AMBIENT_MUSIC_SRC = `/music/${encodeURIComponent("time machine.mp3")}`;
 
 export const REVEAL_MUSIC_VOLUME = 0.55;
 /** Skip the intro — playback begins here on each fresh start. */

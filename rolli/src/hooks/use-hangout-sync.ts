@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { HANGOUT_LIMITS } from "@/lib/constants";
-import { fetchHangoutBySlug } from "@/lib/hangout/hangouts";
-import { mergeHangoutUpdate } from "@/lib/hangout/merge-hangout";
+import { fetchHangoutBySlug } from "@/lib/hangout/hangout-api";
+import { mergeHangoutUpdate } from "@/lib/hangout/hangout-sync";
 import { createClient } from "@/lib/supabase/client";
 import { mapHangout, type HangoutRowJson } from "@/lib/supabase/mappers";
 import { useSessionStore } from "@/store/session-store";

@@ -13,20 +13,16 @@ import {
   APP_PRIMARY_BUTTON_CLASS,
   DEVELOPING_MOBILE_OVERLAY_CLASS,
 } from "@/lib/app-page-layout";
+import { signalRevealPending, startReveal } from "@/lib/hangout/hangout-api";
 import {
   getRevealCountdownMs,
-  isRevealCountdownActive,
-} from "@/lib/hangout/reveal-countdown";
-import {
   getRevealPreload,
+  isRevealCountdownActive,
   isRevealPreloadUsable,
-} from "@/lib/hangout/reveal-preload-cache";
-import {
   preloadRevealAmbientAudio,
   preloadRevealState,
 } from "@/lib/hangout/reveal-preload";
-import { signalRevealPending, startReveal } from "@/lib/hangout/reveal";
-import { unlockRevealAmbientAudioForAutoplay } from "@/lib/hangout/reveal-ambient-audio-controller";
+import { unlockRevealAmbientAudioForAutoplay } from "@/lib/hangout/reveal-audio";
 import type { Hangout } from "@/types/hangout";
 import { cn } from "@/lib/utils";
 

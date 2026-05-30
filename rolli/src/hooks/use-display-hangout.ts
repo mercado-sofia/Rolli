@@ -1,7 +1,7 @@
 "use client";
 
 import { useHangoutSync } from "@/hooks/use-hangout-sync";
-import { mergeHangoutUpdate } from "@/lib/hangout/merge-hangout";
+import { mergeHangoutUpdate } from "@/lib/hangout/hangout-sync";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 

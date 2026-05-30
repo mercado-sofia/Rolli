@@ -19,12 +19,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { SetupFormCard } from "@/components/ui/setup-form-card";
-import { createHangoutWithKeeper } from "@/lib/hangout/hangouts";
-import { buildInviteUrl } from "@/lib/hangout/invite";
+import { createHangoutWithKeeper } from "@/lib/hangout/hangout-api";
+import { buildInviteUrl } from "@/lib/hangout/join";
 import { APP_PRIMARY_BUTTON_CLASS, APP_SETUP_FORM_MAX_WIDTH } from "@/lib/app-page-layout";
 import { NICKNAME_MIN_LENGTH } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup-flow";
+import { SETUP_FLOW_TOTAL_STEPS, setupFlowSteps } from "@/lib/hangout/setup";
 import { useSessionStore } from "@/store/session-store";
 
 const schema = z.object({

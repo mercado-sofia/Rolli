@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { useSessionHydrated } from "@/hooks/use-session-hydrated";
-import { isHangoutSessionValid } from "@/lib/hangout/session-validity";
+import { isHangoutSessionValid } from "@/lib/hangout/participant";
 import { useSessionStore } from "@/store/session-store";
 import type { Hangout } from "@/types/hangout";
 

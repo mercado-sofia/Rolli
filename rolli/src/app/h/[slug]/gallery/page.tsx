@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { BackHomeButton } from "@/components/hangout/back-home-button";
 import { GalleryExperience } from "@/components/hangout/gallery-experience";
@@ -50,6 +50,17 @@ export default function GalleryPage() {
   const sessionHydrated = useSessionHydrated();
   const { displayHangout, isLoading, loadError, retry } = useDisplayHangout(slug);
   const [galleryLoading, setGalleryLoading] = useState(true);
+  const [galleryLoadingHangoutId, setGalleryLoadingHangoutId] = useState<
+    string | null
+  >(null);
+
+  const activeHangoutId = displayHangout?.id ?? null;
+  if (activeHangoutId !== galleryLoadingHangoutId) {
+    setGalleryLoadingHangoutId(activeHangoutId);
+    if (activeHangoutId !== null) {
+      setGalleryLoading(true);
+    }
+  }
 
   useHangoutRouteGuard({
     slug,
@@ -66,10 +77,6 @@ export default function GalleryPage() {
   const handleGalleryLoadingChange = useCallback((loading: boolean) => {
     setGalleryLoading(loading);
   }, []);
-
-  useEffect(() => {
-    setGalleryLoading(true);
-  }, [slug, displayHangout?.id]);
 
   const galleryReady =
     sessionHydrated &&

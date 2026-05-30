@@ -129,7 +129,7 @@ export function LandingNavbar() {
           <>
             <motion.button
               type="button"
-              className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top))] z-40 bg-ink/20 sm:hidden"
+              className="fixed inset-0 top-[calc(3.5rem+env(safe-area-inset-top,0))] z-40 bg-ink/20 sm:hidden"
               aria-label="Close menu"
               onClick={() => setMenuOpen(false)}
               initial={{ opacity: 0 }}

@@ -6,12 +6,12 @@ import { TbDoorExit } from "react-icons/tb";
 
 import { SetupFlowHeader } from "@/components/layout/setup-flow-header";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { leaveHangout } from "@/lib/hangout/hangouts";
+import { leaveHangout } from "@/lib/hangout/hangout-api";
 import {
   clearWaitingReturnPath,
   getWaitingReturnPath,
   hangoutInviteReturnPath,
-} from "@/lib/hangout/waiting-return-path";
+} from "@/lib/hangout/join";
 import { useSessionStore } from "@/store/session-store";
 
 type GuestWaitingRoomBackProps = {

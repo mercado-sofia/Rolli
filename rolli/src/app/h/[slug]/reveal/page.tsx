@@ -28,7 +28,7 @@ import {
   DEVELOPING_FLOW_CHROME_CLASS,
   DEVELOPING_FLOW_FOOTER_CHROME_CLASS,
 } from "@/lib/app-page-layout";
-import { isCurrentFilmKeeper } from "@/lib/hangout/film-keeper";
+import { isCurrentFilmKeeper } from "@/lib/hangout/participant";
 import type { MarkReadyForGuessingResult } from "@/types/reveal";
 import type { Participant } from "@/types/participant";
 import { cn } from "@/lib/utils";

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import {
   getRevealPreload,
   isRevealPreloadUsable,
-} from "@/lib/hangout/reveal-preload-cache";
+} from "@/lib/hangout/reveal-preload";
 import { preloadRevealState } from "@/lib/hangout/reveal-preload";
 import type { RevealPerspective } from "@/types/reveal";
 

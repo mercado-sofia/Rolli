@@ -15,8 +15,9 @@ import {
   getGuessingResults,
   getGuessingState,
   submitVote,
-} from "@/lib/hangout/guessing";
-import { getRevealState, signRevealPhotoUrls } from "@/lib/hangout/reveal";
+  getRevealState,
+  signRevealPhotoUrls,
+} from "@/lib/hangout/hangout-api";
 import type { Hangout } from "@/types/hangout";
 import type { HangoutStatus } from "@/types/hangout";
 import type { GuessingResults, GuessingState, GuessingTarget } from "@/types/guessing";
@@ -59,8 +60,20 @@ export function GuessingExperience({
   const [perspectivePhotos, setPerspectivePhotos] = useState<RevealPerspective[]>([]);
   const [photosLoading, setPhotosLoading] = useState(false);
   const [photosLoadError, setPhotosLoadError] = useState<string | null>(null);
-  const perspectivePhotosLoadedRef = useRef(false);
+  const [loadedPerspectivePhotosKey, setLoadedPerspectivePhotosKey] = useState<
+    string | null
+  >(null);
   const onHangoutCompletedRef = useRef(onHangoutCompleted);
+  const photosResetKey = `${hangoutId}:${reloadKey}`;
+  const [trackedPhotosResetKey, setTrackedPhotosResetKey] = useState(photosResetKey);
+
+  if (trackedPhotosResetKey !== photosResetKey) {
+    setTrackedPhotosResetKey(photosResetKey);
+    setLoadedPerspectivePhotosKey(null);
+    setPerspectivePhotos([]);
+    setPhotosLoadError(null);
+    setPhotosLoading(false);
+  }
 
   useEffect(() => {
     onHangoutCompletedRef.current = onHangoutCompleted;
@@ -81,11 +94,7 @@ export function GuessingExperience({
 
     async function load() {
       setLoadError(null);
-
-      const needsInitialLoad = isCompleted ? results === null : state === null;
-      if (reloadKey > 0 || needsInitialLoad) {
-        setLoading(true);
-      }
+      setLoading(true);
 
       if (isCompleted) {
         const { data, error } = await getGuessingResults(hangoutId, sessionToken);
@@ -129,13 +138,6 @@ export function GuessingExperience({
     };
   }, [canAccessGuessing, hangoutId, isCompleted, reloadKey, sessionToken]);
 
-  useEffect(() => {
-    perspectivePhotosLoadedRef.current = false;
-    setPerspectivePhotos([]);
-    setPhotosLoadError(null);
-    setPhotosLoading(false);
-  }, [hangoutId, reloadKey]);
-
   const canLoadPerspectivePhotos = !isCompleted && !loading && state !== null;
 
   useEffect(() => {
@@ -143,8 +145,7 @@ export function GuessingExperience({
       return;
     }
 
-    if (perspectivePhotosLoadedRef.current) {
-      setPhotosLoading(false);
+    if (loadedPerspectivePhotosKey === photosResetKey) {
       return;
     }
 
@@ -167,7 +168,7 @@ export function GuessingExperience({
         const signed = await signRevealPhotoUrls(data.perspectives);
         if (cancelled) return;
 
-        perspectivePhotosLoadedRef.current = true;
+        setLoadedPerspectivePhotosKey(photosResetKey);
         setPerspectivePhotos(signed);
       } finally {
         if (!cancelled) {
@@ -182,7 +183,14 @@ export function GuessingExperience({
       cancelled = true;
       setPhotosLoading(false);
     };
-  }, [canLoadPerspectivePhotos, galleryTarget, hangoutId, sessionToken]);
+  }, [
+    canLoadPerspectivePhotos,
+    galleryTarget,
+    hangoutId,
+    loadedPerspectivePhotosKey,
+    photosResetKey,
+    sessionToken,
+  ]);
 
   const galleryPhotos = useMemo(() => {
     if (!galleryTarget) return [];

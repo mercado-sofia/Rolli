@@ -19,7 +19,7 @@ import {
   CAMERA_VIDEO_CONSTRAINTS,
   encodeVideoFrameToJpeg,
 } from "@/lib/hangout/camera-frame";
-import { captureMemory } from "@/lib/hangout/photos";
+import { captureMemory } from "@/lib/hangout/hangout-api";
 import { FIXED_VIEWPORT_BLEED_CLASS } from "@/lib/app-page-layout";
 import { cn } from "@/lib/utils";
 import type { Participant } from "@/types/participant";

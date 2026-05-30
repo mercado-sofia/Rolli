@@ -14,7 +14,7 @@ export function RevealCountdownOverlay({ seconds }: RevealCountdownOverlayProps)
 
   return createPortal(
     <div
-      className={cn(FIXED_VIEWPORT_BLEED_CLASS, "z-[100] flex items-center justify-center bg-ink/70 backdrop-blur-sm")}
+      className={cn(FIXED_VIEWPORT_BLEED_CLASS, "z-100 flex items-center justify-center bg-ink/70 backdrop-blur-sm")}
       role="status"
       aria-live="polite"
       aria-label={`Reveal starting in ${seconds}`}
